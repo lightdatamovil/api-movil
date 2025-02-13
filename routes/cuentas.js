@@ -22,14 +22,15 @@ cuentas.post('/listarCuentas', verifyToken, async (req, res) => {
 		}
 
 		let dbConfig = {
-			host: "bhsmysql1.lightdata.com.ar",
-			user: empresa.dbuser,
-			password: empresa.dbpass,
-			database: empresa.dbname
+			host: "149.56.182.49",
+			user: "ue" + empresa.id,
+			password: "78451296",
+			database: "e" + empresa.id,
+			port: 44339
 		};
 
 		const dbConnection = mysql.createConnection(dbConfig);
-		await dbConnection.connect();
+		dbConnection.connect();
 		var Atemp = [];
 		const query = "SELECT id,did,tipoCuenta,dataCuenta,ML_user,ML_id_vendedor, tn_id,tn_url,woo_api,woo_secreto,woo_web,shop_url,shop_api,shop_api2,clientes_cuentas.data,pre_url,pre_api,vtex_url,vtex_key,vtex_token,ingreso_automatico,fala_key,fala_userid,jumpseller_login,jumpseller_token,fulfillment,me1,sync_woo,flexdata FROM `clientes_cuentas` Where superado=0 and elim=0 and didCliente = " + sqlduenio;
 		const results = await executeQuery(dbConnection, query, []);

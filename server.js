@@ -8,7 +8,8 @@ const qr = require('./routes/qr');
 const rutas = require('./routes/rutas');
 const { redisClient } = require('./db');
 
-let empresasDB = null;
+const empresasList = [];
+
 var AclientesXEmpresa = new Object();
 var AusuariosXEmpresa = new Object();
 var AzonasXEmpresa = new Object();
@@ -16,7 +17,7 @@ var AzonasXEmpresa = new Object();
 const app = express();
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-const PORT = 3000;
+const PORT = 13000;
 
 app.use(express.json());
 
@@ -29,7 +30,9 @@ app.post('/api/testapi', async (req, res) => {
         await redisClient.connect();
 
         const empresasDataJson = await redisClient.get('empresasData');
-        empresasDB = JSON.parse(empresasDataJson);
+        const empresas = Object.values(JSON.parse(empresasDataJson));
+        empresasList.length = 0;
+        empresasList.push(...empresas);
 
         app.use('/api/auth', auth);
         app.use('/api/cuentas', cuentas);
@@ -46,4 +49,10 @@ app.post('/api/testapi', async (req, res) => {
     }
 })();
 
-module.exports = { app, empresasDB, AclientesXEmpresa, AusuariosXEmpresa, AzonasXEmpresa };
+module.exports = {
+    app,
+    AclientesXEmpresa,
+    AusuariosXEmpresa,
+    AzonasXEmpresa,
+    // getEmpresasList: () => empresasList,
+};

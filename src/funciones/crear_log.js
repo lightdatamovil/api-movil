@@ -35,7 +35,6 @@ async function crearLog(idEmpresa, operador, endpoint, result, quien, idDisposit
             ];
 
             const queryString = mysql.format(sql, values);
-            console.log("QUERY A EJECUTAR:", queryString);
 
             dbConnection.query(sql, values, (err, results) => {
                 dbConnection.end();

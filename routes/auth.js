@@ -1,6 +1,6 @@
 const express = require('express');
 const mysql = require('mysql');
-const { buscarEmpresaById } = require('../db');
+const { buscarEmpresaById, buscarEmpresaByCodigo } = require('../db');
 const verifyToken = require('../src/funciones/verifyToken');
 const { loginUser, install } = require('../controller/authController/auth');
 
@@ -11,33 +11,30 @@ auth.post('/login', async (req, res) => {
         const { username, password, idEmpresa, idDispositivo, versionApp, marca, modelo, versionAndroid } = req.body;
 
         if (!username || !password) {
-            return res.json({ estado: false, mensaje: "Algunos de los datos estan vac��os." });
+            return res.json({ estado: false, mensaje: "Algunos de los datos estan vacios." });
         }
 
-        const empresa = buscarEmpresaById(idEmpresa);
+        const empresa = await buscarEmpresaById(idEmpresa);
 
         const loginResult = await loginUser(username, password, empresa);
 
         // crearLog(idEmpresa, 0, "/api/login", loginResult, loginResult.body.id, idDispositivo, modelo, marca, versionAndroid, versionApp);
 
-        res.json(loginResult);
+        res.status(200).json(loginResult);
 
     } catch (error) {
-        console.error("Error en /api/login:", error);
-        res.json({ status: false, error });
+        res.status(500).json({ estadoRespuesta: false, body: null, mensaje: `Algo fallo... ${error}` });
     }
 });
 
 auth.post('/install', async (req, res) => {
     const { codigoEmpresa, idDispositivo, versionApp, marca, modelo, versionAndroid } = req.body;
-    const empresa = buscarEmpresaByCodigo(codigoEmpresa);
+    const empresa = await buscarEmpresaByCodigo(codigoEmpresa);
 
-    const installResult = install(empresa);
+    const result = await install(empresa);
 
-    const { b64, ...installResultFiltered } = installResult;
-
-    crearLog(installResultFiltered.id, 0, "/api/install", installResultFiltered, 0, idDispositivo, modelo, marca, versionAndroid, versionApp);
-    res.json(installResult);
+    // crearLog(installResultFiltered.id, 0, "/api/install", installResultFiltered, 0, idDispositivo, modelo, marca, versionAndroid, versionApp);
+    res.json(result);
 
 });
 
@@ -52,15 +49,16 @@ auth.post('/listadowsp', verifyToken, async (req, res) => {
         }
 
         let dbConfig = {
-            host: "bhsmysql1.lightdata.com.ar",
-            user: empresa.dbuser,
-            password: empresa.dbpass,
-            database: empresa.dbname
+            host: "149.56.182.49",
+            user: "ue" + empresa.id,
+            password: "78451296",
+            database: "e" + empresa.id,
+            port: 44339
         };
 
         const dbConnection = mysql.createConnection(dbConfig);
 
-        await dbConnection.connect();
+        dbConnection.connect();
 
         const Atemp = [];
 
@@ -72,19 +70,20 @@ auth.post('/listadowsp', verifyToken, async (req, res) => {
 
         dbConnection.end();
 
-        crearLog(idEmpresa, 0, "/api/listadowsp", { estadoRespuesta: true, body: Atemp, mensaje: "Mensajes tra��dos correctamente" }, userId, idDispositivo, modelo, marca, versionAndroid, versionApp);
+        crearLog(idEmpresa, 0, "/api/listadowsp", { estadoRespuesta: true, body: Atemp, mensaje: "Mensajes traidos correctamente" }, userId, idDispositivo, modelo, marca, versionAndroid, versionApp);
         res.status(200).json({
             estadoRespuesta: true,
             body: Atemp,
-            mensaje: "Mensajes tra��dos correctamente"
+            mensaje: "Mensajes traidos correctamente"
         });
 
     } catch (e) {
         res.status(500).json({
             estadoRespuesta: false,
             body: null,
-            mensaje: `Algo fall��... ${e}`
+            mensaje: `Algo fallo... ${e}`
         });
     }
 });
+
 module.exports = auth;

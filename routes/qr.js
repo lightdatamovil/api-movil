@@ -9,8 +9,6 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
     const { didEmpresa, perfil, quien, dataqr } = req.body;
     var idEmpresa = didEmpresa;
 
-    console.log("crossdocking");
-
     const Adataqr = JSON.parse(dataqr);
 
     var Aclientesempresa = AclientesXEmpresa[idEmpresa];
@@ -27,13 +25,15 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
         var didenvio = 0;
 
         let dbConfig = {
-            host: "bhsmysql1.lightdata.com.ar",
-            user: empresa.dbuser,
-            password: empresa.dbpass,
-            database: empresa.dbname
+            host: "149.56.182.49",
+            user: "ue" + empresa.id,
+            password: "78451296",
+            database: "e" + empresa.id,
+            port: 44339
         };
         const dbConnection = mysql.createConnection(dbConfig);
-        await dbConnection.connect();
+
+        dbConnection.connect();
 
         var sqldidenvio = "";
 
@@ -79,15 +79,15 @@ qr.post('/listadochoferes', verifyToken, async (req, res) => {
     if (!empresa) {
         return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
     } else {
-
         let dbConfig = {
-            host: "bhsmysql1.lightdata.com.ar",
-            user: empresa.dbuser,
-            password: empresa.dbpass,
-            database: empresa.dbname
+            host: "149.56.182.49",
+            user: "ue" + empresa.id,
+            password: "78451296",
+            database: "e" + empresa.id,
+            port: 44339
         };
         const dbConnection = mysql.createConnection(dbConfig);
-        await dbConnection.connect();
+        dbConnection.connect();
         var Atemp = [];
 
         let query = "SELECT u.did, concat( u.nombre,' ', u.apellido) as nombre FROM `sistema_usuarios` as u JOIN sistema_usuarios_accesos as a on ( a.elim=0 and a.superado=0 and a.usuario = u.did) where u.elim=0 and u.superado=0 and a.perfil=3 ORDER BY nombre ASC";

@@ -1,5 +1,3 @@
-const empresasDB = require('./server.js');
-
 const redis = require('redis');
 
 const redisClient = redis.createClient({
@@ -14,25 +12,32 @@ redisClient.on('error', (err) => {
     console.error('Error al conectar con Redis:', err);
 });
 
-function buscarEmpresaById(idEmpresa) {
-    data = -1;
-    for (let j in empresasDB) {
-        if (empresasDB[j]["id"] * 1 == idEmpresa) {
-            data = empresasDB[j];
-        }
+let empresasList = [];
+
+async function cargarEmpresasDesdeRedis() {
+    try {
+        const empresasDataJson = await redisClient.get('empresasData');
+        empresasList = empresasDataJson ? Object.values(JSON.parse(empresasDataJson)) : [];
+    } catch (err) {
+        console.error('Error cargando empresas desde Redis:', err);
+        empresasList = [];
     }
-    return data
-}
-function buscarEmpresaByCodigo(codigoEmpresa) {
-    data = -1;
-    for (let j in empresasDB) {
-        if (empresasDB[j]["codigo"] * 1 == codigoEmpresa) {
-            data = empresasDB[j];
-        }
-    }
-    return data
 }
 
+
+async function buscarEmpresaById(idEmpresa) {
+    if (!Array.isArray(empresasList) || empresasList.length === 0) {
+        await cargarEmpresasDesdeRedis(); // Intentar cargar si está vacío
+    }
+    return empresasList.find(element => Number(element.did) === Number(idEmpresa)) || null;
+}
+
+async function buscarEmpresaByCodigo(codigoEmpresa) {
+    if (!Array.isArray(empresasList) || empresasList.length === 0) {
+        await cargarEmpresasDesdeRedis(); // Intentar cargar si está vacío
+    }
+    return empresasList.find(element => element.codigo === codigoEmpresa) || null;
+}
 async function executeQuery(connection, query, values) {
     return new Promise((resolve, reject) => {
         connection.query(query, values, (err, results) => {
@@ -50,10 +55,11 @@ async function obtenerClientes_cadetes() {
         empresa = empresasDB[j];
 
         let dbConfig = {
-            host: "bhsmysql1.lightdata.com.ar",
-            user: empresa.dbuser,
-            password: empresa.dbpass,
-            database: empresa.dbname
+            host: "149.56.182.49",
+            user: "ue" + empresa.codigo,
+            password: "78451296",
+            database: "u" + empresa.codigo,
+            port: 44339
         };
 
         const dbConnection = mysql.createConnection(dbConfig);

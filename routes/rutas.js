@@ -12,14 +12,15 @@ rutas.post('/comenzarruta', verifyToken, async (req, res) => {
 	} else {
 
 		let dbConfig = {
-			host: "bhsmysql1.lightdata.com.ar",
-			user: empresa.dbuser,
-			password: empresa.dbpass,
-			database: empresa.dbname
+			host: "149.56.182.49",
+			user: "ue" + empresa.id,
+			password: "78451296",
+			database: "e" + empresa.id,
+			port: 44339
 		};
 
 		const dbConnection = mysql.createConnection(dbConfig);
-		await dbConnection.connect();
+		dbConnection.connect();
 
 	}
 });
@@ -42,14 +43,15 @@ rutas.post('/verificarrutacomenzada', verifyToken, async (req, res) => {
 		} else {
 
 			let dbConfig = {
-				host: "bhsmysql1.lightdata.com.ar",
-				user: empresa.dbuser,
-				password: empresa.dbpass,
-				database: empresa.dbname
+				host: "149.56.182.49",
+				user: "ue" + empresa.id,
+				password: "78451296",
+				database: "e" + empresa.id,
+				port: 44339
 			};
 
 			const dbConnection = mysql.createConnection(dbConfig);
-			await dbConnection.connect();
+			dbConnection.connect();
 
 			const sql = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ${didUser} AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
 

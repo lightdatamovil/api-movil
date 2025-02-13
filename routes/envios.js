@@ -24,13 +24,15 @@ envios.post("/obtener-envio", verifyToken, async (req, res) => {
     dataEnvio["imagenes"] = [];
 
     let dbConfig = {
-      host: "bhsmysql1.lightdata.com.ar",
-      user: empresa.dbuser,
-      password: empresa.dbpass,
-      database: empresa.dbname,
+      host: "149.56.182.49",
+      user: "ue" + empresa.id,
+      password: "78451296",
+      database: "e" + empresa.id,
+      port: 44339
     };
+
     const dbConnection = mysql.createConnection(dbConfig);
-    await dbConnection.connect();
+    dbConnection.connect();
     const query =
       "SELECT e.did, e.flex, e.ml_shipment_id, e.didCliente, e.destination_latitude, e.destination_longitude, e.destination_shipping_zip_code, e.destination_city_name ,e.ml_venta_id,e.destination_shipping_address_line, e.estado_envio, e.destination_comments, date_format (e.fecha_inicio,'%d/%m/%Y') as fecha , e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, e.choferAsignado, ec.valor as monto_a_cobrar FROM envios as e LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio) WHERE e.elim=0 and e.superado=0 " +
       sqldidenvio;
