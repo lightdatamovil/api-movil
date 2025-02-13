@@ -21,13 +21,13 @@ rutas.post('/verify-started-route', verifyToken, async (req, res) => {
 	}
 
 	try {
-		const company = getCompanyById(companyId);
+		const company = await getCompanyById(companyId);
 
-		let result = verifyStartedRoute(company);
+		let result = await verifyStartedRoute(company, userId);
 
 		res.status(200).json({ body: result, message: `The route has ${result ? 'started' : 'not started'}` });
 	} catch (e) {
-		res.status(400).json({ message: e });
+		res.status(500).json({ message: e.message });
 	}
 });
 

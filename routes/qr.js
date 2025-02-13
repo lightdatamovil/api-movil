@@ -40,7 +40,6 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
             didenvio = 77;
         }
 
-
         if (didenvio > 0) {
             var queryE = "SELECT e.estado_envio, e.didCliente, e.choferAsignado, e.didEnvioZona ,date_format(e.fecha_inicio, '%d/%m/%Y') as fecha  FROM envios as e WHERE e.elim=0 and e.superado=0 " + sqldidenvio;
 
