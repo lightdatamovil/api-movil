@@ -1,13 +1,13 @@
 const mysql = require('mysql');
 const { executeQuery, getProdDbConfig } = require('../../db');
 
-async function verificarAsignacion(dbConnection, shipmentId, userId) {
+async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
-        const sqlAsignado = "SELECT id FROM envios_asignaciones WHERE didEnvio = ? AND operador = ?";
+        const sqlEnviosAsignaciones = "SELECT id FROM envios_asignaciones WHERE didEnvio = ? AND operador = ?";
 
-        const resultQueryAsignado = await executeQuery(dbConnection, sqlAsignado, [shipmentId, userId]);
+        const resultQueryEnviosAsignaciones = await executeQuery(dbConnection, sqlEnviosAsignaciones, [shipmentId, userId]);
 
-        return resultQueryAsignado.length > 0 ? true : false;
+        return resultQueryEnviosAsignaciones.length > 0 ? true : false;
     } catch (error) {
         throw error;
     }
@@ -32,46 +32,46 @@ async function getHistorial(dbConnection, shipmentId) {
     }
 }
 
-async function getObservaciones(dbConnection, shipmentId) {
-    let observaciones = [];
+async function getObservations(dbConnection, shipmentId) {
+    let observations = [];
 
     try {
-        const queryEnvioObservaciones = "SELECT observacion, date_format(autofecha,'%d/%m/%Y %H:%i:%s') AS fecha FROM `envios_observaciones` WHERE didenvio = " + shipmentId + " ORDER BY `id` ASC";
+        const queryEnviosObservaciones = "SELECT observacion, date_format(autofecha,'%d/%m/%Y %H:%i:%s') AS fecha FROM `envios_observaciones` WHERE didenvio = " + shipmentId + " ORDER BY `id` ASC";
 
-        const resultEnvioObservaciones = await executeQuery(dbConnection, queryEnvioObservaciones, []);
+        const resultEnviosObservaciones = await executeQuery(dbConnection, queryEnviosObservaciones, []);
 
-        for (i = 0; i < resultEnvioObservaciones.length; i++) {
-            var row = resultEnvioObservaciones[i];
-            observaciones.push({
+        for (i = 0; i < resultEnviosObservaciones.length; i++) {
+            var row = resultEnviosObservaciones[i];
+            observations.push({
                 observacion: row.observacion,
                 fecha: row.fecha,
             });
         }
 
-        return observaciones;
+        return observations;
     } catch (error) {
         throw error;
     }
 }
 
-async function getImagenes(dbConnection, shipmentId) {
-    let imagenes = [];
+async function getImages(dbConnection, shipmentId) {
+    let images = [];
 
     try {
-        const queryEnviosFotos = "SELECT didenvio,nombre,server FROM `envios_fotos` WHERE didenvio = " + shipmentId + " ORDER BY `id` DESC";
+        const queryEnviosFotos = "SELECT didenvio, nombre, server FROM `envios_fotos` WHERE didenvio = " + shipmentId + " ORDER BY `id` DESC";
 
         const resultsEnviosFotos = await executeQuery(dbConnection, queryEnviosFotos, []);
 
         for (i = 0; i < resultsEnviosFotos.length; i++) {
             var row = resultsEnviosFotos[i];
-            imagenes.push({
+            images.push({
                 server: row.server,
                 imagen: row.nombre,
                 didenvio: row.didenvio,
             });
         }
 
-        return imagenes;
+        return images;
     } catch (error) {
         throw error;
     }
@@ -122,7 +122,7 @@ async function shipmentDetails(company, shipmentId, userId) {
         detallesEnvio["longitud"] = long;
         detallesEnvio["monto_a_cobrar"] = (shipmentData.monto_a_cobrar ?? 0).toString();
 
-        let asignado = await verificarAsignacion(dbConnection, shipmentId, userId);
+        let asignado = await verifyAssignment(dbConnection, shipmentId, userId);
         detallesEnvio["asignado"] = asignado;
 
         detallesEnvio["historial"] = [];
@@ -132,10 +132,10 @@ async function shipmentDetails(company, shipmentId, userId) {
         const historial = await getHistorial(dbConnection, shipmentId);
         detallesEnvio["historial"] = historial;
 
-        const observaciones = await getObservaciones(dbConnection, shipmentId);
+        const observaciones = await getObservations(dbConnection, shipmentId);
         detallesEnvio["observaciones"] = observaciones;
 
-        const imagenes = await getImagenes(dbConnection, shipmentId);
+        const imagenes = await getImages(dbConnection, shipmentId);
         detallesEnvio["imagenes"] = imagenes;
 
         return detallesEnvio;

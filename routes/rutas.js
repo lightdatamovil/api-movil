@@ -3,67 +3,31 @@ const mysql = require('mysql');
 const rutas = require('express').Router();
 const verifyToken = require('../src/funciones/verifyToken');
 const { getCompanyById } = require('../db');
+const { verifyStartedRoute } = require('../controller/rutasController/rutas');
 
-rutas.post('/comenzarruta', verifyToken, async (req, res) => {
-	const { didEmpresa, perfil, didUser } = req.body;
-	const company = getCompanyById(didEmpresa);
-	if (!company) {
-		return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
-	} else {
-
-		let dbConfig = getDbConfig(company);
-
-		const dbConnection = mysql.createConnection(dbConfig);
-		dbConnection.connect();
-
-	}
+rutas.post('/start-route', verifyToken, async (req, res) => {
+	res.status(200).json({ message: "WORK IN PROGRESS" });
 });
 
-rutas.post('/terminarruta', verifyToken, async (req, res) => {
-	const { didEmpresa, perfil, didUser } = req.body;
-	const company = getCompanyById(didEmpresa);
-	if (!company) {
-		return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
-	} else {
-
-	}
+rutas.post('/end-route', verifyToken, async (req, res) => {
+	res.status(200).json({ message: "WORK IN PROGRESS" });
 });
-rutas.post('/verificarrutacomenzada', verifyToken, async (req, res) => {
-	const { didEmpresa, perfil, didUser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
+
+rutas.post('/verify-started-route', verifyToken, async (req, res) => {
+	const { companyId, profile, userId, deviceId, model, brand, androidVersion, appVersion } = req.body;
+
+	if (!companyId || !profile || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
+		return res.status(400).json({ message: 'Faltan datos' });
+	}
+
 	try {
-		const company = getCompanyById(didEmpresa);
-		if (!company) {
-			return res.status(400).json({ estadoRespuesta: false, body: {}, mensaje: 'Empresa no encontrada' });
-		} else {
+		const company = getCompanyById(companyId);
 
-			let dbConfig = getDbConfig(company);
+		let result = verifyStartedRoute(company);
 
-			const dbConnection = mysql.createConnection(dbConfig);
-			dbConnection.connect();
-
-			const sql = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ${didUser} AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
-
-			dbConnection.query(sql, (err, results) => {
-				if (err) {
-					res.status(200).json({ estadoRespuesta: false, body: {}, mensaje: "" });
-					return;
-				}
-
-				let esta = false;
-				if (results.length > 0) {
-					esta2 = results[0].tipo;
-					if (esta2 == 0) {
-						esta = true;
-					}
-				}
-				dbConnection.end();
-				crearLog(didEmpresa, 0, "/api/verificarrutacomenzada", esta, didUser, idDispositivo, modelo, marca, versionAndroid, versionApp);
-				res.status(200).json({ estadoRespuesta: true, body: esta, mensaje: "" });
-
-			});
-		}
+		res.status(200).json({ body: result, message: `The route has ${result ? 'started' : 'not started'}` });
 	} catch (e) {
-		res.status(400).json({ estadoRespuesta: true, body: {}, mensaje: e });
+		res.status(400).json({ message: e });
 	}
 });
 

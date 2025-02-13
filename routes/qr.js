@@ -65,6 +65,7 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
     }
 
 });
+
 qr.post('/listadochoferes', verifyToken, async (req, res) => {
 
     const { idEmpresa, perfil, diduser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
