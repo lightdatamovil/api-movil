@@ -8,8 +8,6 @@ const qr = require('./routes/qr');
 const rutas = require('./routes/rutas');
 const { redisClient } = require('./db');
 
-const empresasList = [];
-
 var AclientesXEmpresa = new Object();
 var AusuariosXEmpresa = new Object();
 var AzonasXEmpresa = new Object();
@@ -22,17 +20,12 @@ const PORT = 13000;
 app.use(express.json());
 
 app.post('/api/testapi', async (req, res) => {
-    res.status(200).json("Funciona");
+    res.status(200).json({ status: true, message: 'API funcionando correctamente' });
 });
 
 (async () => {
     try {
         await redisClient.connect();
-
-        const empresasDataJson = await redisClient.get('empresasData');
-        const empresas = Object.values(JSON.parse(empresasDataJson));
-        empresasList.length = 0;
-        empresasList.push(...empresas);
 
         app.use('/api/auth', auth);
         app.use('/api/cuentas', cuentas);
@@ -54,5 +47,4 @@ module.exports = {
     AclientesXEmpresa,
     AusuariosXEmpresa,
     AzonasXEmpresa,
-    // getEmpresasList: () => empresasList,
 };

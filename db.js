@@ -12,53 +12,75 @@ redisClient.on('error', (err) => {
     console.error('Error al conectar con Redis:', err);
 });
 
-let empresasList = [];
+let companiesList = [];
 
-async function cargarEmpresasDesdeRedis() {
+function getDbConfig(company) {
+    return dbConfig = {
+        host: "149.56.182.49",
+        user: "ue" + company.id,
+        password: "78451296",
+        database: "e" + company.id,
+        port: 44339
+    };
+}
+
+async function loadCompaniesFromRedis() {
     try {
-        const empresasDataJson = await redisClient.get('empresasData');
-        empresasList = empresasDataJson ? Object.values(JSON.parse(empresasDataJson)) : [];
-    } catch (err) {
-        console.error('Error cargando empresas desde Redis:', err);
-        empresasList = [];
+        const companysDataJson = await redisClient.get('empresasData');
+        companiesList = companysDataJson ? Object.values(JSON.parse(companysDataJson)) : [];
+    } catch (error) {
+        throw error;
     }
 }
 
-
-async function buscarEmpresaById(idEmpresa) {
-    if (!Array.isArray(empresasList) || empresasList.length === 0) {
-        await cargarEmpresasDesdeRedis(); // Intentar cargar si está vacío
+async function getCompanyById(companyCode) {
+    if (!Array.isArray(companiesList) || companiesList.length === 0) {
+        try {
+            await loadCompaniesFromRedis();
+        } catch (error) {
+            throw error;
+        }
     }
-    return empresasList.find(element => Number(element.did) === Number(idEmpresa)) || null;
+
+    return companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
 }
 
-async function buscarEmpresaByCodigo(codigoEmpresa) {
-    if (!Array.isArray(empresasList) || empresasList.length === 0) {
-        await cargarEmpresasDesdeRedis(); // Intentar cargar si está vacío
+async function getCompanyByCode(companyCode) {
+    if (!Array.isArray(companiesList) || companiesList.length === 0) {
+        try {
+            await loadCompaniesFromRedis();
+        } catch (error) {
+            throw error;
+        }
     }
-    return empresasList.find(element => element.codigo === codigoEmpresa) || null;
+    return companiesList.find(company => company.codigo === companyCode) || null;
 }
+
 async function executeQuery(connection, query, values) {
-    return new Promise((resolve, reject) => {
-        connection.query(query, values, (err, results) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(results);
-            }
+    try {
+        return new Promise((resolve, reject) => {
+            connection.query(query, values, (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            });
         });
-    });
+    } catch (error) {
+        throw error;
+    }
 }
 
 async function obtenerClientes_cadetes() {
-    for (var j in empresasDB) {
-        empresa = empresasDB[j];
+    for (var j in companysDB) {
+        company = companysDB[j];
 
         let dbConfig = {
             host: "149.56.182.49",
-            user: "ue" + empresa.codigo,
+            user: "ue" + company.codigo,
             password: "78451296",
-            database: "u" + empresa.codigo,
+            database: "u" + company.codigo,
             port: 44339
         };
 
@@ -107,9 +129,10 @@ async function obtenerClientes_cadetes() {
 }
 
 module.exports = {
+    getDbConfig,
     redisClient,
-    buscarEmpresaById,
-    buscarEmpresaByCodigo,
+    getCompanyById,
+    getCompanyByCode,
     executeQuery,
     obtenerClientes_cadetes
 }

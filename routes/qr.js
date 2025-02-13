@@ -1,4 +1,4 @@
-const { buscarEmpresaById } = require('../db');
+const { getCompanyById, getDbConfig } = require('../db');
 
 const mysql = require('mysql');
 const verifyToken = require('../src/funciones/verifyToken');
@@ -11,26 +11,20 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
 
     const Adataqr = JSON.parse(dataqr);
 
-    var Aclientesempresa = AclientesXEmpresa[idEmpresa];
-    var Ausuariosempresa = AusuariosXEmpresa[idEmpresa];
-    var Azonasempresa = AzonasXEmpresa[idEmpresa];
+    var Aclientescompany = AclientesXEmpresa[idEmpresa];
+    var Ausuarioscompany = AusuariosXEmpresa[idEmpresa];
+    var Azonascompany = AzonasXEmpresa[idEmpresa];
 
     try {
-        const empresa = buscarEmpresaById(idEmpresa);
-        if (!empresa) {
+        const company = getCompanyById(idEmpresa);
+        if (!company) {
             return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
         }
 
         var dataEnvio = new Object();
         var didenvio = 0;
 
-        let dbConfig = {
-            host: "149.56.182.49",
-            user: "ue" + empresa.id,
-            password: "78451296",
-            database: "e" + empresa.id,
-            port: 44339
-        };
+        let dbConfig = getDbConfig(company);
         const dbConnection = mysql.createConnection(dbConfig);
 
         dbConnection.connect();
@@ -54,9 +48,9 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
             var datatemp = results[0];
 
             dataEnvio["Fecha"] = datatemp.fecha;
-            dataEnvio["zonaNombre"] = busxarzona(datatemp.didEnvioZona, Azonasempresa);
-            dataEnvio["Chofer"] = buscarusuario(datatemp.choferAsignado, Ausuariosempresa);
-            dataEnvio["Cliente"] = buscarcliente(datatemp.didCliente, Aclientesempresa);
+            dataEnvio["zonaNombre"] = busxarzona(datatemp.didEnvioZona, Azonascompany);
+            dataEnvio["Chofer"] = buscarusuario(datatemp.choferAsignado, Ausuarioscompany);
+            dataEnvio["Cliente"] = buscarcliente(datatemp.didCliente, Aclientescompany);
             dataEnvio["estado"] = datatemp.estado_envio * 1;
 
             dbConnection.end();
@@ -67,7 +61,6 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Error al listar envios:', error);
         res.status(500).json({ estadoRespuesta: false, body: "", mensaje: 'Error interno del servidor' });
     }
 
@@ -75,17 +68,11 @@ qr.post('/crossdocking', verifyToken, async (req, res) => {
 qr.post('/listadochoferes', verifyToken, async (req, res) => {
 
     const { idEmpresa, perfil, diduser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
-    const empresa = buscarEmpresaById(idEmpresa);
-    if (!empresa) {
+    const company = getCompanyById(idEmpresa);
+    if (!company) {
         return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
     } else {
-        let dbConfig = {
-            host: "149.56.182.49",
-            user: "ue" + empresa.id,
-            password: "78451296",
-            database: "e" + empresa.id,
-            port: 44339
-        };
+        let dbConfig = getDbConfig(company);
         const dbConnection = mysql.createConnection(dbConfig);
         dbConnection.connect();
         var Atemp = [];

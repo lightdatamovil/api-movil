@@ -2,22 +2,16 @@
 const mysql = require('mysql');
 const rutas = require('express').Router();
 const verifyToken = require('../src/funciones/verifyToken');
-const { buscarEmpresaById } = require('../db');
+const { getCompanyById } = require('../db');
 
 rutas.post('/comenzarruta', verifyToken, async (req, res) => {
 	const { didEmpresa, perfil, didUser } = req.body;
-	const empresa = buscarEmpresaById(didEmpresa);
-	if (!empresa) {
+	const company = getCompanyById(didEmpresa);
+	if (!company) {
 		return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
 	} else {
 
-		let dbConfig = {
-			host: "149.56.182.49",
-			user: "ue" + empresa.id,
-			password: "78451296",
-			database: "e" + empresa.id,
-			port: 44339
-		};
+		let dbConfig = getDbConfig(company);
 
 		const dbConnection = mysql.createConnection(dbConfig);
 		dbConnection.connect();
@@ -27,8 +21,8 @@ rutas.post('/comenzarruta', verifyToken, async (req, res) => {
 
 rutas.post('/terminarruta', verifyToken, async (req, res) => {
 	const { didEmpresa, perfil, didUser } = req.body;
-	const empresa = buscarEmpresaById(didEmpresa);
-	if (!empresa) {
+	const company = getCompanyById(didEmpresa);
+	if (!company) {
 		return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
 	} else {
 
@@ -37,18 +31,12 @@ rutas.post('/terminarruta', verifyToken, async (req, res) => {
 rutas.post('/verificarrutacomenzada', verifyToken, async (req, res) => {
 	const { didEmpresa, perfil, didUser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
 	try {
-		const empresa = buscarEmpresaById(didEmpresa);
-		if (!empresa) {
+		const company = getCompanyById(didEmpresa);
+		if (!company) {
 			return res.status(400).json({ estadoRespuesta: false, body: {}, mensaje: 'Empresa no encontrada' });
 		} else {
 
-			let dbConfig = {
-				host: "149.56.182.49",
-				user: "ue" + empresa.id,
-				password: "78451296",
-				database: "e" + empresa.id,
-				port: 44339
-			};
+			let dbConfig = getDbConfig(company);
 
 			const dbConnection = mysql.createConnection(dbConfig);
 			dbConnection.connect();
@@ -58,7 +46,6 @@ rutas.post('/verificarrutacomenzada', verifyToken, async (req, res) => {
 			dbConnection.query(sql, (err, results) => {
 				if (err) {
 					res.status(200).json({ estadoRespuesta: false, body: {}, mensaje: "" });
-					console.error('Error al ejecutar la consulta: ' + err.stack);
 					return;
 				}
 

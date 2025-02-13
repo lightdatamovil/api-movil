@@ -3,6 +3,7 @@ const executeQuery = require('../../db').executeQuery;
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const { getDbConfig } = require('../../db');
 
 function generateToken(userId, idEmpresa, perfil) {
     const payload = {
@@ -18,143 +19,142 @@ function generateToken(userId, idEmpresa, perfil) {
     return jwt.sign(payload, 'ruteate', options);
 }
 
-async function loginUser(username, password, empresa) {
-    let dbConfig = {
-        host: "149.56.182.49",
-        user: "ue" + empresa.id,
-        password: "78451296",
-        database: "e" + empresa.id,
-        port: 44339
-    };
-
+async function login(username, password, company) {
+    let dbConfig = getDbConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
 
     try {
-        const dbConnection = mysql.createConnection(dbConfig);
 
-        dbConnection.connect();
 
-        var lat_dep = 0;
-        var long_dep = 0;
-        var adir = "";
+        const depotQuery = "SELECT latitud,longitud FROM `depositos` where did = 1";
 
-        const querydeposito = "SELECT latitud,longitud FROM `depositos` where did = 1";
+        const resultsFromDepotQuery = await executeQuery(dbConnection, depotQuery, []);
 
-        const resultsdeposito = await executeQuery(dbConnection, querydeposito, []);
+        let depotLatitude = 0;
+        let depotLongitude = 0;
 
-        if (resultsdeposito.length > 0) {
-            const lineadeposito = resultsdeposito[0];
-            lat_dep = lineadeposito.latitud;
-            long_dep = lineadeposito.longitud;
+        if (resultsFromDepotQuery.length > 0) {
+            const row = resultsFromDepotQuery[0];
+            depotLatitude = row.latitud;
+            depotLongitude = row.longitud;
         }
 
-        const query = `SELECT did, bloqueado, nombre, apellido, email, telefono, pass, usuario, perfil, direccion
+        const userQuery = `SELECT did, bloqueado, nombre, apellido, email, telefono, pass, usuario, perfil, direccion
                        FROM sistema_usuarios 
                        WHERE usuario = ?`;
 
-        const results = await executeQuery(dbConnection, query, [username]);
+        const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username]);
 
-        if (results.length === 0) {
-            return { estadoRespuesta: false, body: null, mensaje: 'No se ha encontrado el usuario' };
+        if (resultsFromUserQuery.length === 0) {
+            return { status: false, body: null, message: 'No se ha encontrado el usuario' };
         }
 
-        const usuario = results[0];
+        const user = resultsFromUserQuery[0];
 
-        if (usuario.bloqueado === 1) {
-            return { estadoRespuesta: false, body: null, mensaje: 'Usuario bloqueado' };
+        if (user.bloqueado === 1) {
+            return { status: false, body: null, message: 'Usuario bloqueado' };
         }
 
         const hashPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-        if (usuario.pass !== hashPassword) {
-            return { estadoRespuesta: false, body: null, mensaje: 'Credenciales inválidas' };
+        if (user.pass !== hashPassword) {
+            return { status: false, body: null, message: 'Credenciales inválidas' };
         }
 
-        const token = generateToken(usuario.did, empresa.id, usuario.perfil);
+        const token = generateToken(user.did, company.id, user.perfil);
 
-        var lat_casa = 0;
-        var long_casa = 0;
+        if (user.direccion != "") {
+            userAddress = JSON.parse(user.direccion);
 
-        if (usuario.direccion != "") {
-            adir = JSON.parse(usuario.direccion);
-            lat_casa = adir.lat;
-            long_casa = adir.lng;
+            userHomeLatitude = userAddress.lat;
+            userHomeLongitude = userAddress.lng;
         }
 
-        if (empresa.id != 200) {
-            menu_info_envio = false;
-        } else {
-            menu_info_envio = true;
-        }
+        let userLocations = [];
+        userLocations.push({ "id": 2, "name": "Casa", "latitude": userHomeLatitude, "longitude": userHomeLongitude });
+        userLocations.push({ "id": 3, "name": "Deposito", "latitude": depotLatitude, "longitude": depotLongitude });
 
-        var ubicaciones = [];
-        ubicaciones.push({ "id": 2, "name": "Casa", "lat": lat_casa, "long": long_casa });
-        ubicaciones.push({ "id": 3, "name": "Deposito", "lat": lat_dep, "long": long_dep });
-
-        var imagen = "";
+        var image = "";
 
         return {
-            estadoRespuesta: true,
             body: {
+                "id": user.did,
+                "username": user.usuario,
+                "profile": user.perfil,
+                "email": user.email,
+                "profilePicture": image,
+                "hasShipmentProductsQr": company.id == 200,
+                "phone": user.telefono,
                 "token": token,
-                "id": usuario.did,
-                "fotoPerfil": imagen,
-                "username": usuario.usuario,
-                "email": usuario.email,
-                "tokenFCM": usuario.token_fcm,
-                "perfil": perfil,
-                "ubicaciones": ubicaciones,
-                "menu_info_envio": menu_info_envio,
-                "telefono": usuario.telefono
+                "locations": userLocations,
             },
-            mensaje: 'OK'
+            message: 'Usuario autenticado correctamente'
         };
 
     } catch (error) {
-        return { estadoRespuesta: false, body: null, respuesta: 'Error en la consulta Log' };
+        throw error;
     } finally {
         dbConnection.end();
     }
 }
-async function install(empresa) {
+async function identification(company) {
 
-    const imageUrl = empresa.url + "/app-assets/images/logo/logo.png";
+    const imageUrl = company.url + "/app-assets/images/logo/logo.png";
 
     try {
         const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-
         const imageBuffer = Buffer.from(response.data, 'binary');
         const imageBase64 = imageBuffer.toString('base64');
 
-        let colectapro = false;
-
-        let apppro = false;
-
-        if (empresa.id == 4) {
-            apppro = true;
-        }
-
-        let result = {
-            "id": empresa.id * 1,
-            "plan": empresa.plan * 1,
-            "url": empresa.url,
-            "pais": empresa.pais * 1,
-            "name": empresa.empresa,
-            "b64": imageBase64,
-            "authentication": true,
-            "apppro": apppro,
-            "colectapro": colectapro,
-            "registroVisitaImagenObligatoria": empresa.id * 1 == 108,
-            "registroVisitaDniYNombreObligatorio": empresa.id * 1 == 97,
+        return {
+            body: {
+                "id": company.id * 1,
+                "plan": company.plan * 1,
+                "url": company.url,
+                "country": company.pais * 1,
+                "name": company.company,
+                "authentication": true,
+                "appPro": company.id == 4,
+                "colectaPro": false,
+                "obligatoryImageOnRegisterVisit": company.id * 1 == 108,
+                "obligatoryDniAndNameOnRegisterVisit": company.id * 1 == 97,
+                "image": imageBase64,
+            },
+            message: 'Empresa identificada correctamente'
         };
-
-        return result;
 
     } catch (error) {
         throw error;
     }
 }
 
+async function whatsappMessagesList(company) {
+
+    const dbConfig = getDbConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+
+    try {
+
+        const whatsappMessagesList = [];
+
+        const queryTexts = "SELECT texto FROM `mensajeria_app` ORDER BY tipo ASC;";
+
+        const results = await executeQuery(dbConnection, queryTexts, []);
+
+        results.forEach(row => whatsappMessagesList.push(row.texto));
+
+        return results;
+    } catch (error) {
+        throw error;
+    } finally {
+        dbConnection.end();
+    }
+}
+
 module.exports = {
-    loginUser,
-    install,
+    login,
+    identification,
+    whatsappMessagesList,
 };

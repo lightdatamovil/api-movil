@@ -1,15 +1,15 @@
 const mysql = require('mysql');
 const cuentas = require('express').Router();
 const verifyToken = require('../src/funciones/verifyToken');
-const { buscarEmpresaById } = require('../db');
+const { getCompanyById, getDbConfig } = require('../db');
 
 cuentas.post('/listarCuentas', verifyToken, async (req, res) => {
 	try {
 
 		const { idEmpresa, perfil, diduser } = req.body;
-		const empresa = buscarEmpresaById(idEmpresa);
+		const company = getCompanyById(idEmpresa);
 
-		if (!empresa) {
+		if (!company) {
 			return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
 		}
 
@@ -21,13 +21,7 @@ cuentas.post('/listarCuentas', verifyToken, async (req, res) => {
 			return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Perfil no es de cliente' });
 		}
 
-		let dbConfig = {
-			host: "149.56.182.49",
-			user: "ue" + empresa.id,
-			password: "78451296",
-			database: "e" + empresa.id,
-			port: 44339
-		};
+		let dbConfig = getDbConfig(company);
 
 		const dbConnection = mysql.createConnection(dbConfig);
 		dbConnection.connect();
@@ -89,7 +83,6 @@ cuentas.post('/listarCuentas', verifyToken, async (req, res) => {
 		dbConnection.end();
 		res.status(200).json({ estadoRespuesta: true, body: Atemp, mensaje: "" });
 	} catch (error) {
-		console.error('Error al listar cuentas:', error);
 		res.status(500).json({ estadoRespuesta: false, body: "", mensaje: 'Error interno del servidor' });
 	}
 

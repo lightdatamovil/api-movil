@@ -1,13 +1,13 @@
 const mysql = require('mysql');
 const envios = require('express').Router();
 const verifyToken = require('../src/funciones/verifyToken');
-const { buscarEmpresaById } = require('../db');
+const { getCompanyById, getDbConfig } = require('../db');
 
 envios.post("/obtener-envio", verifyToken, async (req, res) => {
   try {
     const { idEmpresa, perfil, diduser, idenvio } = req.body;
-    const empresa = buscarEmpresaById(idEmpresa);
-    if (!empresa) {
+    const company = getCompanyById(idEmpresa);
+    if (!company) {
       return res
         .status(400)
         .json({
@@ -23,13 +23,7 @@ envios.post("/obtener-envio", verifyToken, async (req, res) => {
     dataEnvio["observaciones"] = [];
     dataEnvio["imagenes"] = [];
 
-    let dbConfig = {
-      host: "149.56.182.49",
-      user: "ue" + empresa.id,
-      password: "78451296",
-      database: "e" + empresa.id,
-      port: 44339
-    };
+    let dbConfig = getDbConfig(company);
 
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -106,7 +100,6 @@ envios.post("/obtener-envio", verifyToken, async (req, res) => {
       .json({ estadoRespuesta: true, body: dataEnvio, mensaje: "" });
   } catch (error) {
     dbConnection.end();
-    console.error("Error al obtener el cliente:", error);
     res
       .status(500)
       .json({

@@ -1,16 +1,16 @@
-function buscarcliente(didCliente, Aclientesempresa) {
-    for (let j in Aclientesempresa) {
-        if (Aclientesempresa[j]["did"] * 1 == didCliente) {
-            return Aclientesempresa[j]["nombre_fantasia"];
+function buscarcliente(didCliente, Aclientescompany) {
+    for (let j in Aclientescompany) {
+        if (Aclientescompany[j]["did"] * 1 == didCliente) {
+            return Aclientescompany[j]["nombre_fantasia"];
         }
     }
     return "";
 }
 
-function buscarusuario(diduser, Ausuariosempresa) {
-    for (let j in Ausuariosempresa) {
-        if (Ausuariosempresa[j]["did"] * 1 == diduser) {
-            return Ausuariosempresa[j]["nombre"];
+function buscarusuario(diduser, Ausuarioscompany) {
+    for (let j in Ausuarioscompany) {
+        if (Ausuarioscompany[j]["did"] * 1 == diduser) {
+            return Ausuarioscompany[j]["nombre"];
         }
     }
     return "";
