@@ -1,9 +1,9 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const cuentas = require('./routes/cuentas');
+const accounts = require('./routes/accounts');
 const auth = require('./routes/auth');
-const envios = require('./routes/envios');
+const shipments = require('./routes/shipments');
 const qr = require('./routes/qr');
 const rutas = require('./routes/rutas');
 const { redisClient } = require('./db');
@@ -20,7 +20,7 @@ const PORT = 13000;
 app.use(express.json());
 
 app.post('/api/testapi', async (req, res) => {
-    res.status(200).json({ status: true, message: 'API funcionando correctamente' });
+    res.status(200).json({ message: 'API funcionando correctamente' });
 });
 
 (async () => {
@@ -28,8 +28,8 @@ app.post('/api/testapi', async (req, res) => {
         await redisClient.connect();
 
         app.use('/api/auth', auth);
-        app.use('/api/cuentas', cuentas);
-        app.use('/api/envios', envios);
+        app.use('/api/accounts', accounts);
+        app.use('/api/shipments', shipments);
         app.use('/api/qr', qr);
         app.use('/api/rutas', rutas);
 

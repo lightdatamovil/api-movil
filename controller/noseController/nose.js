@@ -25,17 +25,4 @@ function busxarzona(didzona, AzonasXEmpresa) {
     return "";
 }
 
-function verificarAsignacion(dbConnection, idenvio, diduser) {
-    return new Promise((resolve, reject) => {
-        const sqlAsignado =
-            "SELECT id FROM envios_asignaciones WHERE superado = 0 AND elim = 0 AND didEnvio = ? AND operador = ?";
-
-        dbConnection.query(sqlAsignado, [idenvio, diduser], (err, asignaciones) => {
-            if (err) return reject(err);
-            resolve(asignaciones.length > 0); // Retorna `true` si hay asignaciones, `false` si no.
-            dbConnection.end();
-        });
-    });
-};
-
-module.exports = { buscarcliente, buscarusuario, busxarzona, verificarAsignacion };
+module.exports = { buscarcliente, buscarusuario, busxarzona };

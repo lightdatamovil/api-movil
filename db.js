@@ -24,6 +24,15 @@ function getDbConfig(company) {
     };
 }
 
+function getProdDbConfig(company) {
+    return dbConfig = {
+        host: "bhsmysql1.lightdata.com.ar",
+        user: company.dbuser,
+        password: company.dbpass,
+        database: company.dbname
+    };
+}
+
 async function loadCompaniesFromRedis() {
     try {
         const companysDataJson = await redisClient.get('empresasData');
@@ -130,6 +139,7 @@ async function obtenerClientes_cadetes() {
 
 module.exports = {
     getDbConfig,
+    getProdDbConfig,
     redisClient,
     getCompanyById,
     getCompanyByCode,

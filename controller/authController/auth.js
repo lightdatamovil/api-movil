@@ -98,6 +98,7 @@ async function login(username, password, company) {
         dbConnection.end();
     }
 }
+
 async function identification(company) {
 
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
