@@ -1,5 +1,6 @@
-const { executeQuery, getProdDbConfig } = require("../../db");
+const { executeQuery, getProdDbConfig, getCompanyById } = require("../../db");
 const mysql = require('mysql');
+const redis = require('redis');
 
 async function crossDocking(dataQr, company) {
     let dbConfig = getProdDbConfig(company);
@@ -42,4 +43,50 @@ async function crossDocking(dataQr, company) {
     }
 }
 
-module.exports = crossDocking;
+
+
+async function getPackageIdFromQr(dataQr, didEmpresa) {
+ 
+    
+    const company = await getCompanyById(didEmpresa);
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+
+    try {
+        let didPaquete = -1;
+        let estadoLectura = false;
+        let mensaje = "";
+
+        if (dataQr.hasOwnProperty("sender_id")) {
+            const senderId = dataQr.sender_id;
+            const idShipment = dataQr.id;
+            const query = `SELECT did FROM envios WHERE superado = 0 AND elim = 0 AND ml_shipment_id = '${idShipment}' AND ml_vendedor_id = '${senderId}'`;
+            const result = await executeQuery(dbConnection, query, []);
+            
+            if (result.length > 0) {
+                didPaquete = result[0].did;
+                estadoLectura = true;
+            } else {
+                mensaje = "Paquete flex no cargado.";
+            }
+        } else {
+            if (dataQr.empresa === didEmpresa) {
+                didPaquete = dataQr.did;
+                estadoLectura = true;
+            } else {
+                mensaje = "El paquete no pertenece a la empresa.";
+            }
+        }
+        
+        return {  body: didPaquete, mensaje: "Procesado exitosamente " };
+    } catch (error) {
+        throw error;
+    } finally {
+        dbConnection.end();
+    }
+}
+
+
+
+module.exports = {crossDocking,getPackageIdFromQr};

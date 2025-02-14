@@ -4,6 +4,7 @@ const mysql = require('mysql');
 const verifyToken = require('../src/funciones/verifyToken');
 const crossDocking = require('../controller/qrController/qr');
 const qr = require('express').Router();
+const {getPackageIdFromQr}=require("../controller/qrController/qr")
 
 qr.post('/cross-docking', async (req, res) => {
     const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
@@ -52,4 +53,17 @@ qr.post('/listadochoferes', verifyToken, async (req, res) => {
     }
 });
 
-module.exports = qr;
+qr.post('/get-package-id', async (req, res) => {
+    const { dataQr, didEmpresa } = req.body;
+    if (!dataQr || !didEmpresa) {
+        return res.status(400).json({ message: "Faltan datos" });
+    }
+    try {
+        const response = await getPackageIdFromQr(dataQr, didEmpresa);
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+module.exports= qr
