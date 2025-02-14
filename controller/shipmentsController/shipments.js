@@ -321,10 +321,7 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
                       AND e.didCliente!='null'
                       ORDER BY rp.orden ASC`;
         }
-        console.log(query, "holalqualallalal");
         const rows = await dbConnection.execute(query, [d, userId]);
-
-
 
         const lista = [];
 

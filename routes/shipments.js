@@ -4,9 +4,9 @@ const { getCompanyById } = require('../db');
 const { shipmentDetails, shipmentList } = require('../controller/shipmentsController/shipments');
 
 shipments.post('/shipment-list', async (req, res) => {
-  const { companyId, userId, profile, from, to, deviceId, appVersion, brand, model, androidVersion, dashboardValue } = req.body;
+  const { companyId, userId, profile, from, deviceId, appVersion, brand, model, androidVersion, dashboardValue } = req.body;
 
-  if (!companyId || !userId || !profile || !from || !to || !deviceId || !appVersion || !brand || !model || !androidVersion) {
+  if (!companyId || !userId || !profile || !from || !deviceId || !appVersion || !brand || !model || !androidVersion) {
     return res.status(400).json({ message: "Faltan datos" });
   }
 
