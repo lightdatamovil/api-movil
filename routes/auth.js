@@ -60,10 +60,7 @@ auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
 
         // crearLog(idEmpresa, 0, "/api/listadowsp", { estadoRespuesta: true, body: listadoDeMensajesWsp, mensaje: "Mensajes traidos correctamente" }, userId, deviceId, model, brand, androidVersion, appVersion);
 
-        res.status(200).json({
-            body: result,
-            message: "Mensajes traidos correctamente"
-        });
+        res.status(200).json({ body: result, message: "Mensajes traidos correctamente" });
     } catch (e) {
         res.status(500).json({ message: e.message });
     }

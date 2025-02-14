@@ -13,8 +13,7 @@ shipments.post('/shipment-list', async (req, res) => {
   try {
     const result = await shipmentList(companyId, userId, profile, from, dashboardValue);
 
-
-    return res.status(200).json(result);
+    return res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -34,7 +33,7 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
     const result = await shipmentDetails(company, shipmentId, userId);
 
-    res.status(200).json(result);
+    res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

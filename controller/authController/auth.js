@@ -45,19 +45,19 @@ async function login(username, password, company) {
         const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username]);
 
         if (resultsFromUserQuery.length === 0) {
-            return { status: false, body: null, message: 'No se ha encontrado el usuario' };
+            return { message: 'No se ha encontrado el usuario' };
         }
 
         const user = resultsFromUserQuery[0];
 
         if (user.bloqueado === 1) {
-            return { status: false, body: null, message: 'Usuario bloqueado' };
+            return { message: 'Usuario bloqueado' };
         }
 
         const hashPassword = crypto.createHash('sha256').update(password).digest('hex');
 
         if (user.pass !== hashPassword) {
-            return { status: false, body: null, message: 'Credenciales inválidas' };
+            return { message: 'Credenciales inválidas' };
         }
 
         const token = generateToken(user.did, company.did, user.perfil);

@@ -14,19 +14,18 @@ const PORT = 13000;
 
 if (cluster.isMaster) {
     console.log(`Proceso master ${process.pid} ejecutándose...`);
-    
+
     // Crear los workers
     for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
     }
-    
+
     // Reiniciar workers si alguno falla
     cluster.on('exit', (worker, code, signal) => {
         console.log(`Worker ${worker.process.pid} murió, reiniciando...`);
         cluster.fork();
     });
 } else {
-    // Código del worker (servidor)
     const app = express();
     app.use(bodyParser.json({ limit: '50mb' }));
     app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));

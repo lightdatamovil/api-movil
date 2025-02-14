@@ -7,7 +7,7 @@ accounts.post('/account-list', verifyToken, async (req, res) => {
 	const { companyId, profile, userId, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
 	if (!companyId || !profile || !userId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-		return res.status(400).json({ body: null, message: 'Algunos de los datos estan vacios.' });
+		return res.status(400).json({ message: 'Algunos de los datos estan vacios.' });
 	}
 
 	try {
