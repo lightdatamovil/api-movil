@@ -15,12 +15,12 @@ redisClient.on('error', (err) => {
 
 let companiesList = [];
 
-function getDbConfig(company) {
+function getDbConfig(companyId) {
     return dbConfig = {
         host: "149.56.182.49",
-        user: "ue" + company.did,
+        user: "ue" + companyId,
         password: "78451296",
-        database: "e" + company.did,
+        database: "e" + companyId,
         port: 44339
     };
 }

@@ -1,7 +1,7 @@
 
 const { executeQuery, getProdDbConfig, getClientes, getCompanyById } = require('../../db');
 
-const mysql = require('mysql2/promise');
+const mysql = require('mysql');
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -204,7 +204,7 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
 
     try {
         const clientes = await getClientes(dbConnection, companyId);
-        const d = convertirFecha(from);
+        const hora = convertirFecha(from);
 
         let sqlchoferruteo = "";
         let leftjoinCliente = "";
@@ -212,11 +212,11 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
         let estadoAsignacion = "";
 
         if (profile == 2) {
-            leftjoinCliente = "LEFT JOIN sistema_usuarios_accesos as sua ON (sua.superado = 0 AND sua.elim = 0 AND sua.usuario= ?)";
+            leftjoinCliente = `LEFT JOIN sistema_usuarios_accesos as sua ON (sua.superado = 0 AND sua.elim = 0 AND sua.usuario= ${userId})`;
             sqlduenio = "AND e.didCliente = sua.codigo_empleado";
         } else if (profile == 3) {
-            sqlduenio = "AND e.choferAsignado = ?";
-            sqlchoferruteo = " AND r.didChofer = ?";
+            sqlduenio = `AND e.choferAsignado = ${userId}`;
+            sqlchoferruteo = ` AND r.didChofer = ${userId}`;
         }
 
         const campos = `e.did as didEnvio, e.flex, e.ml_shipment_id, ROUND(e.destination_latitude, 8) as lat, 
@@ -321,7 +321,7 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
                       AND e.didCliente!='null'
                       ORDER BY rp.orden ASC`;
         }
-        const rows = await dbConnection.execute(query, [d, userId]);
+        const rows = await dbConnection.execute(query, [hora]);
 
         const lista = [];
 

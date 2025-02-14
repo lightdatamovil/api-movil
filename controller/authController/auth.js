@@ -20,7 +20,7 @@ function generateToken(userId, idEmpresa, perfil) {
 }
 
 async function login(username, password, company) {
-    let dbConfig = getDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -76,18 +76,15 @@ async function login(username, password, company) {
         var image = "";
 
         return {
-            body: {
-                "id": user.did,
-                "username": user.usuario,
-                "profile": user.perfil,
-                "email": user.email,
-                "profilePicture": image,
-                "hasShipmentProductsQr": company.did == 200,
-                "phone": user.telefono,
-                "token": token,
-                "locations": userLocations,
-            },
-            message: 'Usuario autenticado correctamente'
+            "id": user.did,
+            "username": user.usuario,
+            "profile": user.perfil,
+            "email": user.email,
+            "profilePicture": image,
+            "hasShipmentProductsQr": company.did == 200,
+            "phone": user.telefono,
+            "token": token,
+            "locations": userLocations,
         };
 
     } catch (error) {
@@ -130,7 +127,7 @@ async function identification(company) {
 
 async function whatsappMessagesList(company) {
 
-    const dbConfig = getDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 

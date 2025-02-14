@@ -3,7 +3,7 @@
 
 const mysql = require('mysql');
 async function crearLog(idEmpresa, operador, endpoint, result, quien, idDispositivo, modelo, marca, versionAndroid, versionApp) {
-    const dbConfig = getDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
 
     return new Promise((resolve, reject) => {

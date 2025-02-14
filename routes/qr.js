@@ -1,9 +1,9 @@
 const { getCompanyById } = require('../db');
 
 const verifyToken = require('../src/funciones/verifyToken');
-const crossDocking = require('../controller/qrController/qr');
+const { crossDocking } = require('../controller/qrController/qr');
 const qr = require('express').Router();
-const {getPackageIdFromQr}=require("../controller/qrController/qr")
+const { getShipmentIdFromQr } = require("../controller/qrController/qr")
 
 qr.post('/cross-docking', async (req, res) => {
     const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
@@ -14,8 +14,25 @@ qr.post('/cross-docking', async (req, res) => {
 
     try {
         const company = await getCompanyById(companyId);
-
         const response = await crossDocking(dataQr, company);
+
+        res.status(200).json({ body: response, message: "Datos obtenidos correctamente" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+qr.post('/get-shipment-id', async (req, res) => {
+    const { dataQr, companyId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+
+    if (!dataQr || !companyId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
+        return res.status(400).json({ message: "Faltan datos" });
+    }
+
+    try {
+        const company = await getCompanyById(companyId);
+
+        const response = await getShipmentIdFromQr(dataQr, company);
 
         res.status(200).json({ body: response, message: "Datos obtenidos correctamente" });
     } catch (error) {
@@ -44,17 +61,4 @@ qr.post('/drivers-list', verifyToken, async (req, res) => {
     }
 });
 
-qr.post('/get-package-id', async (req, res) => {
-    const { dataQr, didEmpresa } = req.body;
-    if (!dataQr || !didEmpresa) {
-        return res.status(400).json({ message: "Faltan datos" });
-    }
-    try {
-        const response = await getPackageIdFromQr(dataQr, didEmpresa);
-        res.status(200).json(response);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-module.exports= qr
+module.exports = qr

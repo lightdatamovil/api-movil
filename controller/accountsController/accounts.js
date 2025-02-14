@@ -3,7 +3,7 @@ const { getDbConfig } = require('../../db');
 const executeQuery = require('../../db').executeQuery;
 
 async function accounts(company) {
-    let dbConfig = getDbConfig(company);
+    let dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
