@@ -134,7 +134,41 @@ async function obtenerClientes_cadetes() {
         module.exports.AusuariosXEmpresa = AusuariosXEmpresa;
         module.exports.AzonasXEmpresa = AzonasXEmpresa;
     }
+}
 
+async function getClientes(connection, didEmpresa) {
+    const AclientesRuta = `./Aclientes_${didEmpresa}.json`;
+    if (fs.existsSync(AclientesRuta)) {
+        return JSON.parse(fs.readFileSync(AclientesRuta));
+    } else {
+        const [rows] = await connection.execute("SELECT did, nombre_fantasia, razon_social FROM `clientes` WHERE superado=0");
+        const Aclientes = {};
+        rows.forEach(row => {
+            Aclientes[row.did] = row.nombre_fantasia || row.razon_social;
+        });
+        fs.writeFileSync(AclientesRuta, JSON.stringify(Aclientes));
+        return Aclientes;
+    }
+}
+
+async function getChoferes(connection, didEmpresa) {
+    const AchoferesRuta = `./Achoferes_${didEmpresa}.json`;
+    if (fs.existsSync(AchoferesRuta)) {
+        return JSON.parse(fs.readFileSync(AchoferesRuta));
+    } else {
+        const [rows] = await connection.execute("SELECT su.did, CONCAT(su.nombre, ' ', su.apellido) as nombre FROM `sistema_usuarios` as su JOIN sistema_usuarios_accesos as sua ON (sua.superado=0 and sua.elim=0 and sua.usuario = su.did) WHERE su.superado=0 and su.elim=0");
+        const Achoferes = { 0: "sin asignar" };
+        rows.forEach(row => {
+            Achoferes[row.did] = row.nombre;
+        });
+        fs.writeFileSync(AchoferesRuta, JSON.stringify(Achoferes));
+        return Achoferes;
+    }
+}
+
+function convertirFecha(fecha) {
+    const fechaObj = new Date(fecha);
+    return isNaN(fechaObj) ? "Fecha inválida" : fechaObj.toISOString().slice(0, 19).replace('T', ' ');
 }
 
 module.exports = {
@@ -144,5 +178,8 @@ module.exports = {
     getCompanyById,
     getCompanyByCode,
     executeQuery,
-    obtenerClientes_cadetes
+    obtenerClientes_cadetes,
+    getClientes,
+    getChoferes,
+    convertirFecha
 }

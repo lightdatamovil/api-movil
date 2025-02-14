@@ -146,6 +146,81 @@ async function shipmentDetails(company, shipmentId, userId) {
         dbConnection.end();
     }
 }
+
+async function shipmentList(companyId, userId, profile, from, to) {
+
+    const dbConfig = getProdConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+
+    try {
+        const clientes = await getClientes(connection, companyId);
+
+        const hoy = new Date().toISOString().slice(0, 10);
+        const d = convertirFecha(from);
+
+        let sqlchoferruteo = "";
+        let leftjoinCliente = "";
+        let sqlduenio = "";
+
+        if (profile == 2) {
+            leftjoinCliente = "LEFT JOIN sistema_usuarios_accesos as sua ON (sua.superado = 0 AND sua.elim = 0 AND sua.usuario= ?)";
+            sqlduenio = "AND e.didCliente = sua.codigo_empleado";
+        } else if (profile == 3) {
+            sqlduenio = "AND e.didChofer = ?";
+            sqlchoferruteo = " AND r.didChofer = ?";
+        }
+
+        const campos = `e.did as didEnvio, e.flex, e.shipmentid, ROUND(e.lat, 8) as lat, 
+                     ROUND(e.long, 8) AS lng, 
+                     e.nombreCliente, e.didCliente,
+                     DATE_FORMAT(e.fechaInicio, '%d/%m/%Y') as fecha_inicio, 
+                     e.estado as estado_envio, e.observacionDestinatario, 
+                     e.orden, e.monto_a_cobrar,
+                     e.nombreDestinatario, e.direccion1 as address_line, 
+                     e.telefono as destination_receiver_phone, 
+                     DATE_FORMAT(e.autofecha, '%d/%m/%Y') as fecha_historial`;
+
+        let query = `SELECT ${campos} FROM envios AS e 
+                   ${leftjoinCliente} 
+                   WHERE e.activo = 1 AND e.didCliente != 0 
+                   AND e.fechaInicio BETWEEN ? AND ? ${sqlduenio} 
+                   ORDER BY e.orden ASC`;
+
+        const rows = await executeQuery(dbConnection, query, [d, hoy, userId]);
+
+        const lista = rows.map(row => {
+            return {
+                didEnvio: row.didEnvio * 1,
+                flex: row.flex * 1,
+                shipmentid: row.shipmentid,
+                estado: row.estado_envio * 1,
+                nombreCliente: clientes[row.didCliente] || 'Cliente no encontrado',
+                didCliente: row.didCliente * 1,
+                fechaEmpresa: row.fecha_inicio,
+                fechaHistorial: row.fecha_historial || null,
+                nombreDestinatario: row.nombreDestinatario,
+                direccion1: row.address_line,
+                direccion2: row.direccion2 || '',
+                telefono: row.destination_receiver_phone,
+                lat: row.lat || '0',
+                long: row.lng || '0',
+                observacionDestinatario: row.observacionDestinatario,
+                orden: row.orden * 1,
+                monto_a_cobrar: row.monto_a_cobrar || "0",
+            };
+        });
+
+        // crearLog(didEmpresa, 0, '/api/envios/listarEnvios', lista, diduser);
+
+        return { body: lista, mensaje: 'Datos obtenidos correctamente' };
+    } catch (error) {
+        throw error;
+    } finally {
+        connection.end();
+    }
+}
 module.exports = {
     shipmentDetails,
+    listarEnviosToken: shipmentList,
 };
