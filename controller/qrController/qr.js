@@ -15,7 +15,6 @@ async function crossDocking(dataQr, company) {
             shipmentId = dataQr.did;
             queryWhereId = ` AND e.did = ${shipmentId}`;
             if (company.did !== dataQr.didEmpresa) {
-                console.log("Empresa distinta a la del envío");
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ${shipmentId} AND didEmpresa = ${company.did}`;
 
                 const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
