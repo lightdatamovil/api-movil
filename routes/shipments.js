@@ -1,19 +1,19 @@
 const shipments = require('express').Router();
 const verifyToken = require('../src/funciones/verifyToken');
 const { getCompanyById } = require('../db');
-const { shipmentDetails } = require('../controller/shipmentsController/shipments');
+const { shipmentDetails, shipmentList2 } = require('../controller/shipmentsController/shipments');
 
 shipments.post('/shipment-list', async (req, res) => {
-
-  const { companyId, userId, profile, from, to, deviceId, appVersion, brand, model, androidVersion } = req.body;
-
+  const { companyId, userId, profile, from, to, deviceId, appVersion, brand, model, androidVersion,dashboardValue } = req.body;
+  
   if (!companyId || !userId || !profile || !from || !to || !deviceId || !appVersion || !brand || !model || !androidVersion) {
     return res.status(400).json({ message: "Faltan datos" });
   }
-
+  
   try {
-    const result = await listarEnviosToken(connection, didEmpresaStr, userId, profile, from, to);
-
+    const result = await shipmentList2(companyId, userId, profile, from, dashboardValue );
+    
+ 
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -21,6 +21,8 @@ shipments.post('/shipment-list', async (req, res) => {
 });
 
 shipments.post("/shipment-details", verifyToken, async (req, res) => {
+
+  
   const { companyId, profile, userId, shipmentId, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
   if (!companyId || !profile || !userId || !shipmentId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
@@ -37,5 +39,6 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 module.exports = shipments;

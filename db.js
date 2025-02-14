@@ -1,4 +1,5 @@
 const redis = require('redis');
+const fs = require('fs');
 
 const redisClient = redis.createClient({
     socket: {
