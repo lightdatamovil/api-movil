@@ -1,6 +1,5 @@
-const { getCompanyById, getDbConfig } = require('../db');
+const { getCompanyById } = require('../db');
 
-const mysql = require('mysql');
 const verifyToken = require('../src/funciones/verifyToken');
 const crossDocking = require('../controller/qrController/qr');
 const qr = require('express').Router();
@@ -23,32 +22,24 @@ qr.post('/cross-docking', async (req, res) => {
     }
 });
 
-qr.post('/listadochoferes', verifyToken, async (req, res) => {
+qr.post('/drivers-list', verifyToken, async (req, res) => {
 
-    const { idEmpresa, perfil, diduser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
-    const company = getCompanyById(idEmpresa);
-    if (!company) {
-        return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
-    } else {
-        let dbConfig = getDbConfig(company);
-        const dbConnection = mysql.createConnection(dbConfig);
-        dbConnection.connect();
-        var Atemp = [];
+    const { companyId, profile, userId, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-        let query = "SELECT u.did, concat( u.nombre,' ', u.apellido) as nombre FROM `sistema_usuarios` as u JOIN sistema_usuarios_accesos as a on ( a.elim=0 and a.superado=0 and a.usuario = u.did) where u.elim=0 and u.superado=0 and a.perfil=3 ORDER BY nombre ASC";
-        const results = await executeQuery(dbConnection, query, []);
-        for (i = 0; i < results.length; i++) {
-            var row = results[i];
-            var objetoJSON = {
-                "id": row.did,
-                "nombre": row.nombre
-            }
-            Atemp.push(objetoJSON);
-        }
+    if (!companyId || !profile || !userId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
+        return res.status(400).json({ message: "Faltan datos" });
+    }
 
-        dbConnection.end();
-        crearLog(idEmpresa, 0, "/api/listadochoferes", { estadoRespuesta: true, body: Atemp, mensaje: "" }, diduser, idDispositivo, modelo, marca, versionAndroid, versionApp);
-        res.status(200).json({ estadoRespuesta: true, body: Atemp, mensaje: "" });
+    try {
+        const company = await getCompanyById(companyId);
+
+        const result = await driversList(company);
+
+        // crearLog(companyId, 0, "/api/listadochoferes", { estadoRespuesta: true, body: Atemp, mensaje: "" }, userId, idDispositivo, modelo, marca, versionAndroid, versionApp);
+
+        res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 

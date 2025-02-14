@@ -2,7 +2,7 @@ const { executeQuery, getProdDbConfig } = require("../../db");
 const mysql = require('mysql');
 
 async function crossDocking(dataQr, company) {
-    let dbConfig = getProdDbConfig(company);
+    const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -42,4 +42,38 @@ async function crossDocking(dataQr, company) {
     }
 }
 
-module.exports = crossDocking;
+async function driversList(company) {
+    const dbConfig = getProdConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+
+    try {
+        var driverList = [];
+
+        const query = "SELECT u.did, concat( u.nombre,' ', u.apellido) as nombre FROM `sistema_usuarios` as u JOIN sistema_usuarios_accesos as a on ( a.elim=0 and a.superado=0 and a.usuario = u.did) where u.elim=0 and u.superado=0 and a.perfil=3 ORDER BY nombre ASC";
+
+        const results = await executeQuery(dbConnection, query, []);
+
+        for (i = 0; i < results.length; i++) {
+            const row = results[i];
+
+            const driver = {
+                "id": row.did,
+                "nombre": row.nombre
+            }
+
+            driverList.push(driver);
+        }
+
+        return driverList;
+    } catch (error) {
+        throw error;
+    } finally {
+        dbConnection.end();
+    }
+}
+
+module.exports = {
+    crossDocking,
+    driversList,
+};

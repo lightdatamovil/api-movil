@@ -1,7 +1,7 @@
 
-const { executeQuery, getProdDbConfig, getClientes, createConnection2, getCompanyById } = require('../../db');
+const { executeQuery, getProdDbConfig, getClientes, getCompanyById } = require('../../db');
 
-const mysql = require('mysql2/promise'); // Usar la versión de promesas
+const mysql = require('mysql2/promise');
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -16,9 +16,8 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
 };
 
 function convertirFecha(fechaStr) {
-    // Intentar detectar el formato de la fecha
-    const regexISO = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
-    const regexEU = /^\d{2}\/\d{2}\/\d{4}$/; // DD/MM/YYYY
+    const regexISO = /^\d{4}-\d{2}-\d{2}$/;
+    const regexEU = /^\d{2}\/\d{2}\/\d{4}$/;
 
     let year, month, day;
 
@@ -32,10 +31,8 @@ function convertirFecha(fechaStr) {
         throw new Error('Formato de fecha inválido. Usa YYYY-MM-DD o DD/MM/YYYY.');
     }
 
-    // Convertir la cadena de fecha a un objeto Date
-    const fecha = new Date(year, month - 1, day); // Los meses en JavaScript son 0-indexados
+    const fecha = new Date(year, month - 1, day);
 
-    // Formatear la fecha en un formato legible (ejemplo: "DD/MM/YYYY")
     const opciones = { year: 'numeric', month: '2-digit', day: '2-digit' };
     const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
 
@@ -44,15 +41,6 @@ function convertirFecha(fechaStr) {
         fechaFormateada: fechaFormateada
     };
 }
-// Ejemplo de uso
-try {
-    const resultado = convertirFecha('2025-02-14');
-    console.log('Objeto de fecha:', resultado.objetoFecha);
-    console.log('Fecha formateada:', resultado.fechaFormateada);
-} catch (error) {
-    console.error(error.message);
-}
-
 
 async function getHistorial(dbConnection, shipmentId) {
     let historial = [];
@@ -133,9 +121,6 @@ async function shipmentInformation(dbConnection, shipmentId) {
 async function shipmentDetails(company, shipmentId, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
-
-
-    
     dbConnection.connect();
 
     try {
@@ -191,100 +176,7 @@ async function shipmentDetails(company, shipmentId, userId) {
     }
 }
 
-async function shipmentList(companyId, userId, profile, from, to) {
-
-    const dbConfig = getProdConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
-    dbConnection.connect();
-
-    let lineaEnviosHistorial;
-
-
-        const query = `
-            SELECT envios, envios_historial, fecha 
-            FROM tablas_indices 
-            WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) 
-            ORDER BY id DESC;
-        `;
-
-        const [rows] = await dbConnection.execute(query, [hoy]);
-
-        for (const row of rows) {
-            lineaEnviosHistorial = `eh.id > ${row.envios_historial}`;
-        }
-
-        if (!lineaEnviosHistorial) {
-            lineaEnviosHistorial = `eh.autofecha > ${desde}`; // Asegúrate de que 'desde' esté definido
-        }
-
-    try {
-        const clientes = await getClientes(connection, companyId);
-
-        const hoy = new Date().toISOString().slice(0, 10);
-        const d = convertirFecha(from);
-
-        let sqlchoferruteo = "";
-        let leftjoinCliente = "";
-        let sqlduenio = "";
-
-        if (profile == 2) {
-            leftjoinCliente = "LEFT JOIN sistema_usuarios_accesos as sua ON (sua.superado = 0 AND sua.elim = 0 AND sua.usuario= ?)";
-            sqlduenio = "AND e.didCliente = sua.codigo_empleado";
-        } else if (profile == 3) {
-            sqlduenio = "AND e.didChofer = ?";
-            sqlchoferruteo = " AND r.didChofer = ?";
-        }
-
-        const campos = `e.did as didEnvio, e.flex, e.shipmentid, ROUND(e.lat, 8) as lat, 
-                     ROUND(e.long, 8) AS lng, 
-                     e.nombreCliente, e.didCliente,
-                     DATE_FORMAT(e.fechaInicio, '%d/%m/%Y') as fecha_inicio, 
-                     e.estado as estado_envio, e.observacionDestinatario, 
-                     e.orden, e.monto_a_cobrar,
-                     e.nombreDestinatario, e.direccion1 as address_line, 
-                     e.telefono as destination_receiver_phone, 
-                     DATE_FORMAT(e.autofecha, '%d/%m/%Y') as fecha_historial`;
-
-        let query = `SELECT ${campos} FROM envios AS e 
-                   ${leftjoinCliente} 
-                   WHERE e.activo = 1 AND e.didCliente != 0 
-                   AND e.fechaInicio BETWEEN ? AND ? ${sqlduenio} 
-                   ORDER BY e.orden ASC`;
-
-        const rows = await executeQuery(dbConnection, query, [d, hoy, userId]);
-
-        const lista = rows.map(row => {
-            return {
-                didEnvio: row.didEnvio * 1,
-                flex: row.flex * 1,
-                shipmentid: row.shipmentid,
-                estado: row.estado_envio * 1,
-                nombreCliente: clientes[row.didCliente] || 'Cliente no encontrado',
-                didCliente: row.didCliente * 1,
-                fechaEmpresa: row.fecha_inicio,
-                fechaHistorial: row.fecha_historial || null,
-                nombreDestinatario: row.nombreDestinatario,
-                direccion1: row.address_line,
-                direccion2: row.direccion2 || '',
-                telefono: row.destination_receiver_phone,
-                lat: row.lat || '0',
-                long: row.lng || '0',
-                observacionDestinatario: row.observacionDestinatario,
-                orden: row.orden * 1,
-                monto_a_cobrar: row.monto_a_cobrar || "0",
-            };
-        });
-
-        // crearLog(didEmpresa, 0, '/api/envios/listarEnvios', lista, diduser);
-
-        return { body: lista, mensaje: 'Datos obtenidos correctamente' };
-    } catch (error) {
-        throw error;
-    } finally {
-        connection.end();
-    }
-}
-async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
+async function shipmentList(companyId, userId, profile, from, dashboardValue) {
     const company = await getCompanyById(companyId);
 
     const dbConfig = getProdDbConfig(company);
@@ -293,30 +185,25 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
     let lineaEnviosHistorial;
     const hoy = new Date().toISOString().slice(0, 10);
 
-        const query = `
+    const query = `
             SELECT envios, envios_historial, fecha 
             FROM tablas_indices 
             WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) 
             ORDER BY id DESC;
         `;
 
-        const [rows] = await dbConnection.execute(query, [hoy]);
+    const [rows] = await dbConnection.execute(query, [hoy]);
 
-        for (const row of rows) {
-            lineaEnviosHistorial = `eh.id > ${row.envios_historial}`;
-        }
+    for (const row of rows) {
+        lineaEnviosHistorial = `eh.id > ${row.envios_historial}`;
+    }
 
-        if (!lineaEnviosHistorial) {
-            lineaEnviosHistorial = `eh.autofecha > ${desde}`; // Asegúrate de que 'desde' esté definido
-        }
+    if (!lineaEnviosHistorial) {
+        lineaEnviosHistorial = `eh.autofecha > ${desde}`;
+    }
 
-    
     try {
-        console.log("222");
-        
-
-        const clientes = await getClientes(dbConnection,companyId);
-       // const hoy = new Date().toISOString().slice(0, 10);
+        const clientes = await getClientes(dbConnection, companyId);
         const d = convertirFecha(from);
 
         let sqlchoferruteo = "";
@@ -344,10 +231,8 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
             estadoAsignacion = ', e.estadoAsignacion';
         }
 
-
         let query = "";
-        
-        // Definición de la consulta según el valor de dashboardValue
+
         if (dashboardValue == -1) {
             query = `SELECT ${campos} ${estadoAsignacion} FROM envios AS e 
                       LEFT JOIN envios_historial as eh on (eh.superado=0 and eh.elim=0 and e.did = eh.didEnvio)
@@ -381,7 +266,7 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
                       AND ea.elim=0
                       AND ea.autofecha > '${hoy} 00:00:00'`;
         } if (dashboardValue == 2 || dashboardValue == 4) {
-             query = `
+            query = `
                 SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
                        e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia, 
                        e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
@@ -408,11 +293,8 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
                 ${sqlduenio}
                 ORDER BY rp.orden ASC;
             `;
-            
-            // Aquí ejecutas la consulta...
         }
-         else if (dashboardValue == 0 || dashboardValue == 3) {
-            //tra
+        else if (dashboardValue == 0 || dashboardValue == 3) {
             query = `SELECT eh.didEnvio, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, e.flex, 
                       e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia, 
                       e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
@@ -439,12 +321,12 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
                       AND e.didCliente!='null'
                       ORDER BY rp.orden ASC`;
         }
-        console.log(query,"holalqualallalal");
-        const  rows = await dbConnection.execute(query, [d, userId]);
-    
-        
+        console.log(query, "holalqualallalal");
+        const rows = await dbConnection.execute(query, [d, userId]);
 
-        const lista = []; // Inicializa la lista vacía
+
+
+        const lista = [];
 
         for (const row of rows[0]) {
             const lat = row.lat !== '0' ? row.lat : '0';
@@ -453,17 +335,15 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
             const estadoAsignacion = row.estadoAsignacion || 0;
 
 
-            // Actualizar clientes y choferes si no están en caché4
             if (!clientes[row.didCliente]) {
                 const AclientesRuta = `./Aclientes_${companyId}.json`;
                 fs.unlink(AclientesRuta).catch(err => console.error(err));
-                // Aquí usamos await
                 clientes = await getClientes(companyId);
             }
 
             const monto = row.monto_total_a_cobrar || "0";
 
-            lista.push( {
+            lista.push({
                 didEnvio: row.didEnvio * 1,
                 flex: row.flex * 1,
                 shipmentid: row.ml_shipment_id,
@@ -492,12 +372,10 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
             });
         }
 
-        // Crear log (si es necesario)
         // crearLog(companyId, 0, '/api/envios/listarEnvios', lista, userId);
 
-        return { body: lista, mensaje: 'Datos obtenidos correctamente' };
+        return lista;
     } catch (error) {
-        console.error("Error en shipmentList:", error);
         throw error;
     } finally {
         await dbConnection.end();
@@ -505,6 +383,5 @@ async function shipmentList2(companyId, userId, profile, from, dashboardValue) {
 }
 module.exports = {
     shipmentDetails,
-    listarEnviosToken: shipmentList,
-    shipmentList2
+    shipmentList
 };

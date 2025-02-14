@@ -15,7 +15,6 @@ async function verifyStartedRoute(company, userId) {
         let startedRoute = resultQueryCadetesMovimientos.length > 0 ? true : false;
 
         return startedRoute ? true : false;
-
     } catch (error) {
         throw error;
     } finally {
