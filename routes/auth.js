@@ -19,7 +19,7 @@ auth.post('/login', async (req, res) => {
 
         // crearLog(idEmpresa, 0, "/api/login", result, result.body.id, deviceId, model, brand, androidVersion, appVersion);
 
-        res.status(200).json(result);
+        res.status(200).json({ body: result, message: "Usuario logueado correctamente" });
 
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -40,7 +40,7 @@ auth.post('/company-identification', async (req, res) => {
 
         // crearLog(result.id, 0, "/api/identification", result, 0, deviceId, model, brand, androidVersion, appVersion);
 
-        res.status(200).json(result);
+        res.status(200).json({ body: result, message: "Empresa identificada correctamente" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

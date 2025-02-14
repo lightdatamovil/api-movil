@@ -60,7 +60,7 @@ async function login(username, password, company) {
             return { status: false, body: null, message: 'Credenciales inválidas' };
         }
 
-        const token = generateToken(user.did, company.id, user.perfil);
+        const token = generateToken(user.did, company.did, user.perfil);
 
         if (user.direccion != "") {
             userAddress = JSON.parse(user.direccion);
@@ -82,7 +82,7 @@ async function login(username, password, company) {
                 "profile": user.perfil,
                 "email": user.email,
                 "profilePicture": image,
-                "hasShipmentProductsQr": company.id == 200,
+                "hasShipmentProductsQr": company.did == 200,
                 "phone": user.telefono,
                 "token": token,
                 "locations": userLocations,
@@ -108,16 +108,16 @@ async function identification(company) {
 
         return {
             body: {
-                "id": company.id * 1,
+                "id": company.did * 1,
                 "plan": company.plan * 1,
                 "url": company.url,
                 "country": company.pais * 1,
                 "name": company.company,
                 "authentication": true,
-                "appPro": company.id == 4,
+                "appPro": company.did == 4,
                 "colectaPro": false,
-                "obligatoryImageOnRegisterVisit": company.id * 1 == 108,
-                "obligatoryDniAndNameOnRegisterVisit": company.id * 1 == 97,
+                "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
+                "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
                 "image": imageBase64,
             },
             message: 'Empresa identificada correctamente'
