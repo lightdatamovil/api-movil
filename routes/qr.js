@@ -2,67 +2,25 @@ const { getCompanyById, getDbConfig } = require('../db');
 
 const mysql = require('mysql');
 const verifyToken = require('../src/funciones/verifyToken');
-
+const crossDocking = require('../controller/qrController/qr');
 const qr = require('express').Router();
-qr.post('/crossdocking', verifyToken, async (req, res) => {
 
-    const { didEmpresa, perfil, quien, dataqr } = req.body;
-    var idEmpresa = didEmpresa;
+qr.post('/cross-docking', async (req, res) => {
+    const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    const Adataqr = JSON.parse(dataqr);
-
-    var Aclientescompany = AclientesXEmpresa[idEmpresa];
-    var Ausuarioscompany = AusuariosXEmpresa[idEmpresa];
-    var Azonascompany = AzonasXEmpresa[idEmpresa];
-
-    try {
-        const company = getCompanyById(idEmpresa);
-        if (!company) {
-            return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
-        }
-
-        var dataEnvio = new Object();
-        var didenvio = 0;
-
-        let dbConfig = getDbConfig(company);
-        const dbConnection = mysql.createConnection(dbConfig);
-
-        dbConnection.connect();
-
-        var sqldidenvio = "";
-
-        if (Adataqr.hasOwnProperty('sender_id')) {
-
-            sqldidenvio = " AND ml_shipment_id = '" + Adataqr.id + "' AND ml_vendedor_id = '" + Adataqr.sender_id + "'";
-            didenvio = 77;
-        } else {
-            sqldidenvio = " and did = " + Adataqr.did;
-            didenvio = 77;
-        }
-
-        if (didenvio > 0) {
-            var queryE = "SELECT e.estado_envio, e.didCliente, e.choferAsignado, e.didEnvioZona ,date_format(e.fecha_inicio, '%d/%m/%Y') as fecha  FROM envios as e WHERE e.elim=0 and e.superado=0 " + sqldidenvio;
-
-            const results = await executeQuery(dbConnection, queryE, []);
-            var datatemp = results[0];
-
-            dataEnvio["Fecha"] = datatemp.fecha;
-            dataEnvio["zonaNombre"] = busxarzona(datatemp.didEnvioZona, Azonascompany);
-            dataEnvio["Chofer"] = buscarusuario(datatemp.choferAsignado, Ausuarioscompany);
-            dataEnvio["Cliente"] = buscarcliente(datatemp.didCliente, Aclientescompany);
-            dataEnvio["estado"] = datatemp.estado_envio * 1;
-
-            dbConnection.end();
-            res.status(200).json({ estadoRespuesta: true, body: dataEnvio, mensaje: "" });
-        } else {
-            dbConnection.end();
-            res.status(200).json({ estadoRespuesta: false, body: "", mensaje: "No esta cargado el envio en el sistema" });
-        }
-
-    } catch (error) {
-        res.status(500).json({ estadoRespuesta: false, body: "", mensaje: 'Error interno del servidor' });
+    if (!companyId || !profile || !userId || !dataQr || !deviceId || !appVersion || !brand || !model || !androidVersion) {
+        return res.status(400).json({ message: "Faltan datos" });
     }
 
+    try {
+        const company = await getCompanyById(companyId);
+
+        const response = await crossDocking(dataQr, company);
+
+        res.status(200).json({ body: response, message: "Datos obtenidos correctamente" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 qr.post('/listadochoferes', verifyToken, async (req, res) => {

@@ -18,9 +18,9 @@ let companiesList = [];
 function getDbConfig(company) {
     return dbConfig = {
         host: "149.56.182.49",
-        user: "ue" + company.id,
+        user: "ue" + company.did,
         password: "78451296",
-        database: "e" + company.id,
+        database: "e" + company.did,
         port: 44339
     };
 }
