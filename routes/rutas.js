@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { verifyStartedRoute, getRoutaByUserId } from '../controller/rutasController/rutas.js';
+import { verifyStartedRoute } from '../controller/rutasController/rutas.js';
 
 const rutas = Router();
 
