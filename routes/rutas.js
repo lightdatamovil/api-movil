@@ -31,7 +31,7 @@ rutas.post('/verify-started-route', verifyToken, async (req, res) => {
 	}
 });
 
-rutas.post('/get-ruta-by-user', verifyToken, async (req, res) => {
+rutas.post('/get-route-by-user', async (req, res) => {
 	const { companyId, profile, userId, deviceId, model, brand, androidVersion, appVersion } = req.body;
 
 	if (!companyId || !profile || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
