@@ -1,7 +1,7 @@
-const redis = require('redis');
-const fs = require('fs');
+import redis from 'redis';
+import fs from 'fs';
 
-const redisClient = redis.createClient({
+export const redisClient = redis.createClient({
     socket: {
         host: '192.99.190.137',
         port: 50301,
@@ -15,7 +15,7 @@ redisClient.on('error', (err) => {
 
 let companiesList = [];
 
-function getDbConfig(companyId) {
+export function getDbConfig(companyId) {
     return dbConfig = {
         host: "149.56.182.49",
         user: "ue" + companyId,
@@ -25,7 +25,7 @@ function getDbConfig(companyId) {
     };
 }
 
-function getProdDbConfig(company) {
+export function getProdDbConfig(company) {
     return dbConfig = {
         host: "bhsmysql1.lightdata.com.ar",
         user: company.dbuser,
@@ -43,7 +43,7 @@ async function loadCompaniesFromRedis() {
     }
 }
 
-async function getCompanyById(companyCode) {
+export async function getCompanyById(companyCode) {
     if (!Array.isArray(companiesList) || companiesList.length === 0) {
         try {
             await loadCompaniesFromRedis();
@@ -55,7 +55,7 @@ async function getCompanyById(companyCode) {
     return companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
 }
 
-async function getCompanyByCode(companyCode) {
+export async function getCompanyByCode(companyCode) {
     if (!Array.isArray(companiesList) || companiesList.length === 0) {
         try {
             await loadCompaniesFromRedis();
@@ -66,7 +66,9 @@ async function getCompanyByCode(companyCode) {
     return companiesList.find(company => company.codigo === companyCode) || null;
 }
 
-async function executeQuery(connection, query, values) {
+export async function executeQuery(connection, query, values) {
+    // console.log("Query:", query);
+    // console.log("Values:", values);
     try {
         return new Promise((resolve, reject) => {
             connection.query(query, values, (err, results) => {
@@ -137,7 +139,7 @@ async function obtenerClientes_cadetes() {
     }
 }
 
-async function getClientes(connection, didEmpresa) {
+export async function getClientes(connection, didEmpresa) {
     const AclientesRuta = `./Aclientes_${didEmpresa}.json`;
     if (fs.existsSync(AclientesRuta)) {
         return JSON.parse(fs.readFileSync(AclientesRuta));
@@ -152,7 +154,7 @@ async function getClientes(connection, didEmpresa) {
     }
 }
 
-async function getChoferes(connection, didEmpresa) {
+export async function getChoferes(connection, didEmpresa) {
     const AchoferesRuta = `./Achoferes_${didEmpresa}.json`;
     if (fs.existsSync(AchoferesRuta)) {
         return JSON.parse(fs.readFileSync(AchoferesRuta));
@@ -170,17 +172,4 @@ async function getChoferes(connection, didEmpresa) {
 function convertirFecha(fecha) {
     const fechaObj = new Date(fecha);
     return isNaN(fechaObj) ? "Fecha inválida" : fechaObj.toISOString().slice(0, 19).replace('T', ' ');
-}
-
-module.exports = {
-    getDbConfig,
-    getProdDbConfig,
-    redisClient,
-    getCompanyById,
-    getCompanyByCode,
-    executeQuery,
-    obtenerClientes_cadetes,
-    getClientes,
-    getChoferes,
-    convertirFecha
 }

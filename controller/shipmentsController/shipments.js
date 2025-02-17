@@ -1,7 +1,5 @@
-
-const { executeQuery, getProdDbConfig, getClientes, getCompanyById } = require('../../db');
-
-const mysql = require('mysql');
+import { executeQuery, getProdDbConfig, getClientes, getCompanyById } from '../../db.js';
+import mysql from 'mysql';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -118,7 +116,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
     }
 }
 
-async function shipmentDetails(company, shipmentId, userId) {
+export async function shipmentDetails(company, shipmentId, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -176,7 +174,7 @@ async function shipmentDetails(company, shipmentId, userId) {
     }
 }
 
-async function shipmentList(companyId, userId, profile, from, dashboardValue) {
+export async function shipmentList(companyId, userId, profile, from, dashboardValue) {
     const company = await getCompanyById(companyId);
 
     const dbConfig = getProdDbConfig(company);
@@ -378,7 +376,3 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
         await dbConnection.end();
     }
 }
-module.exports = {
-    shipmentDetails,
-    shipmentList
-};

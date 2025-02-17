@@ -1,9 +1,9 @@
-const express = require('express');
-const { getCompanyById, getCompanyByCode } = require('../db');
-const verifyToken = require('../src/funciones/verifyToken');
-const { login, identification, whatsappMessagesList } = require('../controller/authController/auth');
+import { Router } from 'express';
+import { getCompanyById, getCompanyByCode } from '../db.js';
+import verifyToken from '../src/funciones/verifyToken.js';
+import { login, identification, whatsappMessagesList } from '../controller/authController/auth.js';
 
-const auth = express.Router();
+const auth = Router();
 
 auth.post('/login', async (req, res) => {
     const { username, password, companyId, deviceId, appVersion, brand, model, androidVersion } = req.body;
@@ -66,4 +66,4 @@ auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
     }
 });
 
-module.exports = auth;
+export default auth;

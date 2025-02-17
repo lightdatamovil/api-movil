@@ -1,7 +1,9 @@
-const shipments = require('express').Router();
-const verifyToken = require('../src/funciones/verifyToken');
-const { getCompanyById } = require('../db');
-const { shipmentDetails, shipmentList } = require('../controller/shipmentsController/shipments');
+import { Router } from 'express';
+import verifyToken from '../src/funciones/verifyToken.js';
+import { getCompanyById } from '../db.js';
+import { shipmentDetails, shipmentList } from '../controller/shipmentsController/shipments.js';
+
+const shipments = Router();
 
 shipments.post('/shipment-list', async (req, res) => {
   const { companyId, userId, profile, from, deviceId, appVersion, brand, model, androidVersion, dashboardValue } = req.body;
@@ -40,4 +42,4 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 });
 
 
-module.exports = shipments;
+export default shipments;

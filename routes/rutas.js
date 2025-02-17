@@ -1,9 +1,9 @@
+import { Router } from 'express';
+import verifyToken from '../src/funciones/verifyToken.js';
+import { getCompanyById } from '../db.js';
+import { verifyStartedRoute } from '../controller/rutasController/rutas.js';
 
-const mysql = require('mysql');
-const rutas = require('express').Router();
-const verifyToken = require('../src/funciones/verifyToken');
-const { getCompanyById } = require('../db');
-const { verifyStartedRoute } = require('../controller/rutasController/rutas');
+const rutas = Router();
 
 rutas.post('/start-route', verifyToken, async (req, res) => {
 	res.status(200).json({ message: "WORK IN PROGRESS" });
@@ -31,4 +31,4 @@ rutas.post('/verify-started-route', verifyToken, async (req, res) => {
 	}
 });
 
-module.exports = rutas;
+export default rutas;

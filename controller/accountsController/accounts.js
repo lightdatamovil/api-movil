@@ -1,6 +1,5 @@
-const mysql = require('mysql');
-const { getDbConfig } = require('../../db');
-const executeQuery = require('../../db').executeQuery;
+import mysql from 'mysql';
+import { getDbConfig, executeQuery } from '../../db.js';
 
 async function accounts(company) {
     let dbConfig = getDbConfig(company.did);

@@ -1,9 +1,9 @@
-const { getCompanyById } = require('../db');
+import { getCompanyById } from '../db.js';
+import verifyToken from '../src/funciones/verifyToken.js';
+import express from 'express';
+import { getShipmentIdFromQr, crossDocking, driverList } from "../controller/qrController/qr.js";
 
-const verifyToken = require('../src/funciones/verifyToken');
-const { crossDocking } = require('../controller/qrController/qr');
-const qr = require('express').Router();
-const { getShipmentIdFromQr } = require("../controller/qrController/qr")
+const qr = express.Router();
 
 qr.post('/cross-docking', async (req, res) => {
     const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
@@ -40,7 +40,7 @@ qr.post('/get-shipment-id', async (req, res) => {
     }
 });
 
-qr.post('/drivers-list', verifyToken, async (req, res) => {
+qr.post('/driver-list', verifyToken, async (req, res) => {
 
     const { companyId, profile, userId, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
@@ -51,7 +51,7 @@ qr.post('/drivers-list', verifyToken, async (req, res) => {
     try {
         const company = await getCompanyById(companyId);
 
-        const result = await driversList(company);
+        const result = await driverList(company);
 
         // crearLog(companyId, 0, "/api/listadochoferes", { estadoRespuesta: true, body: Atemp, mensaje: "" }, userId, idDispositivo, modelo, marca, versionAndroid, versionApp);
 
@@ -61,4 +61,4 @@ qr.post('/drivers-list', verifyToken, async (req, res) => {
     }
 });
 
-module.exports = qr
+export default qr

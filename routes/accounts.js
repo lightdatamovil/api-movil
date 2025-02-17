@@ -1,7 +1,8 @@
-const mysql = require('mysql');
-const accounts = require('express').Router();
-const verifyToken = require('../src/funciones/verifyToken');
-const { getCompanyById, getDbConfig } = require('../db');
+import verifyToken from '../src/funciones/verifyToken.js';
+import { getCompanyById } from '../db.js';
+import { Router } from 'express';
+
+const accounts = Router();
 
 accounts.post('/account-list', verifyToken, async (req, res) => {
 	const { companyId, profile, userId, deviceId, appVersion, brand, model, androidVersion } = req.body;
@@ -23,4 +24,4 @@ accounts.post('/account-list', verifyToken, async (req, res) => {
 	}
 });
 
-module.exports = accounts;
+export default accounts;
