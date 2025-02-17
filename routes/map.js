@@ -19,6 +19,25 @@ map.post('/get-route-by-user', async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+});
+
+map.post('/geolocalize', async (req, res) => {
+    const { companyId, profile, userId, shipmentId, latitude, longitude, deviceId, model, brand, androidVersion, appVersion } = req.body;
+
+    if (!companyId || !profile || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
+        return res.status(400).json({ message: 'Faltan datos' });
+    }
+
+    try {
+        const company = await getCompanyById(companyId);
+
+        const result = await geolocalize(company, userId);
+
+        res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 
 });
 

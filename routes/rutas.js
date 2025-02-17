@@ -31,5 +31,4 @@ rutas.post('/verify-started-route', verifyToken, async (req, res) => {
 	}
 });
 
-
 export default rutas;
