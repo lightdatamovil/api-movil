@@ -49,7 +49,7 @@ export function getUrls(company) {
         colecta_liquidaciones: ["https://apimovil.lightdata.app/api/colecta/controlador_liquidacion.php"],
 
         /// ACCOUNTS
-        cuentas_listado: ["https://lightdata.app/g/instalation/responseListadoCuentas.php"],
+        cuentas_listado: ["http://localhost:13000/api/accounts/account-list"],
         cuentas_alta: ["https://lightdata.app/g/instalation/responseDetalleCuenta.php"],
 
         /// BACKGPS
