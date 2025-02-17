@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getCompanyById } from '../db.js';
-import { editUser, changePassword } from '../controller/usersController/users.js';
+import { editUser, changePassword, changeProfilePicture } from '../controller/usersController/users.js';
 import { createHash } from 'crypto';
 
 const users = Router();

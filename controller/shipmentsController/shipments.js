@@ -367,4 +367,9 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
     } finally {
         dbConnection.end();
     }
+
+
+}
+export async function getHomeData(company, userId, profile) {
+    return null;
 }

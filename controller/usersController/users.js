@@ -91,26 +91,19 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
     }
 }
 
-export async function changeProfilePicture(companyId, userId, profile, image) {
+export async function changeProfilePicture(company, userId, profile, image) {
 
     if (image && image !== "") {
-        const data2 = image.split(",");
-        const decodedData = Buffer.from(data2[1], 'base64');
+        const imageB64 = image.split(",");
 
-        // Usar 'sharp' o una librería similar para obtener el tipo de imagen
-        const imageType = getImageType(decodedData);
+        const decodedData = Buffer.from(imageB64[1], 'base64');
+
+        const imageType = await getImageType(decodedData);
 
         if (imageType) {
-            // let fileExtension;
-            // if (imageType === 'image/png') {
-            //     fileExtension = 'png';
-            // } else if (imageType === 'image/jpeg') {
-            //     fileExtension = 'jpg';
-            // }
-
             const data = {
                 operador: "guardarImagen",
-                didempresa: companyId,
+                didempresa: company.did,
                 didUser: userId,
                 perfil: profile,
                 imagen: image,
@@ -123,21 +116,20 @@ export async function changeProfilePicture(companyId, userId, profile, image) {
                 },
             };
 
-            axios.post('https://files.lightdata.app/upload_perfil.php', data, config)
-                .then(response => {
-                    return response.data;
-                })
-                .catch(error => {
-                    throw new Error("Error al subir la imagen:", error);
-                });
+            const response = await axios.post('https://files.lightdata.app/upload_perfil.php', data, config)
+
+            if (response.data.error) {
+                throw new Error(response.data.error);
+            }
+
+            return response.data;
         } else {
             throw new Error("Tipo de imagen no soportado");
         }
     }
 }
 
-function getImageType(buffer) {
-    // Usamos la librería 'image-type' para detectar el tipo de imagen
-    const type = imageType(buffer);
+async function getImageType(buffer) {
+    const type = await imageType(buffer);
     return type ? type.mime : null;
 }
