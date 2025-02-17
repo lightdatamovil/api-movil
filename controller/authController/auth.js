@@ -1,9 +1,8 @@
-const mysql = require('mysql');
-const executeQuery = require('../../db').executeQuery;
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
-const { getDbConfig } = require('../../db');
+import mysql from 'mysql';
+import { executeQuery, getDbConfig } from '../../db.js';
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 function generateToken(userId, idEmpresa, perfil) {
     const payload = {
@@ -19,7 +18,7 @@ function generateToken(userId, idEmpresa, perfil) {
     return jwt.sign(payload, 'ruteate', options);
 }
 
-async function login(username, password, company) {
+export async function login(username, password, company) {
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -45,19 +44,20 @@ async function login(username, password, company) {
         const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username]);
 
         if (resultsFromUserQuery.length === 0) {
-            return { status: false, body: null, message: 'No se ha encontrado el usuario' };
+            throw new Error('Usuario no encontrado');
         }
 
         const user = resultsFromUserQuery[0];
 
         if (user.bloqueado === 1) {
-            return { status: false, body: null, message: 'Usuario bloqueado' };
+            throw new Error('Usuario bloqueado');
         }
 
         const hashPassword = crypto.createHash('sha256').update(password).digest('hex');
-
+        console.log(hashPassword);
+        console.log(user.pass);
         if (user.pass !== hashPassword) {
-            return { status: false, body: null, message: 'Credenciales inválidas' };
+            throw new Error('Contraseña incorrecta');
         }
 
         const token = generateToken(user.did, company.did, user.perfil);
@@ -94,7 +94,7 @@ async function login(username, password, company) {
     }
 }
 
-async function identification(company) {
+export async function identification(company) {
 
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
 
@@ -125,7 +125,7 @@ async function identification(company) {
     }
 }
 
-async function whatsappMessagesList(company) {
+export async function whatsappMessagesList(company) {
 
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
@@ -148,9 +148,3 @@ async function whatsappMessagesList(company) {
         dbConnection.end();
     }
 }
-
-module.exports = {
-    login,
-    identification,
-    whatsappMessagesList,
-};

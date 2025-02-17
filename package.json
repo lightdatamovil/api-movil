@@ -9,6 +9,7 @@
   "keywords": [
     "lightdata"
   ],
+  "type": "module",
   "author": "lightdata",
   "license": "ISC",
   "dependencies": {
@@ -19,6 +20,7 @@
     "crypto": "^1.0.1",
     "express": "^4.21.2",
     "follow-redirects": "^1.15.3",
+    "image-type": "^5.2.0",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.12.0",

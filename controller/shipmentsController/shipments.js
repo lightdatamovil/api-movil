@@ -1,8 +1,6 @@
-
-const { default: axios } = require('axios');
-const { executeQuery, getProdDbConfig, getClientes, getCompanyById, getDbConfig } = require('../../db');
-
-const mysql = require('mysql');
+import { executeQuery, getProdDbConfig, getClientsByCompany } from '../../db.js';
+import mysql from 'mysql';
+import axios from 'axios';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -119,7 +117,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
     }
 }
 
-async function shipmentDetails(company, shipmentId, userId) {
+export async function shipmentDetails(company, shipmentId, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -177,12 +175,11 @@ async function shipmentDetails(company, shipmentId, userId) {
     }
 }
 
-async function shipmentList(companyId, userId, profile, from, dashboardValue) {
-    const company = await getCompanyById(companyId);
-
+export async function shipmentList(company, userId, profile, from, dashboardValue) {
     const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
 
-    const dbConnection = await mysql.createConnection(dbConfig);
     let lineaEnviosHistorial;
     const hoy = new Date().toISOString().slice(0, 10);
 
@@ -204,7 +201,7 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
     }
 
     try {
-        const clientes = await getClientes(dbConnection, companyId);
+        const clientes = getClientsByCompany(company.did);
         const hora = convertirFecha(from);
 
         let sqlchoferruteo = "";
@@ -332,13 +329,6 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
             const logisticainversa = row.valor !== null;
             const estadoAsignacion = row.estadoAsignacion || 0;
 
-
-            if (!clientes[row.didCliente]) {
-                const AclientesRuta = `./Aclientes_${companyId}.json`;
-                fs.unlink(AclientesRuta).catch(err => console.error(err));
-                clientes = await getClientes(companyId);
-            }
-
             const monto = row.monto_total_a_cobrar || "0";
 
             lista.push({
@@ -376,10 +366,12 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
     } catch (error) {
         throw error;
     } finally {
-        await dbConnection.end();
+        dbConnection.end();
     }
+
+
 }
-async function uploadImage(reqBody, company) {
+export async function uploadImage(reqBody, company) {
     const { imagen, didenvio, quien, idEmpresa, estado: didEstado, idLinea: didLine } = reqBody;
 
     if (!imagen) {
@@ -401,14 +393,13 @@ async function uploadImage(reqBody, company) {
     }
 
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = await mysql.createConnection(dbConfig);
-dbConnection.connect()
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect()
 
     try {
-        
-        // Utiliza executeQuery para insertar en la base de datos
+
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
-        console.log("hola");
+
         await executeQuery(dbConnection, insertQuery, [
             didenvio,
             response.data,
@@ -417,19 +408,15 @@ dbConnection.connect()
             didLine,
             didEstado
         ]);
-        
+
         return { estadoRespuesta: true, body: "", mensaje: "OK" };
     } catch (error) {
         throw error;
     } finally {
-        await dbConnection.end();
+        dbConnection.end();
     }
 }
 
-
-
-module.exports = {
-    shipmentDetails,
-    shipmentList,
-    uploadImage
-};
+export async function getHomeData(company, userId, profile) {
+    return null;
+}

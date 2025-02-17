@@ -1,9 +1,8 @@
-const mysql = require('mysql');
-const { getProdDbConfig } = require('../../db');
-const executeQuery = require('../../db').executeQuery;
+import mysql from 'mysql';
+import { getProdDbConfig, executeQuery } from '../../db.js';
 
-async function verifyStartedRoute(company, userId) {
-    let dbConfig = getProdDbConfig(company);
+export async function verifyStartedRoute(company, userId) {
+    const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -21,6 +20,5 @@ async function verifyStartedRoute(company, userId) {
         dbConnection.end();
     }
 }
-module.exports = {
-    verifyStartedRoute,
-};
+
+

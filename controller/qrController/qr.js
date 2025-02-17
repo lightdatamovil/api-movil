@@ -1,7 +1,7 @@
-const { executeQuery, getProdDbConfig, getDbConfig } = require("../../db");
-const mysql = require('mysql');
+import { executeQuery, getProdDbConfig, getDbConfig } from "../../db.js";
+import mysql from 'mysql';
 
-async function crossDocking(dataQr, company) {
+export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -44,8 +44,7 @@ async function crossDocking(dataQr, company) {
     }
 }
 
-async function getShipmentIdFromQr(dataQr, company) {
-    console.log(company);
+export async function getShipmentIdFromQr(dataQr, company) {
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -85,8 +84,8 @@ async function getShipmentIdFromQr(dataQr, company) {
     }
 }
 
-async function driversList(company) {
-    const dbConfig = getProdConfig(company);
+export async function driverList(company) {
+    const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -115,8 +114,3 @@ async function driversList(company) {
         dbConnection.end();
     }
 }
-module.exports = {
-    crossDocking,
-    driversList,
-    getShipmentIdFromQr,
-};

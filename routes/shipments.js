@@ -11,10 +11,11 @@ shipments.post('/shipment-list', async (req, res) => {
     return res.status(400).json({ message: "Faltan datos" });
   }
   try {
-    const result = await shipmentList(companyId, userId, profile, from, dashboardValue);
+    const company = await getCompanyById(companyId);
 
+    const result = await shipmentList(company, userId, profile, from, dashboardValue);
 
-    return res.status(200).json(result);
+    return res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -34,7 +35,7 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
     const result = await shipmentDetails(company, shipmentId, userId);
 
-    res.status(200).json(result);
+    res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -43,16 +44,16 @@ shipments.post('/upload', async (req, res) => {
   const { idEmpresa, didenvio, quien, estado, idLinea, imagen } = req.body;
 
   if (!idEmpresa || !didenvio || !quien || !estado || !idLinea || !imagen) {
-      return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: "Faltan datos" });
+    return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: "Faltan datos" });
   }
   const company = await getCompanyById(idEmpresa);
 
   try {
-      const response = await uploadImage(req.body,company);
-      res.status(200).json(response);
+    const response = await uploadImage(req.body, company);
+    res.status(200).json(response);
   } catch (error) {
-      res.status(500).json({ estadoRespuesta: false, body: "", mensaje: error.message });
+    res.status(500).json({ estadoRespuesta: false, body: "", mensaje: error.message });
   }
 });
 
-module.exports = shipments;
+export default shipments;
