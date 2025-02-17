@@ -1,5 +1,6 @@
 
-const { executeQuery, getProdDbConfig, getClientes, getCompanyById } = require('../../db');
+const { default: axios } = require('axios');
+const { executeQuery, getProdDbConfig, getClientes, getCompanyById, getDbConfig } = require('../../db');
 
 const mysql = require('mysql');
 
@@ -378,7 +379,57 @@ async function shipmentList(companyId, userId, profile, from, dashboardValue) {
         await dbConnection.end();
     }
 }
+async function uploadImage(reqBody, company) {
+    const { imagen, didenvio, quien, idEmpresa, estado: didEstado, idLinea: didLine } = reqBody;
+
+    if (!imagen) {
+        throw new Error("Error en el body");
+    }
+
+    const server = 1;
+    const url = 'https://files.lightdata.app/upload.php';
+
+    // Realiza la solicitud POST a la URL
+    const response = await axios.post(url, reqBody, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+
+    if (!response.data) {
+        throw new Error("Error servidor files");
+    }
+
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = await mysql.createConnection(dbConfig);
+dbConnection.connect()
+
+    try {
+        
+        // Utiliza executeQuery para insertar en la base de datos
+        const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
+        console.log("hola");
+        await executeQuery(dbConnection, insertQuery, [
+            didenvio,
+            response.data,
+            server,
+            quien,
+            didLine,
+            didEstado
+        ]);
+        
+        return { estadoRespuesta: true, body: "", mensaje: "OK" };
+    } catch (error) {
+        throw error;
+    } finally {
+        await dbConnection.end();
+    }
+}
+
+
+
 module.exports = {
     shipmentDetails,
-    shipmentList
+    shipmentList,
+    uploadImage
 };

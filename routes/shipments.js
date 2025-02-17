@@ -1,7 +1,8 @@
 const shipments = require('express').Router();
 const verifyToken = require('../src/funciones/verifyToken');
 const { getCompanyById } = require('../db');
-const { shipmentDetails, shipmentList } = require('../controller/shipmentsController/shipments');
+const { shipmentDetails, shipmentList, uploadImage } = require('../controller/shipmentsController/shipments');
+
 
 shipments.post('/shipment-list', async (req, res) => {
   const { companyId, userId, profile, from, deviceId, appVersion, brand, model, androidVersion, dashboardValue } = req.body;
@@ -9,7 +10,6 @@ shipments.post('/shipment-list', async (req, res) => {
   if (!companyId || !userId || !profile || !from || !deviceId || !appVersion || !brand || !model || !androidVersion) {
     return res.status(400).json({ message: "Faltan datos" });
   }
-
   try {
     const result = await shipmentList(companyId, userId, profile, from, dashboardValue);
 
@@ -39,6 +39,20 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+shipments.post('/upload', async (req, res) => {
+  const { idEmpresa, didenvio, quien, estado, idLinea, imagen } = req.body;
 
+  if (!idEmpresa || !didenvio || !quien || !estado || !idLinea || !imagen) {
+      return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: "Faltan datos" });
+  }
+  const company = await getCompanyById(idEmpresa);
+
+  try {
+      const response = await uploadImage(req.body,company);
+      res.status(200).json(response);
+  } catch (error) {
+      res.status(500).json({ estadoRespuesta: false, body: "", mensaje: error.message });
+  }
+});
 
 module.exports = shipments;
