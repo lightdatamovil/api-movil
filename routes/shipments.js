@@ -13,7 +13,9 @@ shipments.post('/shipment-list', async (req, res) => {
   }
 
   try {
-    const result = await shipmentList(companyId, userId, profile, from, dashboardValue);
+    const company = await getCompanyById(companyId);
+
+    const result = await shipmentList(company, userId, profile, from, dashboardValue);
 
     return res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {

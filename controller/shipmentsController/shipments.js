@@ -1,4 +1,4 @@
-import { executeQuery, getProdDbConfig, getClientes, getCompanyById } from '../../db.js';
+import { executeQuery, getProdDbConfig, getClientsByCompany } from '../../db.js';
 import mysql from 'mysql';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
@@ -174,12 +174,11 @@ export async function shipmentDetails(company, shipmentId, userId) {
     }
 }
 
-export async function shipmentList(companyId, userId, profile, from, dashboardValue) {
-    const company = await getCompanyById(companyId);
-
+export async function shipmentList(company, userId, profile, from, dashboardValue) {
     const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
 
-    const dbConnection = await mysql.createConnection(dbConfig);
     let lineaEnviosHistorial;
     const hoy = new Date().toISOString().slice(0, 10);
 
@@ -201,7 +200,7 @@ export async function shipmentList(companyId, userId, profile, from, dashboardVa
     }
 
     try {
-        const clientes = await getClientes(dbConnection, companyId);
+        const clientes = getClientsByCompany(company.did);
         const hora = convertirFecha(from);
 
         let sqlchoferruteo = "";
@@ -329,13 +328,6 @@ export async function shipmentList(companyId, userId, profile, from, dashboardVa
             const logisticainversa = row.valor !== null;
             const estadoAsignacion = row.estadoAsignacion || 0;
 
-
-            if (!clientes[row.didCliente]) {
-                const AclientesRuta = `./Aclientes_${companyId}.json`;
-                fs.unlink(AclientesRuta).catch(err => console.error(err));
-                clientes = await getClientes(companyId);
-            }
-
             const monto = row.monto_total_a_cobrar || "0";
 
             lista.push({
@@ -373,6 +365,6 @@ export async function shipmentList(companyId, userId, profile, from, dashboardVa
     } catch (error) {
         throw error;
     } finally {
-        await dbConnection.end();
+        dbConnection.end();
     }
 }
