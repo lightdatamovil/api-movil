@@ -30,6 +30,9 @@ export async function login(username, password, company) {
 
         let depotLatitude = 0;
         let depotLongitude = 0;
+        let userHomeLatitude = 0;
+        let userHomeLongitude = 0;
+        let userAddress = new Object();
 
         if (resultsFromDepotQuery.length > 0) {
             const row = resultsFromDepotQuery[0];
@@ -54,8 +57,7 @@ export async function login(username, password, company) {
         }
 
         const hashPassword = crypto.createHash('sha256').update(password).digest('hex');
-        console.log(hashPassword);
-        console.log(user.pass);
+
         if (user.pass !== hashPassword) {
             throw new Error('Contraseña incorrecta');
         }
