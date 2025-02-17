@@ -202,7 +202,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
     try {
         const clientes = getClientsByCompany(company.did);
-        const hora = convertirFecha(from);
+        const hour = convertirFecha(from);
 
         let sqlchoferruteo = "";
         let leftjoinCliente = "";
@@ -319,7 +319,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       AND e.didCliente!='null'
                       ORDER BY rp.orden ASC`;
         }
-        const rows = await dbConnection.execute(query, [hora]);
+        const rows = await dbConnection.execute(query, [hour]);
 
         const lista = [];
 
@@ -408,9 +408,4 @@ export async function uploadImage(company, shipmentId, userId, didEstado, didLin
     } finally {
         dbConnection.end();
     }
-}
-
-export async function getHomeData(company, userId, profile) {
-    // GUILLE
-    return null;
 }
