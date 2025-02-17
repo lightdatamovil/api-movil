@@ -15,9 +15,9 @@ export function getUrls(company) {
         nextToDeliver: ["https://apimovil.lightdata.app/api/envios/proximaentrega.php"],
 
         /// SETTLEMENTS
-        settlementList: ["https://apimovil.lightdata.app/api/liquidaciones/responseListadoLiquidaciones.php"],
-        settlementDetails: ["https://apimovil.lightdata.app/api/liquidaciones/responseDetalleLiquidacion.php"],
-        settlementShipmentDetails: ["https://apimovil.lightdata.app/api/liquidaciones/responseDetalleLiquidacionEnvio.php"],
+        settlementList: ["http://localhost:13000/api/settlements/get-settlement-list"],
+        settlementDetails: ["http://localhost:13000/api/settlements/get-settlement-details"],
+        settlementShipmentDetails: ["http://localhost:13000/api/settlements/settlement-shipment-details"],
 
         /// MAP
         geolocalize: ["http://localhost:13000/api/map/geolocalize"],
@@ -32,7 +32,7 @@ export function getUrls(company) {
         crossdocking: ["http://localhost:13000/api/qr/cross-docking"],
         ingresarflex: ["https://apimovil.lightdata.app/api/envios/ingresar-flex.php"],
         asignaciones: ["https://asignaciones.lightdatas2.com.ar/asignav3/asignar"],
-        infopaquete: ["https://lightdata.app/g/instalation/responseinfopaquete.php"],
+        infopaquete: ["https://apimovil.lightdata.app/api/envios/responseinfopaquete.php"],
 
         /// PROFILE
         changePassword: ["http://localhost:13000/api/users/change-password"],
@@ -40,6 +40,8 @@ export function getUrls(company) {
         changeProfilePicture: ["http://localhost:13000/api/users/change-profile-picture"],
 
         /// COLLECT MODULE
+        iniciar_ruta_colecta: ["https://apimovil.lightdata.app/api/colecta/iniciarRutaColecta.php"],
+        guardar_ruta_colecta: ["https://apimovil.lightdata.app/api/colecta/guardarRutaColecta.php"],
         colecta_detalle: ["https://apimovil.lightdata.app/api/colecta/getDetalleColecta.php"],
         colecta_detalle_cliente: ["https://apimovil.lightdata.app/api/colecta/getDetalleColecta_cliente.php"],
         colectas: ["https://apimovil.lightdata.app/api/colecta/getColectas.php"],
@@ -55,9 +57,13 @@ export function getUrls(company) {
 
         /// WSP
         wsp: ["http://localhost:13000/api/auth/whatsapp-message-list"],
+
+        /// PRIVACY POLICY
+        privacyPolicy: ["https://lightdata.app/privacyapp.html"],
     };
 
     if (company != null && company.did == 4) {
+        /// ASIGNACION PROCOURRIER
         urls.asignaciones = ["https://asignaciones.lightdatas2.com.ar/asignaciones/procourrier/index.php"];
     }
 
