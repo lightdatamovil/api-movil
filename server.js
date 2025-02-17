@@ -39,9 +39,6 @@ if (cluster.isMaster) {
     (async () => {
         try {
             await redisClient.connect();
-            await getClients();
-            await getDrivers();
-            await getZones();
             app.use('/api/auth', auth);
             app.use('/api/accounts', accounts);
             app.use('/api/shipments', shipments);
