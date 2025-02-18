@@ -144,79 +144,82 @@ export async function obtenerEnviosPorCliente({ didEmpresa, quien, perfil, fecha
     });
 }
 
-export async function obtenerLiquidaciones({ didEmpresa, quien, perfil, operador, idLiquidacion, desde, hasta },company) {
-    return new Promise(async (resolve, reject) => {
+export async function obtenerListadoLiquidaciones({ desde, hasta }, company) {
+    return new Promise((resolve, reject) => {
         try {
             const dbConfig = getProdDbConfig(company);
-          
             const dbConnection = mysql.createConnection(dbConfig);
             dbConnection.connect();
 
-            let sql, result;
-            let Adatacolecta = [];
+            const sql = `
+                SELECT did, DATE_FORMAT(desde, '%d/%m/%Y') AS desde, total, 
+                       DATE_FORMAT(hasta, '%d/%m/%Y') AS hasta, DATE_FORMAT(fecha, '%d/%m/%Y') AS fecha
+                FROM colecta_liquidaciones
+                WHERE superado = 0 AND elim = 0 AND tipo = 2
+                AND fecha BETWEEN ? AND ?
+            `;
 
-            // Consulta según el tipo de operador
-            if (operador === "listado") {
-                sql = `
-                    SELECT did, DATE_FORMAT(desde, '%d/%m/%Y') AS desde, total, 
-                           DATE_FORMAT(hasta, '%d/%m/%Y') AS hasta, DATE_FORMAT(fecha, '%d/%m/%Y') AS fecha
-                    FROM colecta_liquidaciones
-                    WHERE superado = 0 AND elim = 0 AND tipo = 2
-                    AND fecha BETWEEN ? AND ?
-                `;
-                dbConnection.query(sql, [desde, hasta], (err, result) => {
-                    if (err) return reject({ estadoRespuesta: false, body: "", mensaje: "Error en la consulta." });
+            dbConnection.query(sql, [desde, hasta], (err, result) => {
+                if (err) return reject({ estadoRespuesta: false, body: "", mensaje: "Error en la consulta." });
 
-                    Adatacolecta = result.map(row => ({
-                        did: Number(row.did),
-                        total: Number(row.total),
-                        desde: row.desde,
-                        hasta: row.hasta,
-                        fecha: row.fecha
-                    }));
+                const Adatacolecta = result.map(row => ({
+                    did: Number(row.did),
+                    total: Number(row.total),
+                    desde: row.desde,
+                    hasta: row.hasta,
+                    fecha: row.fecha
+                }));
 
-                    dbConnection.end();
-                    resolve({ estadoRespuesta: true, body: Adatacolecta, mensaje: "" });
-                });
-            } else if (operador === "detallecolecta") {
-                // Obtener idlineas de la liquidación
-                sql = "SELECT idlineas FROM colecta_liquidaciones WHERE superado = 0 AND elim = 0 AND did = ?";
-                dbConnection.query(sql, [idLiquidacion], (err, result) => {
-                    if (err) return reject({ estadoRespuesta: false, body: "", mensaje: "Error al obtener las líneas." });
-
-                    const idlineas = result[0]?.idlineas;
-
-                    if (idlineas) {
-                        // Obtener detalles de los envíos
-                        sql = `
-                            SELECT eh.didEnvio, e.ml_shipment_id, e.didCliente, c.nombre_fantasia, eh.fecha
-                            FROM envios_historial AS eh
-                            LEFT JOIN envios AS e ON e.superado = 0 AND e.elim = 0 AND e.did = eh.didEnvio
-                            LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente
-                            WHERE eh.superado = 0 AND eh.elim = 0 AND eh.id IN (?)
-                        `;
-                        dbConnection.query(sql, [idlineas], (err, result) => {
-                            if (err) return reject({ estadoRespuesta: false, body: "", mensaje: "Error al obtener los detalles de los envíos." });
-
-                            Adatacolecta = result.map(row => ({
-                                didEnvio: row.didEnvio,
-                                ml_shipment_id: row.ml_shipment_id,
-                                cliente: row.nombre_fantasia,
-                                fecha: row.fecha
-                            }));
-
-                            dbConnection.end();
-                            resolve({ estadoRespuesta: true, body: Adatacolecta, mensaje: "" });
-                        });
-                    } else {
-                        dbConnection.end();
-                        resolve({ estadoRespuesta: false, body: "", mensaje: "No se encontraron líneas para la liquidación." });
-                    }
-                });
-            } else {
                 dbConnection.end();
-                reject({ estadoRespuesta: false, body: "", mensaje: "Operador no válido." });
-            }
+                resolve({ estadoRespuesta: true, body: Adatacolecta, mensaje: "" });
+            });
+        } catch (error) {
+            reject({ estadoRespuesta: false, body: "", mensaje: "Error interno del servidor." });
+        }
+    });
+}
+
+export async function obtenerDetalleColecta({ idLiquidacion }, company) {
+    return new Promise((resolve, reject) => {
+        try {
+            const dbConfig = getProdDbConfig(company);
+            const dbConnection = mysql.createConnection(dbConfig);
+            dbConnection.connect();
+
+            // Obtener idlineas de la liquidación
+            const sql = "SELECT idlineas FROM colecta_liquidaciones WHERE superado = 0 AND elim = 0 AND did = ?";
+            dbConnection.query(sql, [idLiquidacion], (err, result) => {
+                if (err) return reject({ estadoRespuesta: false, body: "", mensaje: "Error al obtener las líneas." });
+
+                const idlineas = result[0]?.idlineas;
+
+                if (idlineas) {
+                    // Obtener detalles de los envíos
+                    const sqlDetalle = `
+                        SELECT eh.didEnvio, e.ml_shipment_id, e.didCliente, c.nombre_fantasia, eh.fecha
+                        FROM envios_historial AS eh
+                        LEFT JOIN envios AS e ON e.superado = 0 AND e.elim = 0 AND e.did = eh.didEnvio
+                        LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente
+                        WHERE eh.superado = 0 AND eh.elim = 0 AND eh.id IN (?);
+                    `;
+                    dbConnection.query(sqlDetalle, [idlineas], (err, result) => {
+                        if (err) return reject({ estadoRespuesta: false, body: "", mensaje: "Error al obtener los detalles de los envíos." });
+
+                        const Adatacolecta = result.map(row => ({
+                            didEnvio: row.didEnvio,
+                            ml_shipment_id: row.ml_shipment_id,
+                            cliente: row.nombre_fantasia,
+                            fecha: row.fecha
+                        }));
+
+                        dbConnection.end();
+                        resolve({ estadoRespuesta: true, body: Adatacolecta, mensaje: "" });
+                    });
+                } else {
+                    dbConnection.end();
+                    resolve({ estadoRespuesta: false, body: "", mensaje: "No se encontraron líneas para la liquidación." });
+                }
+            });
         } catch (error) {
             reject({ estadoRespuesta: false, body: "", mensaje: "Error interno del servidor." });
         }

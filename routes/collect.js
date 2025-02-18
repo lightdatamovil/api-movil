@@ -1,6 +1,6 @@
 import { getCompanyById } from '../db.js';
 import { Router } from 'express';
-import { guardarRuta, obtenerColectaDelDia, getCollectList, obtenerEnviosPorCliente, obtenerLiquidaciones, obtenerRutaChofer, obtenerRutaNotificaciones } from '../controller/collectController/collectController.js';
+import { guardarRuta, obtenerColectaDelDia, getCollectList, obtenerEnviosPorCliente, obtenerRutaChofer, obtenerRutaNotificaciones, obtenerDetalleColecta, obtenerListadoLiquidaciones } from '../controller/collectController/collectController.js';
 
 const collect = Router();
 
@@ -106,33 +106,37 @@ collect.post("/get-collect-list", async (req, res) => {
     }
 });
 collect.post("/get-settlement-list", async (req, res) => {
-    const { didEmpresa, quien, perfil, operador, idLiquidacion, desde, hasta } = req.body;
+    const { didEmpresa, quien, perfil, desde, hasta } = req.body;
 
-    if (!didEmpresa || !quien || !perfil || !operador || (operador === "listado" && (!desde || !hasta)) || (operador === "detallecolecta" && !idLiquidacion)) {
+    // Validación de parámetros
+    if (!didEmpresa || !quien || !perfil || !desde || !hasta) {
         return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: "Faltan datos en la solicitud." });
     }
 
     try {
         const company = await getCompanyById(didEmpresa);
-        const respuesta = await obtenerLiquidaciones({ didEmpresa, quien, perfil, operador, idLiquidacion, desde, hasta }, company);
+        const respuesta = await obtenerListadoLiquidaciones({ desde, hasta }, company);
         res.json(respuesta);
     } catch (error) {
         res.status(500).json(error);
     }
 });
+
 collect.post("/get-settlement-details", async (req, res) => {
-    const { didEmpresa, quien, perfil, operador, idLiquidacion, desde, hasta } = req.body;
+    const { didEmpresa, quien, perfil, idLiquidacion } = req.body;
 
-    if (!didEmpresa || !quien || !perfil || !operador || (operador === "listado" && (!desde || !hasta)) || (operador === "detallecolecta" && !idLiquidacion)) {
+    // Validación de parámetros
+    if (!didEmpresa || !quien || !perfil || !idLiquidacion) {
         return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: "Faltan datos en la solicitud." });
     }
 
     try {
         const company = await getCompanyById(didEmpresa);
-        const respuesta = await obtenerLiquidaciones({ didEmpresa, quien, perfil, operador, idLiquidacion, desde, hasta }, company);
+        const respuesta = await obtenerDetalleColecta({ idLiquidacion }, company);
         res.json(respuesta);
     } catch (error) {
         res.status(500).json(error);
     }
 });
+
 export default collect;
