@@ -11,6 +11,7 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
+import collect from './routes/collect.js';
 
 const numCPUs = 2;
 const PORT = 13000;
@@ -61,6 +62,7 @@ if (cluster.isMaster) {
             app.use('/api/home', home);
             app.use('/api/users', users);
             app.use('/api/map', map);
+            app.use("/api/collect",collect)
 
             app.listen(PORT, () => {
                 console.log(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
