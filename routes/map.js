@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getCompanyById } from '../db.js';
-import { getRoutaByUserId, geolocalize, handleRuta } from '../controller/mapsController/maps.js';
+import { getRoutaByUserId, geolocalize, saveRoute } from '../controller/mapsController/maps.js';
 
 const map = Router();
 map.post('/get-route-by-user', async (req, res) => {
@@ -40,28 +40,23 @@ map.post('/geolocalize', async (req, res) => {
     }
 
 });
-map.post('/ruta', async (req, res) => {
-    const { didEmpresa, didUser, perfil, demoraTotal, fechaOpe, distancia, dataRuta, ordenes } = req.body;
+map.post('/save-route', async (req, res) => {
+    const { companyId, userId, profile, totalDelay, operationDate, distance, additionalRouteData, orders } = req.body;
 
-    // Validar que todos los campos requeridos estén presentes
-    if (!didEmpresa || !didUser || !perfil || !Array.isArray(ordenes) || ordenes.length === 0) {
-        return res.status(400).json({ estadoRespuesta: false, mensaje: "Faltan datos requeridos." });
+    if (!companyId || !userId || !profile || !orders || orders.length == 0 || !operationDate || totalDelay === null || totalDelay === undefined ||
+        operationDate === null || operationDate === undefined || !additionalRouteData) {
+        return res.status(400).json({ message: "Faltan datos requeridos u ordenes esta vacia." });
     }
-
-    console.log("Did Empresa:", didEmpresa);
-    console.log("Ordenes:", ordenes);
-
-    // Obtener la compañía usando didEmpresa
-    const company = await getCompanyById(didEmpresa); // Cambiado de idEmpresa a didEmpresa
 
     try {
-        const response = await handleRuta({ didEmpresa, didUser, perfil, demoraTotal, fechaOpe, distancia, dataRuta, ordenes }, company);
-        res.status(200).json(response);
+        const company = await getCompanyById(companyId);
+
+        const response = await saveRoute(company, operationDate, orders, userId, distance, totalDelay, additionalRouteData);
+
+        res.status(200).json({ body: response, message: "Ruta guardada correctamente." });
     } catch (error) {
-        res.status(500).json({ estadoRespuesta: false, body: "", mensaje: error.message });
+        res.status(500).json({ message: error.message });
     }
 });
-
-
 
 export default map;

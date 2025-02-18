@@ -82,7 +82,6 @@ export async function getDrivers(companyId) {
 
 }
 
-
 export async function getClients(companyId) {
     try {
 
@@ -117,7 +116,6 @@ export async function getClients(companyId) {
         throw error;
     }
 }
-
 
 export async function getZones(companyId) {
     try {

@@ -10,8 +10,8 @@ export function getUrls(company) {
         /// SHIPMENT-LIST
         shipmentList: ["http://localhost:13000/api/shipments/shipment-list"],
         shipmentDetails: ["http://localhost:13000/api/shipments/shipment-details"],
-        registerVisit: ["https://registros.lightdatas2.com.ar/registrarVisita.php"],
         saveImagen: ["http://localhost:13000/api/rutas/save-image"],
+        registerVisit: ["https://registros.lightdatas2.com.ar/registrarVisita.php"],
         nextToDeliver: ["https://apimovil.lightdata.app/api/envios/proximaentrega.php"],
 
         /// SETTLEMENTS
@@ -26,11 +26,11 @@ export function getUrls(company) {
 
         /// QR
         driverList: ["http://localhost:13000/api/qr/driver-list"],
-        colecta: ["https://apimovil.lightdata.app/api/envios/colecta.php"],
-        aplanta: ["https://apimovil.lightdata.app/api/envios/aplanta.php"],
         readQr: ["http://localhost:13000/api/qr/get-shipment-id"],
         crossdocking: ["http://localhost:13000/api/qr/cross-docking"],
-        ingresarflex: ["https://apimovil.lightdata.app/api/envios/ingresar-flex.php"],
+        enterFlex: ["http://localhost:13000/api/qr/enter-flex"],
+        colecta: ["https://apimovil.lightdata.app/api/envios/colecta.php"],
+        aplanta: ["https://apimovil.lightdata.app/api/envios/aplanta.php"],
         asignaciones: ["https://asignaciones.lightdatas2.com.ar/asignav3/asignar"],
         infopaquete: ["https://apimovil.lightdata.app/api/envios/responseinfopaquete.php"],
 
