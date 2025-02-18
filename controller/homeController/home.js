@@ -20,5 +20,8 @@ export async function verifyStartedRoute(company, userId) {
         dbConnection.end();
     }
 }
-
+export async function getHomeData(company, userId, profile) {
+    // GUILLE
+    return null;
+}
 

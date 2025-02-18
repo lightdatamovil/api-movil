@@ -1,22 +1,22 @@
 import mysql from 'mysql';
-import { getDbConfig, executeQuery } from '../../db.js';
+import { getProdDbConfig, executeQuery } from '../../db.js';
 
-async function accounts(company) {
-    let dbConfig = getDbConfig(company.did);
+export async function accountList(company, userId, profile) {
+    const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
-
         const sqlduenio = profile == 2 ? " AND e.didCliente = " + userId : "";
 
         let accountList = [];
 
-        const query = "SELECT id, did, tipoCuenta, dataCuenta, ML_user, ML_id_vendedor, tn_id, tn_url, woo_api,woo_secreto, woo_web, shop_url,shop_api, shop_api2, clientes_cuentas.data, pre_url, pre_api, vtex_url, vtex_key, vtex_token, ingreso_automatico, fala_key, fala_userid, jumpseller_login, jumpseller_token, fulfillment, me1, sync_woo, flexdata FROM `clientes_cuentas` WHERE didCliente = " + sqlduenio;
+        const query = "SELECT id, did, tipoCuenta, dataCuenta, ML_user, ML_id_vendedor, tn_id, tn_url, woo_api,woo_secreto, woo_web, shop_url,shop_api, shop_api2, clientes_cuentas.data, pre_url, pre_api, vtex_url, vtex_key, vtex_token, ingreso_automatico, fala_key, fala_userid, jumpseller_login, jumpseller_token, fulfillment, me1, sync_woo, flexdata FROM `clientes_cuentas` WHERE didCliente = ?" + sqlduenio;
 
-        const results = await executeQuery(dbConnection, query, []);
+        const results = await executeQuery(dbConnection, query, [userId]);
 
-        for (i = 0; i < results.length; i++) {
+        for (let i = 0; i < results.length; i++) {
+            const row = results[i];
             let accountName = "";
 
             if (row.tipoCuenta == 1) {
@@ -31,7 +31,6 @@ async function accounts(company) {
                 accountName = row.vtex_url;
             }
 
-            const row = results[i];
             const account = {
                 "id": row.id,
                 "did": row.did,
@@ -74,6 +73,3 @@ async function accounts(company) {
         dbConnection.end();
     }
 }
-module.exports = {
-    accounts,
-};

@@ -1,27 +1,9 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { shipmentDetails, shipmentList, getHomeData, uploadImage } from '../controller/shipmentsController/shipments.js';
+import { shipmentDetails, shipmentList, uploadImage } from '../controller/shipmentsController/shipments.js';
 
 const shipments = Router();
-
-shipments.post('/home', async (req, res) => {
-  const { companyId, userId, profile, deviceId, appVersion, brand, model, androidVersion, dashboardValue } = req.body;
-
-  if (!companyId || !userId || !profile || !from || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-    return res.status(400).json({ message: "Faltan datos" });
-  }
-
-  try {
-    const company = await getCompanyById(companyId);
-
-    const result = await getHomeData(company, userId, profile);
-
-    return res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-});
 
 shipments.post('/shipment-list', async (req, res) => {
   const { companyId, userId, profile, from, deviceId, appVersion, brand, model, androidVersion, dashboardValue } = req.body;
@@ -41,8 +23,6 @@ shipments.post('/shipment-list', async (req, res) => {
 });
 
 shipments.post("/shipment-details", verifyToken, async (req, res) => {
-
-
   const { companyId, profile, userId, shipmentId, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
   if (!companyId || !profile || !userId || !shipmentId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
@@ -59,19 +39,22 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-shipments.post('/upload', async (req, res) => {
-  const { idEmpresa, didenvio, quien, estado, idLinea, imagen } = req.body;
 
-  if (!idEmpresa || !didenvio || !quien || !estado || !idLinea || !imagen) {
-    return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: "Faltan datos" });
+shipments.post('/upload-image', async (req, res) => {
+  const { companyId, shipmentId, userId, shipmentState, image } = req.body;
+
+  if (!companyId || !userId || !image) {
+    return res.status(400).json({ message: "Faltan datos" });
   }
-  const company = await getCompanyById(idEmpresa);
 
   try {
-    const response = await uploadImage(req.body, company);
-    res.status(200).json(response);
+    const company = await getCompanyById(companyId);
+
+    const response = await uploadImage(company, shipmentId, userId, shipmentState, image);
+
+    res.status(200).json({ body: response, message: "Imagen subida correctamente" });
   } catch (error) {
-    res.status(500).json({ estadoRespuesta: false, body: "", mensaje: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
