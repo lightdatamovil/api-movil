@@ -10,7 +10,7 @@ export function getUrls(company) {
         /// SHIPMENT-LIST
         shipmentList: ["http://localhost:13000/api/shipments/shipment-list"],
         shipmentDetails: ["http://localhost:13000/api/shipments/shipment-details"],
-        saveImagen: ["http://localhost:13000/api/rutas/save-image"],
+        saveImage: ["http://localhost:13000/api/rutas/save-image"],
         registerVisit: ["https://registros.lightdatas2.com.ar/registrarVisita.php"],
         nextToDeliver: ["https://apimovil.lightdata.app/api/envios/proximaentrega.php"],
 
