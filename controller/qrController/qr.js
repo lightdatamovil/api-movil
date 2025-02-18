@@ -1,5 +1,6 @@
 import { executeQuery, getProdDbConfig, getDbConfig } from "../../db.js";
 import mysql from 'mysql';
+import axios from 'axios';
 
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
@@ -114,3 +115,80 @@ export async function driverList(company) {
         dbConnection.end();
     }
 }
+
+
+// Funciones para obtener datos de la API
+async function getTokenData(sellerid) {
+    const dia = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const url = `https://lightdatas2.com.ar/getTokens.php?keysi=${dia}&sellerid=${sellerid}`;
+    
+    const response = await axios.get(url);
+    return response.data[sellerid];
+}
+
+async function getDetallesEnvio(idshipment, token) {
+    const url = `https://api.mercadolibre.com/shipments/${idshipment}?access_token=${token}`;
+    const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+    return response.data;
+}
+
+async function getDetalleVenta(idventa, token) {
+    const url = `https://api.mercadolibre.com/orders/${idventa}?access_token=${token}`;
+    const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+    return response.data;
+}
+
+async function getItemData(iditem, token) {
+    const url = `https://api.mercadolibre.com/items/${iditem}?access_token=${token}`;
+    const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+    return response.data;
+}
+
+export async function detalleML(dataQR,company) {
+
+    
+    const idshipment = dataQR.id;
+    const senderid = dataQR.sender_id.replace(" ", "");
+    const token = await getTokenData(senderid);
+    const Ashipment = await getDetallesEnvio(idshipment, token);
+
+    if (Ashipment.receiver_id) {
+        const Aventa = await getDetalleVenta(Ashipment.order_id, token);
+        const Aorder_items = Aventa.order_items || [];
+        
+        const Aitems = [];
+        for (const Aitem of Aorder_items) {
+            const itemdata = Aitem.item;
+            const cantidadpedida = Aitem.quantity;
+            const descripcion = itemdata.title;
+            const sku = itemdata.seller_sku;
+            const iditem = itemdata.id;
+            const variation_id = itemdata.variation_id;
+
+            let stock = 0;
+            let imagen = '';
+
+            if (variation_id) {
+                const dataitem = await getItemData(iditem, token);
+                const Avariations = dataitem.variations;
+                for (const variant of Avariations) {
+                    if (variant.id === variation_id) {
+                        stock = variant.available_quantity;
+                        imagen = variant.pictures[0]?.secure_url || '';
+                    }
+                }
+            } else {
+                const dataitem = await getItemData(iditem, token);
+                imagen = dataitem.pictures[0]?.secure_url || '';
+                stock = dataitem.available_quantity;
+            }
+
+            Aitems.push({ imagen, stock, cantidadpedida, descripcion, variacion: "", sku });
+        }
+
+        return { estado: true, data: Aitems };
+    } else {
+        return { estado: false, data: "" };
+    }
+}
+

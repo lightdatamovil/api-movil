@@ -9,6 +9,7 @@ import rutas from './routes/rutas.js';
 import users from './routes/users.js';
 import map from './routes/map.js';
 import { redisClient, getClients, getDrivers, getZones } from './db.js';
+import collect from './routes/collect.js';
 
 const numCPUs = 2;
 const PORT = 13000;
@@ -49,6 +50,7 @@ if (cluster.isMaster) {
             app.use('/api/rutas', rutas);
             app.use('/api/users', users);
             app.use('/api/map', map);
+            app.use("/api/collect",collect)
 
             app.listen(PORT, () => {
                 console.log(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
