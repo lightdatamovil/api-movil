@@ -19,7 +19,7 @@ let zoneList = [];
 let clientList = [];
 
 export function getDbConfig(companyId) {
-    return dbConfig = {
+    return  {
         host: "149.56.182.49",
         user: "ue" + companyId,
         password: "78451296",
@@ -29,7 +29,7 @@ export function getDbConfig(companyId) {
 }
 
 export function getProdDbConfig(company) {
-    return dbConfig = {
+    return  {
         host: "bhsmysql1.lightdata.com.ar",
         user: company.dbuser,
         password: company.dbpass,

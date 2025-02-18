@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { getCompanyById } from '../db.js';
+import { handleRuta } from '../controller/mapsController/maps.js';
+
 
 const map = Router();
 map.post('/get-route-by-user', async (req, res) => {
@@ -40,5 +42,28 @@ map.post('/geolocalize', async (req, res) => {
     }
 
 });
+map.post('/ruta', async (req, res) => {
+    const { didEmpresa, didUser, perfil, demoraTotal, fechaOpe, distancia, dataRuta, ordenes } = req.body;
+
+    // Validar que todos los campos requeridos estén presentes
+    if (!didEmpresa || !didUser || !perfil || !Array.isArray(ordenes) || ordenes.length === 0) {
+        return res.status(400).json({ estadoRespuesta: false, mensaje: "Faltan datos requeridos." });
+    }
+
+    console.log("Did Empresa:", didEmpresa);
+    console.log("Ordenes:", ordenes);
+
+    // Obtener la compañía usando didEmpresa
+    const company = await getCompanyById(didEmpresa); // Cambiado de idEmpresa a didEmpresa
+
+    try {
+        const response = await handleRuta({ didEmpresa, didUser, perfil, demoraTotal, fechaOpe, distancia, dataRuta, ordenes }, company);
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json({ estadoRespuesta: false, body: "", mensaje: error.message });
+    }
+});
+
+
 
 export default map;
