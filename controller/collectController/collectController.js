@@ -3,7 +3,7 @@ import { getProdDbConfig, executeQuery } from '../../db.js';
 
 
 
-export async function obtenerEnvios({ quien, desde, hasta }, company) {
+export async function getCollectList({ quien, desde, hasta }, company) {
     return new Promise((resolve, reject) => {
         try {
             const dbConfig = getProdDbConfig(company);
