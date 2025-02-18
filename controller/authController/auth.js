@@ -106,20 +106,17 @@ export async function identification(company) {
         const imageBase64 = imageBuffer.toString('base64');
 
         return {
-            body: {
-                "id": company.did * 1,
-                "plan": company.plan * 1,
-                "url": company.url,
-                "country": company.pais * 1,
-                "name": company.company,
-                "authentication": true,
-                "appPro": company.did == 4,
-                "colectaPro": false,
-                "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
-                "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
-                "image": imageBase64,
-            },
-            message: 'Empresa identificada correctamente'
+            "id": company.did * 1,
+            "plan": company.plan * 1,
+            "url": company.url,
+            "country": company.pais * 1,
+            "name": company.company,
+            "authentication": true,
+            "appPro": company.did == 4,
+            "colectaPro": false,
+            "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
+            "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
+            "image": imageBase64,
         };
 
     } catch (error) {
