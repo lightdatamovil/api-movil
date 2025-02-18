@@ -350,7 +350,6 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
     }
 }
 
-// Funciones para obtener datos de la API
 async function getTokenData(sellerid) {
     const dia = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const url = `https://lightdatas2.com.ar/getTokens.php?keysi=${dia}&sellerid=${sellerid}`;

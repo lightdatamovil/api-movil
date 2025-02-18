@@ -1,6 +1,6 @@
 import { getCompanyById } from '../db.js';
 import { Router } from 'express';
-import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getRoute, startRoute, getCollectDetails, getSettlementList } from '../controller/collectController/collectController.js';
+import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getRoute, startRoute, getSettlementDetails, getSettlementList } from '../controller/collectController/collectController.js';
 
 const collect = Router();
 
@@ -141,7 +141,7 @@ collect.post("/get-settlement-details", async (req, res) => {
     try {
         const company = await getCompanyById(companyId);
 
-        const respuesta = await getCollectDetails(company, settlementId);
+        const respuesta = await getSettlementDetails(company, settlementId);
 
         res.json({ body: respuesta, message: "Detalle de colecta obtenido correctamente" });
     } catch (error) {

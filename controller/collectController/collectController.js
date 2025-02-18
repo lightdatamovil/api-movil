@@ -290,7 +290,7 @@ export async function getSettlementList(company, from, to) {
     }
 }
 
-export async function getCollectDetails(company, settlementId) {
+export async function getSettlementDetails(company, settlementId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
