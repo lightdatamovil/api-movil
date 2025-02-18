@@ -20,11 +20,11 @@ let clientList = [];
 
 export function getDbConfig(companyId) {
     return {
-        host: "149.56.182.49",
+        host: "localhost",
         user: "ue" + companyId,
         password: "78451296",
         database: "e" + companyId,
-        port: 44339
+       // port: 44339
     };
 }
 
