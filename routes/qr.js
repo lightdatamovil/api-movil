@@ -61,9 +61,10 @@ qr.post('/driver-list', verifyToken, async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
-qr.post('/detalle', async (req, res) => {
+
+qr.post('/products-from-shipment', async (req, res) => {
     try {
-        const dataQR = req.body.dataqr || req.body.data; // Validar los campos
+        const dataQR = req.body.dataqr || req.body.data;
         if (!dataQR) {
             return res.status(400).json({ estado: false, mensaje: "Falta el campo 'dataqr' o 'data'." });
         }
@@ -75,7 +76,6 @@ qr.post('/detalle', async (req, res) => {
         return res.status(500).json({ estado: false, mensaje: "Error interno del servidor." });
     }
 });
-
 
 qr.post('/enter-flex', verifyToken, async (req, res) => {
 

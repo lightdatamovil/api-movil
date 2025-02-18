@@ -32,7 +32,7 @@ export function getUrls(company) {
         colecta: ["https://apimovil.lightdata.app/api/envios/colecta.php"],
         aplanta: ["https://apimovil.lightdata.app/api/envios/aplanta.php"],
         asignaciones: ["https://asignaciones.lightdatas2.com.ar/asignav3/asignar"],
-        infopaquete: ["https://apimovil.lightdata.app/api/envios/responseinfopaquete.php"],
+        productsFromShipment: ["http://localhost:13000/api/qr/products-from-shipment"],
 
         /// PROFILE
         changePassword: ["http://localhost:13000/api/users/change-password"],
@@ -40,13 +40,14 @@ export function getUrls(company) {
         changeProfilePicture: ["http://localhost:13000/api/users/change-profile-picture"],
 
         /// COLLECT MODULE
-        iniciar_ruta_colecta: ["https://apimovil.lightdata.app/api/colecta/iniciarRutaColecta.php"],
-        guardar_ruta_colecta: ["https://apimovil.lightdata.app/api/colecta/guardarRutaColecta.php"],
-        colecta_detalle: ["https://apimovil.lightdata.app/api/colecta/getDetalleColecta.php"],
-        colecta_detalle_cliente: ["https://apimovil.lightdata.app/api/colecta/getDetalleColecta_cliente.php"],
-        colectas: ["https://apimovil.lightdata.app/api/colecta/getColectas.php"],
-        colecta_ruta: ["https://apimovil.lightdata.app/api/colecta/getRutaColecta.php"],
-        colecta_liquidaciones: ["https://apimovil.lightdata.app/api/colecta/controlador_liquidacion.php"],
+        collectGetRoute: ["http://localhost:13000/api/collect/get-collect-details"],
+        collectStartRoute: ["http://localhost:13000/api/collect/start-route"],
+        collectSaveRoute: ["http://localhost:13000/api/collect/save-route"],
+        collectDetails: ["http://localhost:13000/api/collect/get-collect-details"],
+        collectClientDetails: ["http://localhost:13000/api/collect/get-collect-details"],
+        collectList: ["http://localhost:13000/api/collect/get-collect-list"],
+        collectSettlementList: ["http://localhost:13000/api/collect/get-collect-details"],
+        collectSettlementDetails: ["http://localhost:13000/api/collect/get-collect-details"],
 
         /// ACCOUNTS
         cuentas_listado: ["http://localhost:13000/api/accounts/account-list"],
