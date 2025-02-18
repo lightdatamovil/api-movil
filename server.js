@@ -19,12 +19,10 @@ const PORT = 13000;
 if (cluster.isMaster) {
     console.log(`Proceso master ${process.pid} ejecutándose...`);
 
-    // Crear los workers
     for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
     }
 
-    // Reiniciar workers si alguno falla
     cluster.on('exit', (worker, code, signal) => {
         console.log(`Worker ${worker.process.pid} murió, reiniciando...`);
         cluster.fork();
@@ -40,7 +38,6 @@ if (cluster.isMaster) {
     });
 
     app.post('/api/get-urls', async (req, res) => {
-
         const { companyId } = req.body;
 
         const company = await getCompanyById(companyId);
@@ -62,7 +59,7 @@ if (cluster.isMaster) {
             app.use('/api/home', home);
             app.use('/api/users', users);
             app.use('/api/map', map);
-            app.use("/api/collect",collect)
+            app.use("/api/collect", collect)
 
             app.listen(PORT, () => {
                 console.log(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
