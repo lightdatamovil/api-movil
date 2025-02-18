@@ -162,7 +162,6 @@ export async function enterFlex(company, dataQr, userId) {
             const fechaunix = Math.floor(Date.now() / 1000);
 
             let shipmentId = 0;
-            let pudeguardar = false;
 
             const insertEnvioQuery = `
                 INSERT INTO envios (did, ml_shipment_id, ml_vendedor_id, didCliente, quien, lote, fecha_despacho, didCuenta, ml_qr_seguridad, fecha_inicio, fechaunix) 
@@ -350,7 +349,7 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
     }
 }
 
-async function getTokenData(sellerid) {
+async function getToken(sellerid) {
     const dia = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const url = `https://lightdatas2.com.ar/getTokens.php?keysi=${dia}&sellerid=${sellerid}`;
 
@@ -358,13 +357,13 @@ async function getTokenData(sellerid) {
     return response.data[sellerid];
 }
 
-async function getDetallesEnvio(idshipment, token) {
+async function getShipmentDetails(idshipment, token) {
     const url = `https://api.mercadolibre.com/shipments/${idshipment}?access_token=${token}`;
     const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
     return response.data;
 }
 
-async function getDetalleVenta(idventa, token) {
+async function getSaleDetails(idventa, token) {
     const url = `https://api.mercadolibre.com/orders/${idventa}?access_token=${token}`;
     const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
     return response.data;
@@ -376,16 +375,16 @@ async function getItemData(iditem, token) {
     return response.data;
 }
 
-export async function detalleML(dataQR, company) {
+export async function getProductsFromShipment(dataQR, company) {
 
 
     const idshipment = dataQR.id;
     const senderid = dataQR.sender_id.replace(" ", "");
-    const token = await getTokenData(senderid);
-    const Ashipment = await getDetallesEnvio(idshipment, token);
+    const token = await getToken(senderid);
+    const Ashipment = await getShipmentDetails(idshipment, token);
 
     if (Ashipment.receiver_id) {
-        const Aventa = await getDetalleVenta(Ashipment.order_id, token);
+        const Aventa = await getSaleDetails(Ashipment.order_id, token);
         const Aorder_items = Aventa.order_items || [];
 
         const Aitems = [];

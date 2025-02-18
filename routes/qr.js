@@ -1,7 +1,7 @@
 import { getCompanyById } from '../db.js';
 import verifyToken from '../src/funciones/verifyToken.js';
 import express from 'express';
-import { getShipmentIdFromQr, crossDocking, driverList, enterFlex } from "../controller/qrController/qr.js";
+import { getShipmentIdFromQr, crossDocking, driverList, enterFlex, getProductsFromShipment } from "../controller/qrController/qr.js";
 
 const qr = express.Router();
 
@@ -63,13 +63,17 @@ qr.post('/driver-list', verifyToken, async (req, res) => {
 });
 
 qr.post('/products-from-shipment', async (req, res) => {
-    try {
-        const dataQR = req.body.dataqr || req.body.data;
-        if (!dataQR) {
-            return res.status(400).json({ estado: false, mensaje: "Falta el campo 'dataqr' o 'data'." });
-        }
+    const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-        const response = await detalleML(dataQR);
+    if (!companyId || !profile || !userId || !dataQr || !deviceId || !appVersion || !brand || !model || !androidVersion) {
+        return res.status(400).json({ message: "Faltan datos" });
+    }
+
+    try {
+        const company = await getCompanyById(req.body.companyId);
+
+        const response = await getProductsFromShipment(company, dataQR);
+
         return res.json(response);
     } catch (error) {
         console.error("Error en la ruta /detalle:", error);
