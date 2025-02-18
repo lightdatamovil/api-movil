@@ -6,7 +6,7 @@ import { verifyStartedRoute, getHomeData } from '../controller/homeController/ho
 const home = Router();
 
 home.post('/home', async (req, res) => {
-	const { companyId, userId, profile, deviceId, appVersion, brand, model, androidVersion, dashboardValue } = req.body;
+	const { companyId, userId, profile, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
 	if (!companyId || !userId || !profile || !deviceId || !appVersion || !brand || !model || !androidVersion) {
 		return res.status(400).json({ message: "Faltan datos" });
