@@ -202,7 +202,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
     try {
         const clientes = getClientsByCompany(company.did);
-        const hora = convertirFecha(from);
+        const hour = convertirFecha(from);
 
         let sqlchoferruteo = "";
         let leftjoinCliente = "";
@@ -319,7 +319,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       AND e.didCliente!='null'
                       ORDER BY rp.orden ASC`;
         }
-        const rows = await dbConnection.execute(query, [hora]);
+        const rows = await dbConnection.execute(query, [hour]);
 
         const lista = [];
 
@@ -368,55 +368,44 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
     } finally {
         dbConnection.end();
     }
-
-
 }
-export async function uploadImage(reqBody, company) {
-    const { imagen, didenvio, quien, idEmpresa, estado: didEstado, idLinea: didLine } = reqBody;
 
-    if (!imagen) {
-        throw new Error("Error en el body");
-    }
-
-    const server = 1;
-    const url = 'https://files.lightdata.app/upload.php';
-
-    // Realiza la solicitud POST a la URL
-    const response = await axios.post(url, reqBody, {
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-
-    if (!response.data) {
-        throw new Error("Error servidor files");
-    }
-
+export async function uploadImage(company, shipmentId, userId, didEstado, didLine, image) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect()
 
     try {
+        const companyId = company.did;
+        const reqBody = { image, shipmentId, userId, companyId, didEstado, didLine };
+        const server = 1;
+        const url = 'https://files.lightdata.app/upload.php';
+
+        const response = await axios.post(url, reqBody, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.data) {
+            throw new Error("Error servidor files");
+        }
 
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
         await executeQuery(dbConnection, insertQuery, [
-            didenvio,
+            shipmentId,
             response.data,
             server,
-            quien,
-            didLine,
-            didEstado
+            userId,
+            lineId,
+            shipmentState
         ]);
 
-        return { estadoRespuesta: true, body: "", mensaje: "OK" };
+        return;
     } catch (error) {
         throw error;
     } finally {
         dbConnection.end();
     }
-}
-
-export async function getHomeData(company, userId, profile) {
-    return null;
 }

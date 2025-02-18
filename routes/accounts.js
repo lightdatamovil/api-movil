@@ -1,6 +1,7 @@
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { Router } from 'express';
+import { accountList } from '../controller/accountsController/accounts.js';
 
 const accounts = Router();
 
@@ -14,13 +15,11 @@ accounts.post('/account-list', verifyToken, async (req, res) => {
 	try {
 		const company = await getCompanyById(companyId);
 
-		const result = await accounts(username, password, company);
+		const result = await accountList(company, userId, profile);
 
 		res.status(200).json({ body: result, message: "Lista de cuentas obtenida correctamente" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });
-	} finally {
-		dbConnection.end();
 	}
 });
 

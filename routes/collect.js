@@ -1,11 +1,10 @@
-
 import { getCompanyById } from '../db.js';
 import { Router } from 'express';
-import {  guardarRuta, obtenerColectaDelDia, obtenerEnvios, obtenerEnviosPorCliente, obtenerLiquidaciones, obtenerRutaChofer, obtenerRutaNotificaciones } from '../controller/collectController/collectController.js';
+import {  guardarRuta, obtenerColectaDelDia, getCollectList, obtenerEnviosPorCliente, obtenerLiquidaciones, obtenerRutaChofer, obtenerRutaNotificaciones } from '../controller/collectController/collectController.js';
 
 const collect = Router();
 
-collect.post("/getcolecta", async (req, res) => {
+collect.post("/get-collect-list", async (req, res) => {
     const Adatos = req.body;
 
     if (!Adatos.didEmpresa || !Adatos.quien || !Adatos.perfil || !Adatos.desde || !Adatos.hasta) {
@@ -16,14 +15,14 @@ collect.post("/getcolecta", async (req, res) => {
     try {
         const company = await getCompanyById(Adatos.didEmpresa)
   
-        const respuesta = await obtenerEnvios(Adatos,company);
+        const respuesta = await getCollectList(Adatos,company);
         
         res.json(respuesta);
     } catch (error) {
         res.status(500).json({ estadoRespuesta: false, body: "", mensaje: "Error interno del servidor." });
     }
 });
-collect.post("/getColectaDia", async (req, res) => {
+collect.post("/get-collect-details", async (req, res) => {
     const { didEmpresa, quien, perfil, fecha } = req.body;
 
     if (!didEmpresa || !quien || !perfil || !fecha) {
@@ -39,7 +38,7 @@ collect.post("/getColectaDia", async (req, res) => {
         res.status(500).json(error);
     }
 });
-collect.post("/getColectaCliente", async (req, res) => {
+collect.post("/get-client-details", async (req, res) => {
     const { didEmpresa, quien, perfil, fecha, didcliente } = req.body;
 
     if (!didEmpresa || !quien || !perfil || !fecha || !didcliente) {
@@ -54,7 +53,7 @@ collect.post("/getColectaCliente", async (req, res) => {
         res.status(500).json(error);
     }
 });
-collect.post("/getLiquidaciones", async (req, res) => {
+collect.post("/get-settlement-details", async (req, res) => {
     const { didEmpresa, quien, perfil, operador, idLiquidacion, desde, hasta } = req.body;
 
     if (!didEmpresa || !quien || !perfil || !operador || (operador === "listado" && (!desde || !hasta)) || (operador === "detallecolecta" && !idLiquidacion)) {
@@ -69,7 +68,7 @@ collect.post("/getLiquidaciones", async (req, res) => {
         res.status(500).json(error);
     }
 });
-collect.post("/getRutaChofer", async (req, res) => {
+collect.post("/get-route", async (req, res) => {
     const { didEmpresa, didUser, fecha } = req.body;
 
     if (!didEmpresa || !didUser || !fecha) {
@@ -84,7 +83,7 @@ collect.post("/getRutaChofer", async (req, res) => {
         res.status(500).json(error);
     }
 });
-collect.post("/getRutaNotificaciones", async (req, res) => {
+collect.post("/start-route", async (req, res) => {
     const { didEmpresa, didUser } = req.body;
 
     if (!didEmpresa || !didUser) {
@@ -99,7 +98,7 @@ collect.post("/getRutaNotificaciones", async (req, res) => {
         res.status(500).json(error);
     }
 });
-collect.post("/guardarRuta", async (req, res) => {
+collect.post("/save-route", async (req, res) => {
     const { didEmpresa, didUser, fechaOpe, dataRuta, ordenes } = req.body;
 
     if (!didEmpresa || !didUser || !fechaOpe || !dataRuta || !ordenes) {

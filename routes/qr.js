@@ -14,6 +14,7 @@ qr.post('/cross-docking', async (req, res) => {
 
     try {
         const company = await getCompanyById(companyId);
+
         const response = await crossDocking(dataQr, company);
 
         res.status(200).json({ body: response, message: "Datos obtenidos correctamente" });
