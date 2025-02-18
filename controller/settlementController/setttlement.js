@@ -1,4 +1,4 @@
-import { executeQuery, getProdDbConfig, getZones, getZonesByCompany } from "../../db.js";
+import { executeQuery, getProdDbConfig, getZonesByCompany } from "../../db.js";
 import mysql from 'mysql';
 
 export async function getSettlementList(company, userId, from, to) {
@@ -52,6 +52,10 @@ export async function getSettlementDetails(company, settlementId) {
         const queryLines = "SELECT idlineas FROM liquidaciones WHERE superado=0 AND elim=0 AND did = ?";
 
         const resultQueryLine = await executeQuery(dbConnection, queryLines, [settlementId]);
+
+        if (resultQueryLine.length === 0) {
+            throw new Error("No se encontraron datos para la liquidación");
+        }
 
         const idLine = resultQueryLine.length > 0 ? resultQueryLine[0].idlineas : "";
 

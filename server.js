@@ -8,6 +8,7 @@ import qr from './routes/qr.js';
 import home from './routes/home.js';
 import users from './routes/users.js';
 import map from './routes/map.js';
+import settlements from './routes/settlements.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 
@@ -55,6 +56,7 @@ if (cluster.isMaster) {
             app.use('/api/auth', auth);
             app.use('/api/accounts', accounts);
             app.use('/api/shipments', shipments);
+            app.use('/api/settlements', settlements);
             app.use('/api/qr', qr);
             app.use('/api/home', home);
             app.use('/api/users', users);

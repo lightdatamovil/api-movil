@@ -1,5 +1,5 @@
 import redis from 'redis';
-import fs from 'fs';
+import mysql from 'mysql';
 
 export const redisClient = redis.createClient({
     socket: {
@@ -46,106 +46,150 @@ async function loadCompaniesFromRedis() {
     }
 }
 
-export async function getDrivers() {
+export async function getDrivers(companyId) {
     try {
+
+        const dbConfig = getDbConfig(companyId);
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const queryUsers = "SELECT * FROM sistema_usuarios WHERE perfil = 3";
+        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+
         const drivers = [];
-        for (var j in companiesList) {
-            company = companiesList[j];
 
-            const dbConfig = getDbConfig(company.did);
-            const dbConnection = mysql.createConnection(dbConfig);
-            dbConnection.connect();
+        for (let i = 0; i < resultQueryUsers.length; i++) {
+            const row = resultQueryUsers[i];
 
-            const queryUsers = "SELECT * FROM sistema_usuarios WHERE perfil = 3";
-            const resultQueryUsers = await executeQuery(queryUsers, []);
-            drivers.push({ companyId: company.did, drivers: resultQueryUsers });
-
+            const driver = {
+                id: row.id,
+                id_origen: row.id_origen,
+                fecha_sincronizacion: row.fecha_sincronizacion,
+                did: row.did,
+                codigo: row.codigo,
+                nombre: row.nombre,
+                codigos: row.codigos,
+                dataGeo: row.dataGeo,
+            };
+            drivers.push(driver);
         }
-        driverList = drivers;
+        driverList.push({ companyId: companyId, drivers: drivers });
+
+        return driverList;
     } catch (error) {
-
+        throw error;
     }
 
 }
 
-export async function getDriversByCompany(companyId) {
-    if (!Array.isArray(driverList) || driverList.length === 0) {
-        try {
-            return driverList.find(driver => driver.companyId === companyId).drivers || [];
-        } catch (error) {
-            throw error;
-        }
-    } else {
-        const drivers = await getDrivers();
-        return drivers.find(driver => driver.companyId === companyId).drivers || [];
-    }
-}
 
-export async function getClients() {
+export async function getClients(companyId) {
     try {
+
+        const dbConfig = getDbConfig(companyId);
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const queryUsers = "SELECT * FROM clientes";
+        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+
         const clients = [];
-        for (var j in companiesList) {
-            company = companiesList[j];
 
-            const dbConfig = getDbConfig(company.did);
-            const dbConnection = mysql.createConnection(dbConfig);
-            dbConnection.connect();
+        for (let i = 0; i < resultQueryUsers.length; i++) {
+            const row = resultQueryUsers[i];
 
-            const queryUsers = "SELECT * FROM clientes";
-            const resultQueryUsers = await executeQuery(queryUsers, []);
-            clients.push({ companyId: company.did, clients: resultQueryUsers });
-
+            const zone = {
+                id: row.id,
+                id_origen: row.id_origen,
+                fecha_sincronizacion: row.fecha_sincronizacion,
+                did: row.did,
+                codigo: row.codigo,
+                nombre: row.nombre,
+                codigos: row.codigos,
+                dataGeo: row.dataGeo,
+            };
+            clients.push(zone);
         }
-        clientList = clients;
-    } catch (error) {
+        clientList.push({ companyId: companyId, zones: zones });
 
-    }
-
-}
-
-export async function getClientsByCompany(companyId) {
-    if (!Array.isArray(clientList) || clientList.length === 0) {
-        try {
-            return clientList.find(client => client.companyId === companyId).clients || [];
-        } catch (error) {
-            throw error;
-        }
-    } else {
-        const clients = await getClients();
-        return clients.find(client => client.companyId === companyId).clients || [];
-    }
-}
-
-export async function getZones() {
-    try {
-        const zones = [];
-        for (var j in companiesList) {
-            company = companiesList[j];
-
-            const dbConfig = getDbConfig(company.did);
-            const dbConnection = mysql.createConnection(dbConfig);
-            dbConnection.connect();
-
-            const queryZones = "SELECT * FROM envios_zonas";
-            const resultQueryZones = await executeQuery(queryZones, []);
-            zones.push({ companyId: company.did, zones: resultQueryZones });
-        }
-        zoneList = zones;
+        return clientList;
     } catch (error) {
         throw error;
     }
 }
 
-export async function getZonesByCompany(companyId) {
-    if (!Array.isArray(zoneList) || zoneList.length === 0) {
-        try {
-            return zoneList.find(zone => zone.companyId === companyId).zones || [];
-        } catch (error) {
-            throw error;
+
+export async function getZones(companyId) {
+    try {
+        const dbConfig = getDbConfig(companyId);
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const queryZones = "SELECT * FROM envios_zonas";
+        const resultQueryZones = await executeQuery(dbConnection, queryZones, []);
+
+        const zones = [];
+
+        for (let i = 0; i < resultQueryZones.length; i++) {
+            const row = resultQueryZones[i];
+
+            const zone = {
+                id: row.id,
+                id_origen: row.id_origen,
+                fecha_sincronizacion: row.fecha_sincronizacion,
+                did: row.did,
+                codigo: row.codigo,
+                nombre: row.nombre,
+                codigos: row.codigos,
+                dataGeo: row.dataGeo,
+            };
+            zones.push(zone);
         }
+        zoneList.push({ companyId: companyId, zones: zones });
+
+        return zoneList;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function getDriversByCompany(companyId) {
+    const companyDrivers = driverList.find(driver => driver.companyId == companyId);
+
+    if (companyDrivers == undefined || !Array.isArray(companyDrivers) || companyDrivers.length == 0) {
+        const drivers = await getDrivers(companyId);
+
+        const companyDriversR = drivers.find(driver => driver.companyId == companyId).drivers || [];
+
+        return companyDriversR;
     } else {
-        const zones = await getZones();
-        return zones.find(zone => zone.companyId === companyId).zones || [];
+        return companyDrivers.find(driver => driver.companyId == companyId).drivers || [];
+    }
+}
+export async function getClientsByCompany(companyId) {
+    const companyClients = clientList.find(client => client.companyId == companyId);
+
+    if (companyClients == undefined || !Array.isArray(companyClients) || companyClients.length == 0) {
+        const clients = await getClients(companyId);
+
+        const companyClientsR = clients.find(client => client.companyId == companyId).clients || [];
+
+        return companyClientsR;
+    } else {
+        return companyClients.find(client => client.companyId == companyId).clients || [];
+    }
+}
+export async function getZonesByCompany(companyId) {
+    const companyZones = zoneList.find(zone => zone.companyId == companyId);
+
+    if (companyZones == undefined || !Array.isArray(companyZones) || companyZones.length == 0) {
+        const zones = await getZones(companyId);
+
+        const companyZonesR = zones.find(zone => zone.companyId == companyId).zones || [];
+
+        return companyZonesR;
+    } else {
+        return companyZones.find(zone => zone.companyId == companyId).zones || [];
     }
 }
 

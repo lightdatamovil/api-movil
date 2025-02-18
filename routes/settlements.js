@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import express from 'express';
 import { getCompanyById } from '../db.js';
-import { getSettlementList, getSettlementDetails, getSettlementShipmentDetails } from '../controller/settlementController/settlement.js';
+import { getSettlementList, getSettlementDetails, getSettlementShipmentDetails } from '../controller/settlementController/setttlement.js';
 
-const settlements = Router();
+const settlements = express.Router();
 
 settlements.post('/settlement-list', async (req, res) => {
     const { companyId, profile, userId, from, to, deviceId, model, brand, androidVersion, appVersion } = req.body;
