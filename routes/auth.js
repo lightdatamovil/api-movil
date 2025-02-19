@@ -5,6 +5,43 @@ import { login, identification, whatsappMessagesList } from '../controller/authC
 
 const auth = Router();
 
+const validarParametros = (body, parametrosRequeridos) => {
+    // Agregamos los parámetros comunes a la lista de requeridos
+    const param = ['deviceId', 'appVersion', 'brand', 'model', 'androidVersion', ...parametrosRequeridos];
+
+    // Filtramos los que faltan
+    const faltantes = param.filter(p => !body[p]);
+
+    if (faltantes.length > 0) {
+        return `Faltan los siguientes parámetros: ${faltantes.join(', ')}`;
+    }
+
+    return null;
+};
+
+auth.post('/company-identification', async (req, res) => {
+    const parametrosRequeridos = ['companyCode'];
+    const mensajeError = validarParametros(req.body, parametrosRequeridos);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
+    }
+
+    try {
+        const { companyCode, deviceId, model, brand, androidVersion, appVersion } = req.body;
+
+        const company = await getCompanyByCode(companyCode);
+        const result = await identification(company);
+
+        // crearLog(result.id, 0, "/api/identification", result, 0, deviceId, model, brand, androidVersion, appVersion);
+
+        res.status(200).json({ body: result, message: "Empresa identificada correctamente" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 auth.post('/login', async (req, res) => {
     const { username, password, companyId, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
@@ -21,26 +58,6 @@ auth.post('/login', async (req, res) => {
 
         res.status(200).json({ body: result, message: "Usuario logueado correctamente" });
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-auth.post('/company-identification', async (req, res) => {
-    const { companyCode, deviceId, appVersion, brand, model, androidVersion } = req.body;
-
-    if (!companyCode || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-        return res.status(400).json({ message: "Algunos de los datos estan vacios." });
-    }
-
-    try {
-        const company = await getCompanyByCode(companyCode);
-
-        const result = await identification(company);
-
-        // crearLog(result.id, 0, "/api/identification", result, 0, deviceId, model, brand, androidVersion, appVersion);
-
-        res.status(200).json({ body: result, message: "Empresa identificada correctamente" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
