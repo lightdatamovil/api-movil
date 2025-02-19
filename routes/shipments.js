@@ -6,11 +6,13 @@ import { shipmentDetails, shipmentList, uploadImage } from '../controller/shipme
 const shipments = Router();
 
 shipments.post('/shipment-list', async (req, res) => {
-  const { companyId, userId, profile, from, dashboardValue,deviceId, appVersion, brand, model, androidVersion  } = req.body;
+  const mensajeError = verifyParamaters(req.body, ['from', 'dashboardValue'], true);
 
-  if (!companyId || !userId || !profile || !from ||!dashboardValue|| !deviceId || !appVersion || !brand || !model || !androidVersion) {
-    return res.status(400).json({ message: "Faltan datos" });
+  if (mensajeError) {
+    return res.status(400).json({ message: mensajeError });
   }
+
+  const { companyId, userId, profile, from, dashboardValue } = req.body;
 
   try {
     const company = await getCompanyById(companyId);
@@ -24,11 +26,13 @@ shipments.post('/shipment-list', async (req, res) => {
 });
 
 shipments.post("/shipment-details", verifyToken, async (req, res) => {
-  const { companyId, profile, userId, shipmentId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+  const mensajeError = verifyParamaters(req.body, ['shipmentId'], true);
 
-  if (!companyId || !profile || !userId || !shipmentId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-    return res.status(400).json({ message: "Faltan datos" });
+  if (mensajeError) {
+    return res.status(400).json({ message: mensajeError });
   }
+
+  const { companyId, userId, shipmentId } = req.body;
 
   try {
     const company = await getCompanyById(companyId);
@@ -42,11 +46,14 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 });
 
 shipments.post('/upload-image', async (req, res) => {
-  const { companyId, shipmentId, userId, shipmentState, image } = req.body;
 
-  if (!companyId || !userId || !image) {
-    return res.status(400).json({ message: "Faltan datos" });
+  const mensajeError = verifyParamaters(req.body, ['shipmentId', 'shipmentState', 'image'], true);
+
+  if (mensajeError) {
+    return res.status(400).json({ message: mensajeError });
   }
+
+  const { companyId, shipmentId, userId, shipmentState, image } = req.body;
 
   try {
     const company = await getCompanyById(companyId);

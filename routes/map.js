@@ -4,11 +4,14 @@ import { getRoutaByUserId, geolocalize, saveRoute } from '../controller/mapsCont
 
 const map = Router();
 map.post('/get-route-by-user', async (req, res) => {
-    const { companyId, profile, userId, deviceId, model, brand, androidVersion, appVersion } = req.body;
 
-    if (!companyId || !profile || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-        return res.status(400).json({ message: 'Faltan datos' });
+    const mensajeError = verifyParamaters(req.body, [], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -23,16 +26,17 @@ map.post('/get-route-by-user', async (req, res) => {
 });
 
 map.post('/geolocalize', async (req, res) => {
-    const { companyId, profile, userId, shipmentId, latitude, longitude, deviceId, model, brand, androidVersion, appVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['shipmentId', 'latitude', 'longitude'], true);
 
-    if (!companyId || !profile || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-        return res.status(400).json({ message: 'Faltan datos' });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+    const { companyId, shipmentId, latitude, longitude } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        await geolocalize(company, userId);
+        await geolocalize(company, shipmentId, latitude, longitude);
 
         res.status(200).json({ message: "Datos obtenidos correctamente" });
     } catch (error) {
@@ -41,12 +45,14 @@ map.post('/geolocalize', async (req, res) => {
 
 });
 map.post('/save-route', async (req, res) => {
-    const { companyId, userId, profile, totalDelay, operationDate, distance, additionalRouteData, orders } = req.body;
 
-    if (!companyId || !userId || !profile || !orders || orders.length == 0 || !operationDate || totalDelay === null || totalDelay === undefined ||
-        operationDate === null || operationDate === undefined || !additionalRouteData) {
-        return res.status(400).json({ message: "Faltan datos requeridos u ordenes esta vacia." });
+    const mensajeError = verifyParamaters(req.body, ['totalDelay', 'operationData', 'distance', 'additionalRouteData', 'orders'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { totalDelay, operationDate, distance, additionalRouteData, orders } = req.body;
 
     try {
         const company = await getCompanyById(companyId);

@@ -28,7 +28,6 @@ auth.post('/company-identification', async (req, res) => {
     }
 });
 
-
 auth.post('/login', async (req, res) => {
     const mensajeError = verifyParamaters(req.body, ['username', 'password', 'companyId']);
 

@@ -6,11 +6,13 @@ import { createHash } from 'crypto';
 const users = Router();
 
 users.post('/edit-user', async (req, res) => {
-    const { companyId, userId, profile, email, phone, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['email', 'phone'], true);
 
-    if (!companyId || !userId || !profile || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, email, phone } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -24,11 +26,14 @@ users.post('/edit-user', async (req, res) => {
 });
 
 users.post('/change-password', async (req, res) => {
-    const { companyId, userId, profile, oldPassword, newPassword, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !userId || !profile || !oldPassword || !newPassword || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['oldPassword', 'newPassword'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, oldPassword, newPassword } = req.body;
 
     try {
         const oldPasswordHash = createHash('sha256').update(oldPassword).digest('hex');
@@ -46,11 +51,13 @@ users.post('/change-password', async (req, res) => {
 });
 
 users.post('/change-profile-picture', async (req, res) => {
-    const { companyId, userId, profile, image, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['image'], true);
 
-    if (!companyId || !userId || !profile || !image || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, profile, image } = req.body;
 
     try {
         const company = await getCompanyById(companyId);

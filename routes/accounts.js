@@ -6,11 +6,12 @@ import { accountList } from '../controller/accountsController/accounts.js';
 const accounts = Router();
 
 accounts.post('/account-list', verifyToken, async (req, res) => {
-	const { companyId, profile, userId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+	const mensajeError = verifyParamaters(req.body, ['username', 'password', 'companyId']);
 
-	if (!companyId || !profile || !userId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-		return res.status(400).json({ message: 'Algunos de los datos estan vacios.' });
+	if (mensajeError) {
+		return res.status(400).json({ message: mensajeError });
 	}
+	const { companyId, profile, userId } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);

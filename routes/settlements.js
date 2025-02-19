@@ -5,11 +5,13 @@ import { getSettlementList, getSettlementDetails, getSettlementShipmentDetails }
 const settlements = express.Router();
 
 settlements.post('/settlement-list', async (req, res) => {
-    const { companyId, profile, userId, from, to, deviceId, model, brand, androidVersion, appVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['from', 'to'], true);
 
-    if (!companyId || !profile || !userId || !from || !to || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-        return res.status(400).json({ message: 'Faltan datos' });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, from, to } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -24,11 +26,14 @@ settlements.post('/settlement-list', async (req, res) => {
 });
 
 settlements.post('/settlement-details', async (req, res) => {
-    const { companyId, profile, userId, settlementId, deviceId, model, brand, androidVersion, appVersion } = req.body;
 
-    if (!companyId || !profile || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-        return res.status(400).json({ message: 'Faltan datos' });
+    const mensajeError = verifyParamaters(req.body, ['settlementId'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, settlementId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -42,11 +47,12 @@ settlements.post('/settlement-details', async (req, res) => {
 });
 
 settlements.post('/settlement-shipment-details', async (req, res) => {
-    const { companyId, profile, userId, shipmentId, deviceId, model, brand, androidVersion, appVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, [], true);
 
-    if (!companyId || !profile || !userId || !shipmentId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-        return res.status(400).json({ message: 'Faltan datos' });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+    const { companyId, userId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);

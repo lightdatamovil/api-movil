@@ -6,11 +6,14 @@ import { getShipmentIdFromQr, crossDocking, driverList, enterFlex, getProductsFr
 const qr = express.Router();
 
 qr.post('/cross-docking', async (req, res) => {
-    const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !profile || !userId || !dataQr || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, dataQr } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -24,11 +27,13 @@ qr.post('/cross-docking', async (req, res) => {
 });
 
 qr.post('/get-shipment-id', async (req, res) => {
-    const { dataQr, companyId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
 
-    if (!dataQr || !companyId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, dataQr } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -43,11 +48,13 @@ qr.post('/get-shipment-id', async (req, res) => {
 
 qr.post('/driver-list', verifyToken, async (req, res) => {
 
-    const { companyId, profile, userId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
 
-    if (!companyId || !profile || !userId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -63,16 +70,19 @@ qr.post('/driver-list', verifyToken, async (req, res) => {
 });
 
 qr.post('/products-from-shipment', async (req, res) => {
-    const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !profile || !userId || !dataQr || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
 
-    try {
-        const company = await getCompanyById(req.body.companyId);
+    const { companyId, dataQr } = req.body;
 
-        const response = await getProductsFromShipment(company, dataQR);
+    try {
+        const company = await getCompanyById(companyId);
+
+        const response = await getProductsFromShipment(company, dataQr);
 
         return res.json(response);
     } catch (error) {
@@ -83,11 +93,13 @@ qr.post('/products-from-shipment', async (req, res) => {
 
 qr.post('/enter-flex', verifyToken, async (req, res) => {
 
-    const { companyId, profile, userId, dataQr, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
 
-    if (!companyId || !profile || !userId || !dataQr || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, dataQr } = req.body;
 
     try {
         const company = await getCompanyById(companyId);

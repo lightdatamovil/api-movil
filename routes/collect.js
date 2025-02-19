@@ -5,11 +5,13 @@ import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getR
 const collect = Router();
 
 collect.post("/get-route", async (req, res) => {
-    const { companyId, userId, date, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['date'], true);
 
-    if (!companyId || !userId || !date || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, date } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -23,11 +25,13 @@ collect.post("/get-route", async (req, res) => {
 });
 
 collect.post("/start-route", async (req, res) => {
-    const { companyId, userId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, [], true);
 
-    if (!companyId || !userId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -42,11 +46,14 @@ collect.post("/start-route", async (req, res) => {
 });
 
 collect.post("/save-route", async (req, res) => {
-    const { companyId, userId, operationDate, additionalRouteData, orders, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !userId || !operationDate || !additionalRouteData || !orders || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['operationDate', 'additionalRouteData', 'orders'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, operationDate, additionalRouteData, orders } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -60,11 +67,14 @@ collect.post("/save-route", async (req, res) => {
 });
 
 collect.post("/get-collect-details", async (req, res) => {
-    const { companyId, userId, profile, date, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !userId || !profile || !date || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['date'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, profile, date } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -78,11 +88,14 @@ collect.post("/get-collect-details", async (req, res) => {
 });
 
 collect.post("/get-client-details", async (req, res) => {
-    const { companyId, userId, profile, date, clientId, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !userId || !profile || !date || !clientId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['date', 'clientId'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, date, clientId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -96,11 +109,14 @@ collect.post("/get-client-details", async (req, res) => {
 });
 
 collect.post("/get-collect-list", async (req, res) => {
-    const { companyId, userId, profile, from, to, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !userId || !profile || !from || !to || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['from', 'to', true]);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, userId, from, to } = req.body;
 
     try {
         const company = await getCompanyById(companyId)
@@ -114,11 +130,14 @@ collect.post("/get-collect-list", async (req, res) => {
 });
 
 collect.post("/get-settlement-list", async (req, res) => {
-    const { companyId, userId, profile, from, to, deviceId, appVersion, brand, model, androidVersion } = req.body;
 
-    if (!companyId || !userId || !profile || !from || !to || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    const mensajeError = verifyParamaters(req.body, ['from', 'to'], true);
+
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { companyId, from, to, } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -132,11 +151,12 @@ collect.post("/get-settlement-list", async (req, res) => {
 });
 
 collect.post("/get-settlement-details", async (req, res) => {
-    const { companyId, userId, profile, settlementId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['settlementId'], true);
 
-    if (!companyId || !userId || !profile || !settlementId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Faltan datos" });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+    const { companyId, settlementId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);

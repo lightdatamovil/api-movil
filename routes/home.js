@@ -6,11 +6,13 @@ import { verifyStartedRoute, getHomeData } from '../controller/homeController/ho
 const home = Router();
 
 home.post('/home', async (req, res) => {
-	const { companyId, userId, profile, deviceId, appVersion, brand, model, androidVersion } = req.body;
+	const mensajeError = verifyParamaters(req.body, [], true);
 
-	if (!companyId || !userId || !profile || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-		return res.status(400).json({ message: "Faltan datos" });
+	if (mensajeError) {
+		return res.status(400).json({ message: mensajeError });
 	}
+
+	const { companyId, userId, profile } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
@@ -32,11 +34,14 @@ home.post('/end-route', verifyToken, async (req, res) => {
 });
 
 home.post('/verify-started-route', verifyToken, async (req, res) => {
-	const { companyId, profile, userId, deviceId, model, brand, androidVersion, appVersion } = req.body;
 
-	if (!companyId || !profile || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-		return res.status(400).json({ message: 'Faltan datos' });
+	const mensajeError = verifyParamaters(req.body, [], true);
+
+	if (mensajeError) {
+		return res.status(400).json({ message: mensajeError });
 	}
+
+	const { companyId, userId } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
