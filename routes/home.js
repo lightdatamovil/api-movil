@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { verifyStartedRoute, getHomeData } from '../controller/homeController/home.js';
+import { verifyStartedRoute, getHomeData, startRoute, endRoute } from '../controller/homeController/home.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const home = Router();
@@ -27,11 +27,43 @@ home.post('/home', async (req, res) => {
 });
 
 home.post('/start-route', verifyToken, async (req, res) => {
-	res.status(200).json({ message: "WORK IN PROGRESS" });
+	const mensajeError = verifyParamaters(req.body, [], true);
+
+	if (mensajeError) {
+		return res.status(400).json({ message: mensajeError });
+	}
+
+	const { companyId, userId } = req.body;
+
+	try {
+		const company = await getCompanyById(companyId);
+
+		let result = await startRoute(company, userId);
+
+		res.status(200).json({ body: result, message: 'La ruta a comenzado exitosamente' });
+	} catch (e) {
+		res.status(500).json({ message: e.message });
+	}
 });
 
 home.post('/end-route', verifyToken, async (req, res) => {
-	res.status(200).json({ message: "WORK IN PROGRESS" });
+	const mensajeError = verifyParamaters(req.body, [], true);
+
+	if (mensajeError) {
+		return res.status(400).json({ message: mensajeError });
+	}
+
+	const { companyId, userId } = req.body;
+
+	try {
+		const company = await getCompanyById(companyId);
+
+		let result = await endRoute(company, userId);
+
+		res.status(200).json({ body: result, message: 'La ruta a terminado exitosamente' });
+	} catch (e) {
+		res.status(500).json({ message: e.message });
+	}
 });
 
 home.post('/verify-started-route', verifyToken, async (req, res) => {
