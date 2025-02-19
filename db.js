@@ -20,11 +20,11 @@ let clientList = [];
 
 export function getDbConfig(companyId) {
     return {
-        host: "localhost",
+        host: "149.56.182.49",
         user: "ue" + companyId,
         password: "78451296",
         database: "e" + companyId,
-       // port: 44339
+        port: 44339
     };
 }
 
@@ -109,7 +109,7 @@ export async function getClients(companyId) {
             };
             clients.push(zone);
         }
-        clientList.push({ companyId: companyId, zones: zones });
+        clientList.push({ companyId: companyId, clients: clients });
 
         return clientList;
     } catch (error) {
@@ -147,6 +147,7 @@ export async function getZones(companyId) {
 
         return zoneList;
     } catch (error) {
+        console.error("Error en getZones:", error);
         throw error;
     }
 }
@@ -164,6 +165,7 @@ export async function getDriversByCompany(companyId) {
         return companyDrivers.find(driver => driver.companyId == companyId).drivers || [];
     }
 }
+
 export async function getClientsByCompany(companyId) {
     const companyClients = clientList.find(client => client.companyId == companyId);
 
@@ -177,17 +179,24 @@ export async function getClientsByCompany(companyId) {
         return companyClients.find(client => client.companyId == companyId).clients || [];
     }
 }
+
 export async function getZonesByCompany(companyId) {
-    const companyZones = zoneList.find(zone => zone.companyId == companyId);
+    try {
 
-    if (companyZones == undefined || !Array.isArray(companyZones) || companyZones.length == 0) {
-        const zones = await getZones(companyId);
+        const companyZones = zoneList.find(zone => zone.companyId == companyId);
 
-        const companyZonesR = zones.find(zone => zone.companyId == companyId).zones || [];
+        if (companyZones == undefined || !Array.isArray(companyZones) || companyZones.length == 0) {
+            const zones = await getZones(companyId);
 
-        return companyZonesR;
-    } else {
-        return companyZones.find(zone => zone.companyId == companyId).zones || [];
+            const companyZonesR = zones.find(zone => zone.companyId == companyId).zones || [];
+
+            return companyZonesR;
+        } else {
+            return companyZones.find(zone => zone.companyId == companyId).zones || [];
+        }
+    } catch (error) {
+        console.error("Error en getZonesByCompany:", error);
+        throw error;
     }
 }
 

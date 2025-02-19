@@ -37,20 +37,27 @@ export async function crossDocking(dataQr, company) {
 
         const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
-        const zones = await getZonesByCompany(company.did);
+        if (envioData.length === 0) {
+            throw new Error("No se encontró el envío");
+        }
+
+        const row = envioData[0];
 
         const clients = await getClientsByCompany(company.did);
+
+        const zones = await getZonesByCompany(company.did);
 
         const drivers = await getDriversByCompany(company.did);
 
         return {
-            shipmentState: envioData[0].shipmentState,
-            date: envioData[0].date,
-            clientId: clients[envioData[0].clientId],
-            zoneId: zones[envioData[0].zoneId],
-            driver: drivers[envioData[0].driver]
+            shipmentState: row.shipmentState,
+            date: row.date,
+            client: clients.find(client => client.id === row.clientId),
+            zone: zones.find(zone => zone.id === row.zoneId),
+            driver: drivers.find(driver => driver.id === row.driver)
         };
     } catch (error) {
+        console.error("Error en crossDocking:", error);
         throw error;
     } finally {
         dbConnection.end();
