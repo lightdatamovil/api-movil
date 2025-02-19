@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getCompanyById } from '../db.js';
 import { editUser, changePassword, changeProfilePicture } from '../controller/usersController/users.js';
 import { createHash } from 'crypto';
+import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const users = Router();
 

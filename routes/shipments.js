@@ -2,6 +2,7 @@ import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { shipmentDetails, shipmentList, uploadImage } from '../controller/shipmentsController/shipments.js';
+import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const shipments = Router();
 

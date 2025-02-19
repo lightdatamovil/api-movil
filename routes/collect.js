@@ -1,5 +1,6 @@
 import { getCompanyById } from '../db.js';
 import { Router } from 'express';
+import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getRoute, startRoute, getSettlementDetails, getSettlementList } from '../controller/collectController/collectController.js';
 
 const collect = Router();

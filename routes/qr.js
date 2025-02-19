@@ -2,6 +2,7 @@ import { getCompanyById } from '../db.js';
 import verifyToken from '../src/funciones/verifyToken.js';
 import express from 'express';
 import { getShipmentIdFromQr, crossDocking, driverList, enterFlex, getProductsFromShipment } from "../controller/qrController/qr.js";
+import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const qr = express.Router();
 
