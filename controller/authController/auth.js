@@ -139,7 +139,7 @@ export async function whatsappMessagesList(company) {
 
         results.forEach(row => whatsappMessagesList.push(row.texto));
 
-        return results;
+        return whatsappMessagesList;
     } catch (error) {
         throw error;
     } finally {
