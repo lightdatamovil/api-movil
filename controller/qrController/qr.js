@@ -1,6 +1,7 @@
 import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClientsByCompany, getDriversByCompany } from "../../db.js";
 import mysql from 'mysql';
 import axios from 'axios';
+
 export async function crossDocking(dataQr, company) {
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
@@ -79,29 +80,19 @@ export async function getShipmentIdFromQr(dataQr, company) {
         const isLocal = dataQr.hasOwnProperty("local");
 
         if (isLocal) {
-            shipmentId = parseInt(dataQr.did);
-            queryWhereId = ` AND e.did = ${shipmentId}`;
-            if (company.did != dataQr.empresa) {
-                const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ${shipmentId} AND didEmpresa = ${company.did}`;
-
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
-
-                shipmentId = resultQueryEnviosExteriores[0];
-            }
+            shipmentId = dataQr.did;
         } else {
-            const senderId = dataQr.sender_id;
+            if (company.did != dataQr.empresa) {
+                const queryEnviosExteriores = `SELECT did FROM envios WHERE shipmentid = ? and ml_vendedor_id = ?`;
 
-            const query = `SELECT did FROM envios WHERE shipmentId = '${dataQr.id}' AND ml_vendedor_id = '${senderId}'`;
-
-            const result = await executeQuery(dbConnection, query, []);
-
-            if (result.length > 0) {
-                shipmentId = result[0].did;
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [dataQr.id, dataQr.sender_id]);
+                shipmentId = resultQueryEnviosExteriores[0];
             }
         }
 
         return shipmentId;
     } catch (error) {
+        console.error("Error en getShipmentIdFromQr:", error);
         throw error;
     } finally {
         dbConnection.end();
