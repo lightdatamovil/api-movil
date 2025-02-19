@@ -97,7 +97,7 @@ export async function driverList(company) {
 
         const results = await executeQuery(dbConnection, query, []);
 
-        for (i = 0; i < results.length; i++) {
+        for (let i = 0; i < results.length; i++) {
             const row = results[i];
 
             const driver = {

@@ -49,7 +49,7 @@ async function getHistorial(dbConnection, shipmentId) {
 
         const resultQueryEnviosHistorial = await executeQuery(dbConnection, queryEnviosHistorial, []);
 
-        for (i = 0; i < resultQueryEnviosHistorial.length; i++) {
+        for (let i = 0; i < resultQueryEnviosHistorial.length; i++) {
             var row = resultQueryEnviosHistorial[i];
             historial.push({ estado: row.estado, fecha: row.fecha });
         }
@@ -68,7 +68,7 @@ async function getObservations(dbConnection, shipmentId) {
 
         const resultEnviosObservaciones = await executeQuery(dbConnection, queryEnviosObservaciones, []);
 
-        for (i = 0; i < resultEnviosObservaciones.length; i++) {
+        for (let i = 0; i < resultEnviosObservaciones.length; i++) {
             var row = resultEnviosObservaciones[i];
             observations.push({
                 observacion: row.observacion,
@@ -90,7 +90,7 @@ async function getImages(dbConnection, shipmentId) {
 
         const resultsEnviosFotos = await executeQuery(dbConnection, queryEnviosFotos, []);
 
-        for (i = 0; i < resultsEnviosFotos.length; i++) {
+        for (let i = 0; i < resultsEnviosFotos.length; i++) {
             var row = resultsEnviosFotos[i];
             images.push({
                 server: row.server,
