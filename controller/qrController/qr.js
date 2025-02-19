@@ -1,4 +1,4 @@
-import { executeQuery, getProdDbConfig, getDbConfig } from "../../db.js";
+import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClientsByCompany, getDriversByCompany } from "../../db.js";
 import mysql from 'mysql';
 import axios from 'axios';
 
@@ -30,14 +30,26 @@ export async function crossDocking(dataQr, company) {
         }
 
         const queryEnvios = `SELECT e.estado_envio AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date, 
-                      CONCAT(su.nombre, ' ', su.apellido) AS chofer
+                      CONCAT(su.nombre, ' ', su.apellido) AS driver
                       FROM envios AS e
                       LEFT JOIN sistema_usuarios AS su ON su.did = e.choferAsignado AND su.superado = 0 AND su.elim = 0
                       WHERE e.elim = 0 AND e.superado = 0${queryWhereId}`;
 
         const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
-        return envioData[0];
+        const zones = await getZonesByCompany(company.did);
+
+        const clients = await getClientsByCompany(company.did);
+
+        const drivers = await getDriversByCompany(company.did);
+
+        return {
+            shipmentState: envioData[0].shipmentState,
+            date: envioData[0].date,
+            clientId: clients[envioData[0].clientId],
+            zoneId: zones[envioData[0].zoneId],
+            driver: drivers[envioData[0].driver]
+        };
     } catch (error) {
         throw error;
     } finally {
