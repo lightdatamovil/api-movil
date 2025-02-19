@@ -58,9 +58,9 @@ home.post('/end-route', verifyToken, async (req, res) => {
 	try {
 		const company = await getCompanyById(companyId);
 
-		let result = await endRoute(company, userId);
+		await endRoute(company, userId);
 
-		res.status(200).json({ body: result, message: 'La ruta a terminado exitosamente' });
+		res.status(200).json({ message: 'La ruta a terminado exitosamente' });
 	} catch (e) {
 		res.status(500).json({ message: e.message });
 	}

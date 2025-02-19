@@ -7,13 +7,15 @@ export async function verifyStartedRoute(company, userId) {
     dbConnection.connect();
 
     try {
-        const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ${userId} AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
+        const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
 
         const resultQueryCadetesMovimientos = await executeQuery(dbConnection, sqlCadetesMovimientos, [userId]);
 
-        let startedRoute = resultQueryCadetesMovimientos.length > 0 ? true : false;
+        if (resultQueryCadetesMovimientos.length === 0) {
+            throw new Error('No se encontraron movimientos para el cadete');
+        }
 
-        return startedRoute ? true : false;
+        return resultQueryCadetesMovimientos[0].tipo == 0;
     } catch (error) {
         throw error;
     } finally {
