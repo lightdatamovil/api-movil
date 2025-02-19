@@ -47,13 +47,13 @@ async function loadCompaniesFromRedis() {
 }
 
 export async function getDrivers(companyId) {
+    const dbConfig = getDbConfig(companyId);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+
     try {
-
-        const dbConfig = getDbConfig(companyId);
-        const dbConnection = mysql.createConnection(dbConfig);
-        dbConnection.connect();
-
         const queryUsers = "SELECT * FROM sistema_usuarios WHERE perfil = 3";
+
         const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
 
         const drivers = [];
@@ -83,13 +83,13 @@ export async function getDrivers(companyId) {
 }
 
 export async function getClients(companyId) {
+    const dbConfig = getDbConfig(companyId);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+
     try {
-
-        const dbConfig = getDbConfig(companyId);
-        const dbConnection = mysql.createConnection(dbConfig);
-        dbConnection.connect();
-
         const queryUsers = "SELECT * FROM clientes";
+
         const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
 
         const clients = [];
@@ -118,12 +118,13 @@ export async function getClients(companyId) {
 }
 
 export async function getZones(companyId) {
-    try {
-        const dbConfig = getDbConfig(companyId);
-        const dbConnection = mysql.createConnection(dbConfig);
-        dbConnection.connect();
+    const dbConfig = getDbConfig(companyId);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
 
+    try {
         const queryZones = "SELECT * FROM envios_zonas";
+
         const resultQueryZones = await executeQuery(dbConnection, queryZones, []);
 
         const zones = [];
@@ -153,46 +154,53 @@ export async function getZones(companyId) {
 }
 
 export async function getDriversByCompany(companyId) {
-    const companyDrivers = driverList.find(driver => driver.companyId == companyId);
+    try {
+        const companyDrivers = driverList.find(driver => driver.companyId == companyId);
 
-    if (companyDrivers == undefined || !Array.isArray(companyDrivers) || companyDrivers.length == 0) {
-        const drivers = await getDrivers(companyId);
+        if (companyDrivers === undefined || companyDrivers === null || companyDrivers.length == 0) {
+            const drivers = await getDrivers(companyId);
 
-        const companyDriversR = drivers.find(driver => driver.companyId == companyId).drivers || [];
+            const companyDriversR = drivers.find(driver => driver.companyId == companyId).drivers || [];
 
-        return companyDriversR;
-    } else {
-        return companyDrivers.find(driver => driver.companyId == companyId).drivers || [];
+            return companyDriversR;
+        } else {
+            return companyDrivers.drivers || [];
+        }
+    } catch (error) {
+        throw error;
     }
 }
 
 export async function getClientsByCompany(companyId) {
-    const companyClients = clientList.find(client => client.companyId == companyId);
+    try {
+        const companyClients = clientList.find(client => client.companyId == companyId);
 
-    if (companyClients == undefined || !Array.isArray(companyClients) || companyClients.length == 0) {
-        const clients = await getClients(companyId);
+        if (companyClients === undefined || companyClients === null || companyClients.length == 0) {
+            const clients = await getClients(companyId);
 
-        const companyClientsR = clients.find(client => client.companyId == companyId).clients || [];
+            const companyClientsR = clients.find(client => client.companyId == companyId).clients || [];
 
-        return companyClientsR;
-    } else {
-        return companyClients.find(client => client.companyId == companyId).clients || [];
+            return companyClientsR;
+        } else {
+            return companyClients.clients || [];
+        }
+    } catch (error) {
+        throw error;
     }
 }
 
 export async function getZonesByCompany(companyId) {
     try {
-
         const companyZones = zoneList.find(zone => zone.companyId == companyId);
 
-        if (companyZones == undefined || !Array.isArray(companyZones) || companyZones.length == 0) {
+        if (companyZones === undefined || companyZones === null || companyZones.length == 0) {
             const zones = await getZones(companyId);
 
             const companyZonesR = zones.find(zone => zone.companyId == companyId).zones || [];
 
             return companyZonesR;
         } else {
-            return companyZones.find(zone => zone.companyId == companyId).zones || [];
+            return companyZones.zones || [];
         }
     } catch (error) {
         console.error("Error en getZonesByCompany:", error);

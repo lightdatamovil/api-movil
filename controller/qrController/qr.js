@@ -1,41 +1,42 @@
 import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClientsByCompany, getDriversByCompany } from "../../db.js";
 import mysql from 'mysql';
 import axios from 'axios';
-
 export async function crossDocking(dataQr, company) {
-    const dbConfig = getProdDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
         let shipmentId;
         let queryWhereId = '';
-        const isLocal = dataQr.hasOwnProperty("local")
+        const isLocal = dataQr.hasOwnProperty("local");
 
         if (isLocal) {
             shipmentId = dataQr.did;
-
             if (company.did != dataQr.empresa) {
-
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ${shipmentId} AND didEmpresa = ${company.did}`;
 
+                console.time("executeQuery envios_exteriores");
                 const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
+                console.timeEnd("executeQuery envios_exteriores");
 
                 shipmentId = resultQueryEnviosExteriores[0];
             }
-            queryWhereId = ` AND e.did = ${shipmentId}`;
+            queryWhereId = `WHERE e.did = ${shipmentId}`;
         } else {
             shipmentId = dataQr.id;
-            queryWhereId = ' AND e.ml_shipment_id =' + shipmentId;
+            queryWhereId = 'WHERE e.shipmentid =' + shipmentId;
         }
 
-        const queryEnvios = `SELECT e.estado_envio AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date, 
+        const queryEnvios = `SELECT e.estado AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fechaInicio, '%d/%m/%Y') AS date, 
                       CONCAT(su.nombre, ' ', su.apellido) AS driver
                       FROM envios AS e
-                      LEFT JOIN sistema_usuarios AS su ON su.did = e.choferAsignado AND su.superado = 0 AND su.elim = 0
-                      WHERE e.elim = 0 AND e.superado = 0${queryWhereId}`;
+                      LEFT JOIN sistema_usuarios AS su ON su.did = e.chofer
+                       ${queryWhereId}`;
 
+        console.time("executeQuery envios");
         const envioData = await executeQuery(dbConnection, queryEnvios, []);
+        console.timeEnd("executeQuery envios");
 
         if (envioData.length === 0) {
             throw new Error("No se encontró el envío");
@@ -43,18 +44,20 @@ export async function crossDocking(dataQr, company) {
 
         const row = envioData[0];
 
+        console.time("getClientsByCompany");
         const clients = await getClientsByCompany(company.did);
+        console.timeEnd("getClientsByCompany");
 
+        console.time("getZonesByCompany");
         const zones = await getZonesByCompany(company.did);
-
-        const drivers = await getDriversByCompany(company.did);
+        console.timeEnd("getZonesByCompany");
 
         return {
             shipmentState: row.shipmentState,
             date: row.date,
-            client: clients.find(client => client.id === row.clientId),
-            zone: zones.find(zone => zone.id === row.zoneId),
-            driver: drivers.find(driver => driver.id === row.driver)
+            client: clients.find(client => client.id === row.clientId)?.nombre || "Desconocido",
+            zone: zones.find(zone => zone.id === row.zoneId)?.nombre || "Desconocido",
+            driver: row.driver ?? "Sin asignar"
         };
     } catch (error) {
         console.error("Error en crossDocking:", error);
@@ -63,6 +66,7 @@ export async function crossDocking(dataQr, company) {
         dbConnection.end();
     }
 }
+
 
 export async function getShipmentIdFromQr(dataQr, company) {
     const dbConfig = getDbConfig(company.did);
