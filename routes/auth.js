@@ -1,36 +1,23 @@
 import { Router } from 'express';
 import { getCompanyById, getCompanyByCode } from '../db.js';
 import verifyToken from '../src/funciones/verifyToken.js';
+import verifyParamaters from '../src/funciones/verifyParameters.js';
 import { login, identification, whatsappMessagesList } from '../controller/authController/auth.js';
 
 const auth = Router();
 
-const validarParametros = (body, parametrosRequeridos) => {
-    // Agregamos los parámetros comunes a la lista de requeridos
-    const param = ['deviceId', 'appVersion', 'brand', 'model', 'androidVersion', ...parametrosRequeridos];
-
-    // Filtramos los que faltan
-    const faltantes = param.filter(p => !body[p]);
-
-    if (faltantes.length > 0) {
-        return `Faltan los siguientes parámetros: ${faltantes.join(', ')}`;
-    }
-
-    return null;
-};
-
 auth.post('/company-identification', async (req, res) => {
-    const parametrosRequeridos = ['companyCode'];
-    const mensajeError = validarParametros(req.body, parametrosRequeridos);
+    const mensajeError = verifyParamaters(req.body, ['companyCode']);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    try {
-        const { companyCode, deviceId, model, brand, androidVersion, appVersion } = req.body;
+    const { companyCode } = req.body;
 
+    try {
         const company = await getCompanyByCode(companyCode);
+
         const result = await identification(company);
 
         // crearLog(result.id, 0, "/api/identification", result, 0, deviceId, model, brand, androidVersion, appVersion);
@@ -43,11 +30,13 @@ auth.post('/company-identification', async (req, res) => {
 
 
 auth.post('/login', async (req, res) => {
-    const { username, password, companyId, deviceId, appVersion, brand, model, androidVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['username', 'password', 'companyId']);
 
-    if (!username || !password || !companyId || !deviceId || !appVersion || !brand || !model || !androidVersion) {
-        return res.status(400).json({ message: "Algunos de los datos estan vacios." });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+
+    const { username, password, companyId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
@@ -64,11 +53,12 @@ auth.post('/login', async (req, res) => {
 });
 
 auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
-    const { companyId, userId, deviceId, model, brand, androidVersion, appVersion } = req.body;
+    const mensajeError = verifyParamaters(req.body, ['companyId'], true);
 
-    if (!companyId || !userId || !deviceId || !model || !brand || !androidVersion || !appVersion) {
-        return res.status(400).json({ message: "Algunos de los datos estan vacios." });
+    if (mensajeError) {
+        return res.status(400).json({ message: mensajeError });
     }
+    const { companyId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
