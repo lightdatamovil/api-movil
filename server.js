@@ -1,4 +1,3 @@
-
 import express, { json, urlencoded } from 'express';
 import accounts from './routes/accounts.js';
 import cluster from 'cluster';

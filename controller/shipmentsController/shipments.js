@@ -13,33 +13,18 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
         throw error;
     }
 };
+function convertirFecha(fecha) {
+    // Convertir la fecha del formato 'DD/MM/YYYY' a 'YYYY-MM-DD'
+    const fechaObj = fecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
 
-function convertirFecha(fechaStr) {
-    const regexISO = /^\d{4}-\d{2}-\d{2}$/;
-    const regexEU = /^\d{2}\/\d{2}\/\d{4}$/;
-
-    let year, month, day;
-
-    if (regexISO.test(fechaStr)) {
-        // Formato YYYY-MM-DD
-        [year, month, day] = fechaStr.split('-').map(Number);
-    } else if (regexEU.test(fechaStr)) {
-        // Formato DD/MM/YYYY
-        [day, month, year] = fechaStr.split('/').map(Number);
+    if (fechaObj) {
+        const [, dia, mes, año] = fechaObj;
+        return `${año}-${mes}-${dia}`;
     } else {
-        throw new Error('Formato de fecha inválido. Usa YYYY-MM-DD o DD/MM/YYYY.');
+        return "Fecha inválida";
     }
-
-    const fecha = new Date(year, month - 1, day);
-
-    const opciones = { year: 'numeric', month: '2-digit', day: '2-digit' };
-    const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
-
-    return {
-        objetoFecha: fecha,
-        fechaFormateada: fechaFormateada
-    };
 }
+
 
 async function getHistorial(dbConnection, shipmentId) {
     let historial = [];
@@ -180,28 +165,30 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
-    let lineaEnviosHistorial;
-    const hoy = new Date().toISOString().slice(0, 10);
 
-    const query = `
-            SELECT envios, envios_historial, fecha 
-            FROM tablas_indices 
-            WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) 
-            ORDER BY id DESC;
-        `;
-
-    const [rows] = await dbConnection.execute(query, [hoy]);
-
-    for (const row of rows) {
-        lineaEnviosHistorial = `eh.id > ${row.envios_historial}`;
-    }
-
-    if (!lineaEnviosHistorial) {
-        lineaEnviosHistorial = `eh.autofecha > ${desde}`;
-    }
 
     try {
-        const clientes = getClientsByCompany(company.did);
+        let lineaEnviosHistorial;
+        const hoy = new Date().toISOString().slice(0, 10);
+
+        const queryIndices = `
+                SELECT envios, envios_historial, fecha 
+                FROM tablas_indices 
+                WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) 
+                ORDER BY id DESC;
+            `;
+
+        const rowss = await executeQuery(dbConnection, queryIndices, [hoy]);
+
+        for (const row of rowss) {
+            lineaEnviosHistorial = `eh.id > ${row.envios_historial}`;
+        }
+
+        if (!lineaEnviosHistorial) {
+            lineaEnviosHistorial = `eh.autofecha > ${desde}`;
+        }
+
+        const clientes = await getClientsByCompany(company.did);
         const hour = convertirFecha(from);
 
         let sqlchoferruteo = "";
@@ -225,7 +212,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                         e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, 
                         e.choferAsignado, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial`;
 
-        if (companyId == 4) {
+        if (company.did == 4) {
             estadoAsignacion = ', e.estadoAsignacion';
         }
 
@@ -240,7 +227,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%' )
                       LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
                       ${leftjoinCliente}
-                      WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > ? ${sqlduenio} and e.didCliente!=0 
+                      WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > ${hour} ${sqlduenio} and e.didCliente!=0 
                       ORDER BY rp.orden ASC`;
         } else if (dashboardValue == 1) {
             query = `SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
@@ -319,11 +306,12 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       AND e.didCliente!='null'
                       ORDER BY rp.orden ASC`;
         }
-        const rows = await dbConnection.execute(query, [hour]);
+
+        const rows = await executeQuery(dbConnection, query, []);
 
         const lista = [];
 
-        for (const row of rows[0]) {
+        for (const row of rows) {
             const lat = row.lat !== '0' ? row.lat : '0';
             const long = row.lng !== '0' ? row.lng : '0';
             const logisticainversa = row.valor !== null;
@@ -364,6 +352,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
         return lista;
     } catch (error) {
+        console.error("Error en shipmentList", error);
         throw error;
     } finally {
         dbConnection.end();
