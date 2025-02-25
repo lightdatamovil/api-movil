@@ -88,7 +88,7 @@ qr.post('/products-from-shipment', async (req, res) => {
         return res.json(response);
     } catch (error) {
         console.error("Error en la ruta /detalle:", error);
-        return res.status(500).json({ estado: false, mensaje: "Error interno del servidor." });
+        return res.status(500).json({ success: false, message: "Error interno del servidor." });
     }
 });
 

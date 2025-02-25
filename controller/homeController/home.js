@@ -12,7 +12,7 @@ export async function verifyStartedRoute(company, userId) {
         const resultQueryCadetesMovimientos = await executeQuery(dbConnection, sqlCadetesMovimientos, [userId]);
 
         if (resultQueryCadetesMovimientos.length === 0) {
-            throw new Error('No se encontraron movimientos para el cadete');
+            return false;
         }
 
         return resultQueryCadetesMovimientos[0].tipo == 0;
