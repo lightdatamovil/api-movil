@@ -102,7 +102,7 @@ export async function getRoutaByUserId(company, userId) {
     }
 }
 
-export async function saveRoute(company, operationDate, orders, userId, distance, totalDelay, additionalRouteData) {
+export async function saveRoute(company, userId, operationDate, orders, distance, totalDelay, additionalRouteData) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -116,12 +116,10 @@ export async function saveRoute(company, operationDate, orders, userId, distance
 
         let routeId = 0;
 
-        const [rows] = await executeQuery(dbConnection, "SELECT did FROM `ruteo` WHERE superado = 0 AND elim = 0 AND didChofer = ?", [userId]);
-
+        const rows = await executeQuery(dbConnection, "SELECT did FROM `ruteo` WHERE superado = 0 AND elim = 0 AND didChofer = ?", [userId]);
+        console.log(rows);
         if (rows.length > 0) {
             routeId = rows[0].did;
-        } else {
-            throw new Error("Error al obtener la ruta actual.");
         }
 
         if (routeId !== 0) {

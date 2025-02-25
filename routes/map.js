@@ -53,12 +53,12 @@ map.post('/save-route', async (req, res) => {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { totalDelay, operationDate, distance, additionalRouteData, orders } = req.body;
+    const { companyId, userId, totalDelay, operationDate, distance, additionalRouteData, orders } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const response = await saveRoute(company, operationDate, orders, userId, distance, totalDelay, additionalRouteData);
+        const response = await saveRoute(company, userId, operationDate, orders, distance, totalDelay, additionalRouteData);
 
         res.status(200).json({ body: response, message: "Ruta guardada correctamente." });
     } catch (error) {
