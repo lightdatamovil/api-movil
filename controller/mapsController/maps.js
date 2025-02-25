@@ -117,7 +117,6 @@ export async function saveRoute(company, userId, operationDate, orders, distance
         let routeId = 0;
 
         const rows = await executeQuery(dbConnection, "SELECT did FROM `ruteo` WHERE superado = 0 AND elim = 0 AND didChofer = ?", [userId]);
-        console.log(rows);
         if (rows.length > 0) {
             routeId = rows[0].did;
         }
@@ -136,12 +135,12 @@ export async function saveRoute(company, userId, operationDate, orders, distance
         const newId = result.insertId;
 
         for (const order of orders) {
-            const { orden, envio, ordenLlegada } = order;
+            const { index, shipmentId, arrivalTime } = order;
 
             await executeQuery(
                 dbConnection,
                 "INSERT INTO ruteo_paradas (didRuteo, tipoParada, didPaquete, retira, didCliente, didDireccion, orden, hora_llegada) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                [newId, 1, envio, 0, 0, 0, orden, ordenLlegada]
+                [newId, 1, shipmentId, 0, 0, 0, index, arrivalTime]
             );
         }
 
