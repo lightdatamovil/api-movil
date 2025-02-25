@@ -47,7 +47,7 @@ map.post('/geolocalize', async (req, res) => {
 });
 map.post('/save-route', async (req, res) => {
 
-    const mensajeError = verifyParamaters(req.body, ['totalDelay', 'operationData', 'distance', 'additionalRouteData', 'orders'], true);
+    const mensajeError = verifyParamaters(req.body, ['totalDelay', 'operationDate', 'distance', 'additionalRouteData', 'orders'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
