@@ -124,6 +124,7 @@ export async function driverList(company) {
 
         return driverList;
     } catch (error) {
+        console.error("Error en driverList:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -243,6 +244,7 @@ export async function enterFlex(company, dataQr, userId) {
             }
         }
     } catch (error) {
+        console.error("Error en enterFlex:", error);
         throw error;
     }
 }
@@ -297,6 +299,7 @@ async function setShipmentState(dbConnection, shipmentId, shipmentState, userId)
 
         return;
     } catch (error) {
+        console.error("Error en setShipmentState:", error);
         throw error;
     }
 }
@@ -342,6 +345,7 @@ async function setDispatchDate(dbConnection, clientId) {
 
         return now.toISOString().split("T")[0];
     } catch (error) {
+        console.error("Error en setDispatchDate:", error);
         throw error;
     }
 }
@@ -359,6 +363,7 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
         await executeQuery(dbConnection, query, [userId, now, driverId]);
 
     } catch (error) {
+        console.error("Error en updateWhoPickedUp:", error);
         throw error;
     }
 }

@@ -34,6 +34,7 @@ export async function getSettlementList(company, userId, from, to) {
             did: row.did * 1
         }));
     } catch (error) {
+        console.error("Error en getSettlementList:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -77,6 +78,7 @@ export async function getSettlementDetails(company, settlementId) {
             zona: zones[row.didEnvioZona] || "Zona desconocida"
         }));
     } catch (error) {
+        console.error("Error en getSettlementDetails:", error);
         throw error;
     }
 }
@@ -121,6 +123,7 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
         }
 
     } catch (error) {
+        console.error("Error en getSettlementShipmentDetails:", error);
         throw error;
     }
 }

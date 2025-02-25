@@ -17,6 +17,7 @@ export async function verifyStartedRoute(company, userId) {
 
         return resultQueryCadetesMovimientos[0].tipo == 0;
     } catch (error) {
+        console.error("Error en verifyStartedRoute:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -48,6 +49,7 @@ export async function startRoute(company, userId) {
             await executeQuery(dbConnection, sqlUpdateRuteo, [ahora, userId]);
         }
     } catch (error) {
+        console.error("Error en startRoute:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -67,6 +69,7 @@ export async function endRoute(company, userId) {
         const sqlUpdateRuteo = "UPDATE ruteo SET hs_finApp = ? WHERE superado = 0 AND elim = 0 AND didChofer = ?";
         await executeQuery(dbConnection, sqlUpdateRuteo, [ahora, userId]);
     } catch (error) {
+        console.error("Error en endRoute:", error);
         throw error;
     } finally {
         dbConnection.end();

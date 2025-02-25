@@ -90,6 +90,7 @@ export async function login(username, password, company) {
         };
 
     } catch (error) {
+        console.error("Error en login:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -119,6 +120,7 @@ export async function identification(company) {
         };
 
     } catch (error) {
+        console.error("Error en identification:", error);
         throw error;
     }
 }
@@ -141,6 +143,7 @@ export async function whatsappMessagesList(company) {
 
         return whatsappMessagesList;
     } catch (error) {
+        console.error("Error en whatsappMessagesList:", error);
         throw error;
     } finally {
         dbConnection.end();

@@ -94,6 +94,7 @@ export async function getRoutaByUserId(company, userId) {
             additionalRouteData: additionalRouteData,
         };
     } catch (error) {
+        console.error("Error en getRoutaByUserId:", error);
         throw error;
     }
     finally {
@@ -148,6 +149,7 @@ export async function saveRoute(company, operationDate, orders, userId, distance
 
         return;
     } catch (error) {
+        console.error("Error en saveRoute:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -178,6 +180,7 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
             throw new Error("El envío no existe");
         }
     } catch (error) {
+        console.error("Error en geolocalize:", error);
         throw error;
     }
 }

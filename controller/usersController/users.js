@@ -37,6 +37,7 @@ export async function editUser(company, userId, email, phone) {
 
         return;
     } catch (error) {
+        console.error("Error en editUser:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -85,6 +86,7 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
 
         return;
     } catch (error) {
+        console.error("Error en changePassword:", error);
         throw error;
     } finally {
         dbConnection.end();

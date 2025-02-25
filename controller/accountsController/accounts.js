@@ -68,6 +68,7 @@ export async function accountList(company, userId, profile) {
         return accountList;
 
     } catch (error) {
+        console.error("Error en accountList:", error);
         throw error;
     } finally {
         dbConnection.end();

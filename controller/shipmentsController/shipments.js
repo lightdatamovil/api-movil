@@ -10,6 +10,7 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
 
         return resultQueryEnviosAsignaciones.length > 0 ? true : false;
     } catch (error) {
+        console.error("Error en verifyAssignment:", error);
         throw error;
     }
 };
@@ -41,6 +42,7 @@ async function getHistorial(dbConnection, shipmentId) {
 
         return historial;
     } catch (error) {
+        console.error("Error en getHistorial:", error);
         throw error;
     }
 }
@@ -63,6 +65,7 @@ async function getObservations(dbConnection, shipmentId) {
 
         return observations;
     } catch (error) {
+        console.error("Error en getObservations:", error);
         throw error;
     }
 }
@@ -86,6 +89,7 @@ async function getImages(dbConnection, shipmentId) {
 
         return images;
     } catch (error) {
+        console.error("Error en getImages:", error);
         throw error;
     }
 }
@@ -98,6 +102,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
 
         return results[0];
     } catch (error) {
+        console.error("Error en shipmentInformation:", error);
         throw error;
     }
 }
@@ -154,6 +159,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
         return detallesEnvio;
 
     } catch (error) {
+        console.error("Error en shipmentDetails:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -393,6 +399,7 @@ export async function uploadImage(company, shipmentId, userId, didEstado, didLin
 
         return;
     } catch (error) {
+        console.error("Error en uploadImage:", error);
         throw error;
     } finally {
         dbConnection.end();

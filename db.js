@@ -42,6 +42,7 @@ async function loadCompaniesFromRedis() {
         const companysDataJson = await redisClient.get('empresasData');
         companiesList = companysDataJson ? Object.values(JSON.parse(companysDataJson)) : [];
     } catch (error) {
+        console.error("Error en loadCompaniesFromRedis:", error);
         throw error;
     }
 }
@@ -77,6 +78,7 @@ export async function getDrivers(companyId) {
 
         return driverList;
     } catch (error) {
+        console.error("Error en getDrivers:", error);
         throw error;
     }
 
@@ -113,6 +115,7 @@ export async function getClients(companyId) {
 
         return clientList;
     } catch (error) {
+        console.error("Error en getClients:", error);
         throw error;
     }
 }
@@ -167,6 +170,7 @@ export async function getDriversByCompany(companyId) {
             return companyDrivers.drivers || [];
         }
     } catch (error) {
+        console.error("Error en getDriversByCompany:", error);
         throw error;
     }
 }
@@ -185,6 +189,7 @@ export async function getClientsByCompany(companyId) {
             return companyClients.clients || [];
         }
     } catch (error) {
+        console.error("Error en getClientsByCompany:", error);
         throw error;
     }
 }
@@ -213,6 +218,7 @@ export async function getCompanyById(companyCode) {
         try {
             await loadCompaniesFromRedis();
         } catch (error) {
+            console.error("Error en getCompanyById:", error);
             throw error;
         }
     }
@@ -225,6 +231,7 @@ export async function getCompanyByCode(companyCode) {
         try {
             await loadCompaniesFromRedis();
         } catch (error) {
+            console.error("Error en getCompanyByCode:", error);
             throw error;
         }
     }
@@ -245,6 +252,7 @@ export async function executeQuery(connection, query, values) {
             });
         });
     } catch (error) {
+        console.error("Error en executeQuery:", error);
         throw error;
     }
 }

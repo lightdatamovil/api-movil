@@ -74,6 +74,7 @@ export async function getRoute(company, userId, date) {
             client: client
         };
     } catch (error) {
+        console.error("Error en getRoute:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -147,6 +148,7 @@ export async function saveRoute(company, date, userId, additionalRouteData, orde
 
         return;
     } catch (error) {
+        console.error("Error en saveRoute:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -197,6 +199,7 @@ export async function getCollectDetails(company) {
 
         return respuesta;
     } catch (error) {
+        console.error("Error en getCollectDetails:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -227,6 +230,7 @@ export async function shipmentsFromClient(company, date, clientId) {
 
         return shipmentsFromClient;
     } catch (error) {
+        console.error("Error en shipmentsFromClient:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -284,6 +288,7 @@ export async function getSettlementList(company, from, to) {
 
         return settlementList;
     } catch (error) {
+        console.error("Error en getSettlementList:", error);
         throw error;
     } finally {
         dbConnection.end();
@@ -322,6 +327,7 @@ export async function getSettlementDetails(company, settlementId) {
 
         return collectDetails;
     } catch (error) {
+        console.error("Error en getSettlementDetails:", error);
         throw error;
     } finally {
         dbConnection.end();
