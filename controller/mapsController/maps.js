@@ -165,7 +165,7 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
 
         const resultQuery = await executeQuery(dbConnection, queryShipment);
 
-        if (resultQuery.affectedRows > 0) {
+        if (resultQuery.length > 0) {
 
             const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude} , destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
 
