@@ -31,7 +31,8 @@ export function getUrls(company) {
         enterFlex: ["http://apimovil2.lightdata.app/api/qr/enter-flex"],
         colecta: ["https://apimovil.lightdata.app/api/envios/colecta.php"],
         aplanta: ["https://apimovil.lightdata.app/api/envios/aplanta.php"],
-        asignaciones: ["https://asignaciones.lightdatas2.com.ar/asignav3/asignar"],
+        assignment: ["https://asignaciones.lightdatas2.com.ar/asignav3/asignar"],
+        unassignment: ["https://asignaciones.lightdatas2.com.ar/asignav3/asignar"],
         productsFromShipment: ["http://apimovil2.lightdata.app/api/qr/products-from-shipment"],
 
         /// PROFILE
@@ -65,7 +66,8 @@ export function getUrls(company) {
 
     if (company != null && company.did == 4) {
         /// ASIGNACION PROCOURRIER
-        urls.asignaciones = ["https://asignaciones.lightdatas2.com.ar/asignaciones/procourrier/index.php"];
+        urls.assignment = ["https://asignaciones.lightdatas2.com.ar/asignaciones/procourrier/index.php"];
+        urls.unassignment = ["https://asignaciones.lightdatas2.com.ar/asignaciones/procourrier/index.php"];
     }
 
     return urls;
