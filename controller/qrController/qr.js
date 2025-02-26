@@ -3,7 +3,7 @@ import mysql from 'mysql';
 import axios from 'axios';
 
 export async function crossDocking(dataQr, company) {
-    const dbConfig = getDbConfig(company.did);
+    const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
