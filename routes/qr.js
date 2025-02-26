@@ -64,7 +64,7 @@ qr.post('/get-shipment-id', async (req, res) => {
 
         const response = await getShipmentIdFromQr(JSON.parse(dataQr), company);
 
-        res.status(200).json({ body: response, message: "Datos obtenidos correctamente" });
+        res.status(200).json({ success: true, body: response, message: "Datos obtenidos correctamente" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
