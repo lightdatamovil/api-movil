@@ -174,8 +174,6 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
-
-
     try {
         let lineaEnviosHistorial;
         const hoy = new Date().toISOString().slice(0, 10);
