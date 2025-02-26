@@ -14,10 +14,15 @@ export async function crossDocking(dataQr, company) {
 
         if (isLocal) {
             shipmentId = dataQr.did;
+
             if (company.did != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ${shipmentId} AND didEmpresa = ${company.did}`;
 
                 const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
+
+                if (resultQueryEnviosExteriores.length == 0) {
+                    throw new Error("El envío no pertenece a la empresa");
+                }
 
                 shipmentId = resultQueryEnviosExteriores[0];
             }
@@ -27,10 +32,10 @@ export async function crossDocking(dataQr, company) {
             queryWhereId = 'WHERE e.shipmentid =' + shipmentId;
         }
 
-        const queryEnvios = `SELECT e.estado AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fechaInicio, '%d/%m/%Y') AS date, 
+        const queryEnvios = `SELECT e.estado AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date, 
                       CONCAT(su.nombre, ' ', su.apellido) AS driver
                       FROM envios AS e
-                      LEFT JOIN sistema_usuarios AS su ON su.did = e.choferId
+                      LEFT JOIN sistema_usuarios AS su ON su.did = e.choferAsignado
                        ${queryWhereId} LIMIT 1`;
 
         const envioData = await executeQuery(dbConnection, queryEnvios, []);
