@@ -29,7 +29,7 @@ export async function crossDocking(dataQr, company) {
             queryWhereId = 'WHERE e.shipmentid =' + shipmentId;
         }
 
-        const queryEnvios = `SELECT e.estado AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date, 
+        const queryEnvios = `SELECT e.estado AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fechaInicio, '%d/%m/%Y') AS date, 
                       CONCAT(su.nombre, ' ', su.apellido) AS driver
                       FROM envios AS e
                       LEFT JOIN sistema_usuarios AS su ON su.did = e.choferId
