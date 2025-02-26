@@ -1,4 +1,4 @@
-import { executeQuery, getProdDbConfig, getClientsByCompany } from '../../db.js';
+import { executeQuery, getProdDbConfig, getClientsByCompany, getDrivers, getDriversByCompany } from '../../db.js';
 import mysql from 'mysql';
 import axios from 'axios';
 
@@ -198,9 +198,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
         const clientes = await getClientsByCompany(company.did);
 
-        if (!clientes) {
-            throw new Error("No se encontraron clientes");
-        }
+        const drivers = await getDriversByCompany(company.did);
 
         const hour = convertirFecha(from);
 
@@ -330,7 +328,11 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             const estadoAsignacion = row.estadoAsignacion || 0;
 
             const monto = row.monto_total_a_cobrar || "0";
+
             const nombre = clientes[row.didCliente] ? clientes[row.didCliente].nombre : 'Cliente no encontrado';
+            // console.log(drivers[row.choferAsignado]);
+            const nombreChofer = drivers[row.choferAsignado] ? drivers[row.choferAsignado].nombre : 'Chofer no encontrado';
+
             lista.push({
                 didEnvio: row.didEnvio * 1,
                 flex: row.flex * 1,
@@ -354,7 +356,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 proximaentrega: false,
                 orden: row.orden * 1,
                 cobranza: 0,
-                chofer: row.choferAsignado,
+                chofer: nombreChofer,
                 choferId: row.choferAsignado * 1,
                 monto_a_cobrar: monto,
             });

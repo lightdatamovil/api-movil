@@ -61,16 +61,15 @@ export async function getDrivers(companyId) {
 
         for (let i = 0; i < resultQueryUsers.length; i++) {
             const row = resultQueryUsers[i];
+            console.log("Row:", row);
 
             const driver = {
                 id: row.id,
                 id_origen: row.id_origen,
                 fecha_sincronizacion: row.fecha_sincronizacion,
                 did: row.did,
-                codigo: row.codigo,
+                codigo: row.codigo_empleado,
                 nombre: row.nombre,
-                codigos: row.codigos,
-                dataGeo: row.dataGeo,
             };
             drivers.push(driver);
         }
@@ -98,6 +97,7 @@ export async function getClients(companyId) {
 
         for (let i = 0; i < resultQueryUsers.length; i++) {
             const row = resultQueryUsers[i];
+
             const client = {
                 id: row.id,
                 id_origen: row.id_origen,
@@ -108,6 +108,7 @@ export async function getClients(companyId) {
                 codigos: row.codigos,
                 dataGeo: row.dataGeo,
             };
+
             clients.push(client);
         }
         clientList.push({ companyId: companyId, clients: clients });
@@ -166,6 +167,7 @@ export async function getDriversByCompany(companyId) {
 
             return companyDriversR;
         } else {
+
             return companyDrivers.drivers || [];
         }
     } catch (error) {
@@ -180,7 +182,6 @@ export async function getClientsByCompany(companyId) {
 
         if (companyClients === undefined || companyClients === null || companyClients.length == 0) {
             const clients = await getClients(companyId);
-
             const companyClientsR = clients.find(client => client.companyId == companyId).clients || [];
 
             return companyClientsR;
