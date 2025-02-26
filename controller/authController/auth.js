@@ -98,14 +98,12 @@ export async function login(username, password, company) {
 }
 
 export async function identification(company) {
-
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
 
     try {
         const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         const imageBuffer = Buffer.from(response.data, 'binary');
         const imageBase64 = imageBuffer.toString('base64');
-
         return {
             "id": company.did * 1,
             "plan": company.plan * 1,

@@ -230,12 +230,12 @@ export async function getCompanyById(companyCode) {
 }
 
 export async function getCompanyByCode(companyCode) {
-    let company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
+    let company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
 
-    if (!Array.isArray(companiesList) || companiesList.length === 0 || company == null) {
+    if (!Array.isArray(companiesList) || companiesList.length == 0 || company == null) {
         try {
             await loadCompaniesFromRedis();
-            company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
+            company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
         } catch (error) {
             console.error("Error en getCompanyByCode:", error);
             throw error;

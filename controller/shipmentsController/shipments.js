@@ -121,7 +121,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
 
         let lat = 0;
         let long = 0;
-        console.log(shipmentData);
+
         if (shipmentData.destination_latitude != 0) {
             lat = shipmentData.destination_latitude * 1;
             long = shipmentData.destination_longitude * 1;
