@@ -141,7 +141,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
         detallesEnvio["cobranza"] = 0;
         detallesEnvio["latitud"] = lat;
         detallesEnvio["longitud"] = long;
-        detallesEnvio["monto_a_cobrar"] = (shipmentData.monto_a_cobrar ?? 0).toString();
+        detallesEnvio["monto_a_cobrar"] = shipmentData.monto_a_cobrar ?? 0;
 
         let asignado = await verifyAssignment(dbConnection, shipmentId, userId);
         detallesEnvio["asignado"] = asignado;
@@ -330,7 +330,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             const monto = row.monto_total_a_cobrar || 0;
 
             const nombre = clientes[row.didCliente] ? clientes[row.didCliente].nombre : 'Cliente no encontrado';
-            // console.log(drivers[row.choferAsignado]);
+
             const nombreChofer = drivers[row.choferAsignado] ? drivers[row.choferAsignado].nombre : 'Chofer no encontrado';
 
             lista.push({

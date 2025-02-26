@@ -61,7 +61,6 @@ export async function getDrivers(companyId) {
 
         for (let i = 0; i < resultQueryUsers.length; i++) {
             const row = resultQueryUsers[i];
-            console.log("Row:", row);
 
             const driver = {
                 id: row.id,
