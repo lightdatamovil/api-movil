@@ -69,7 +69,6 @@ export async function crossDocking(dataQr, company) {
     }
 }
 
-
 export async function getShipmentIdFromQr(dataQr, company) {
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
@@ -82,13 +81,20 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
         if (isLocal) {
             shipmentId = dataQr.did;
-        } else {
-            if (company.did != dataQr.empresa) {
-                const queryEnviosExteriores = `SELECT did FROM envios WHERE shipmentid = ? and ml_vendedor_id = ?`;
 
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [dataQr.id, dataQr.sender_id]);
+            if (company.did != dataQr.empresa) {
+                const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ${shipmentId} AND didEmpresa = ${company.did}`;
+
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
+
+                if (resultQueryEnviosExteriores.length == 0) {
+                    return { message: "El envío no pertenece a la empresa", success: false };
+                }
+
                 shipmentId = resultQueryEnviosExteriores[0];
             }
+        } else {
+            shipmentId = dataQr.id;
         }
 
         return shipmentId;
