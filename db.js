@@ -214,7 +214,9 @@ export async function getZonesByCompany(companyId) {
 }
 
 export async function getCompanyById(companyCode) {
-    if (!Array.isArray(companiesList) || companiesList.length === 0) {
+    const company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
+
+    if (!Array.isArray(companiesList) || companiesList.length === 0 || company == null) {
         try {
             await loadCompaniesFromRedis();
         } catch (error) {
@@ -223,11 +225,13 @@ export async function getCompanyById(companyCode) {
         }
     }
 
-    return companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
+    return company;
 }
 
 export async function getCompanyByCode(companyCode) {
-    if (!Array.isArray(companiesList) || companiesList.length === 0) {
+    const company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
+
+    if (!Array.isArray(companiesList) || companiesList.length === 0 || company == null) {
         try {
             await loadCompaniesFromRedis();
         } catch (error) {
@@ -235,7 +239,8 @@ export async function getCompanyByCode(companyCode) {
             throw error;
         }
     }
-    return companiesList.find(company => company.codigo === companyCode) || null;
+
+    return company;
 }
 
 export async function executeQuery(connection, query, values) {
