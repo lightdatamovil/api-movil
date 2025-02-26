@@ -17,9 +17,7 @@ export async function crossDocking(dataQr, company) {
             if (company.did != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ${shipmentId} AND didEmpresa = ${company.did}`;
 
-                console.time("executeQuery envios_exteriores");
                 const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
-                console.timeEnd("executeQuery envios_exteriores");
 
                 shipmentId = resultQueryEnviosExteriores[0];
             }
@@ -34,10 +32,8 @@ export async function crossDocking(dataQr, company) {
                       FROM envios AS e
                       LEFT JOIN sistema_usuarios AS su ON su.did = e.choferId
                        ${queryWhereId} LIMIT 1`;
-        console.log(queryEnvios);
-        console.time("executeQuery envios");
+
         const envioData = await executeQuery(dbConnection, queryEnvios, []);
-        console.timeEnd("executeQuery envios");
 
         if (envioData.length === 0) {
             throw new Error("No se encontró el envío");
@@ -45,13 +41,9 @@ export async function crossDocking(dataQr, company) {
 
         const row = envioData[0];
 
-        console.time("getClientsByCompany");
         const clients = await getClientsByCompany(company.did);
-        console.timeEnd("getClientsByCompany");
 
-        console.time("getZonesByCompany");
         const zones = await getZonesByCompany(company.did);
-        console.timeEnd("getZonesByCompany");
 
         return {
             shipmentState: row.shipmentState,
