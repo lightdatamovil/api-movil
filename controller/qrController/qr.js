@@ -94,7 +94,17 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0];
             }
         } else {
-            shipmentId = dataQr.id;
+            const sellerId = dataQr.sender_id;
+            const mlShipmentId = dataQr.sender_id;
+            const queryEnvios = `SELECT did FROM envios WHERE shipmentid = ${mlShipmentId} AND seller_id = ${sellerId}`;
+
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
+
+            if (resultQueryEnvios.length == 0) {
+                throw new Error("No se encontró el envío");
+            }
+
+            shipmentId = resultQueryEnvios[0];
         }
 
         return shipmentId;

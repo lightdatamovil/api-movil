@@ -99,6 +99,9 @@ async function shipmentInformation(dbConnection, shipmentId) {
         const query = "SELECT e.did, e.flex, e.ml_shipment_id, e.didCliente, e.destination_latitude, e.destination_longitude, e.destination_shipping_zip_code, e.destination_city_name, e.ml_venta_id,e.destination_shipping_address_line, e.estado_envio, e.destination_comments, date_format (e.fecha_inicio,'%d/%m/%Y') AS fecha, e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, e.choferAsignado, ec.valor AS monto_a_cobrar FROM envios AS e LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = " + shipmentId + ") WHERE e.did = " + shipmentId;
 
         const results = await executeQuery(dbConnection, query, []);
+        if (results.length === 0) {
+            throw new Error("No se encontró el envío con el id: " + shipmentId);
+        }
 
         return results[0];
     } catch (error) {
@@ -118,7 +121,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
 
         let lat = 0;
         let long = 0;
-
+        console.log(shipmentData);
         if (shipmentData.destination_latitude != 0) {
             lat = shipmentData.destination_latitude * 1;
             long = shipmentData.destination_longitude * 1;
