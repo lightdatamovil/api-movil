@@ -327,7 +327,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             const logisticainversa = row.valor !== null;
             const estadoAsignacion = row.estadoAsignacion || 0;
 
-            const monto = row.monto_total_a_cobrar || "0";
+            const monto = row.monto_total_a_cobrar || 0;
 
             const nombre = clientes[row.didCliente] ? clientes[row.didCliente].nombre : 'Cliente no encontrado';
             // console.log(drivers[row.choferAsignado]);
