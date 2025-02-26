@@ -21,7 +21,7 @@ export async function crossDocking(dataQr, company) {
                 const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
 
                 if (resultQueryEnviosExteriores.length == 0) {
-                    throw new Error("El envío no pertenece a la empresa");
+                    return { message: "El envío no pertenece a la empresa", success: false };
                 }
 
                 shipmentId = resultQueryEnviosExteriores[0];
@@ -41,7 +41,7 @@ export async function crossDocking(dataQr, company) {
         const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
         if (envioData.length === 0) {
-            throw new Error("No se encontró el envío");
+            return { message: "No se encontró el envío", success: false };
         }
 
         const row = envioData[0];
@@ -51,11 +51,15 @@ export async function crossDocking(dataQr, company) {
         const zones = await getZonesByCompany(company.did);
 
         return {
-            shipmentState: row.shipmentState,
-            date: row.date,
-            client: clients.find(client => client.id === row.clientId)?.nombre || "Desconocido",
-            zone: zones.find(zone => zone.id === row.zoneId)?.nombre || "Desconocido",
-            driver: row.driver ?? "Sin asignar"
+            body: {
+                shipmentState: row.shipmentState,
+                date: row.date,
+                client: clients.find(client => client.id === row.clientId)?.nombre || "Desconocido",
+                zone: zones.find(zone => zone.id === row.zoneId)?.nombre || "Desconocido",
+                driver: row.driver ?? "Sin asignar"
+            },
+            message: "Datos obtenidos correctamente",
+            success: true,
         };
     } catch (error) {
         console.error("Error en crossDocking:", error);
