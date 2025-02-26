@@ -98,18 +98,17 @@ export async function getClients(companyId) {
 
         for (let i = 0; i < resultQueryUsers.length; i++) {
             const row = resultQueryUsers[i];
-
-            const zone = {
+            const client = {
                 id: row.id,
                 id_origen: row.id_origen,
                 fecha_sincronizacion: row.fecha_sincronizacion,
                 did: row.did,
                 codigo: row.codigo,
-                nombre: row.nombre,
+                nombre: row.nombre_fantasia,
                 codigos: row.codigos,
                 dataGeo: row.dataGeo,
             };
-            clients.push(zone);
+            clients.push(client);
         }
         clientList.push({ companyId: companyId, clients: clients });
 

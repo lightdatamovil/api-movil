@@ -20,7 +20,7 @@ function convertirFecha(fecha) {
 
     if (fechaObj) {
         const [, dia, mes, año] = fechaObj;
-        return `${año}-${mes}-${dia}`;
+        return `${año}-${mes}-${dia} 00:00:00`;
     } else {
         return "Fecha inválida";
     }
@@ -176,6 +176,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
     try {
         let lineaEnviosHistorial;
+
         const hoy = new Date().toISOString().slice(0, 10);
 
         const queryIndices = `
@@ -196,6 +197,11 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         }
 
         const clientes = await getClientsByCompany(company.did);
+
+        if (!clientes) {
+            throw new Error("No se encontraron clientes");
+        }
+
         const hour = convertirFecha(from);
 
         let sqlchoferruteo = "";
@@ -217,7 +223,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                         e.ml_venta_id, e.destination_shipping_address_line as address_line, 
                         e.estado_envio, e.destination_comments, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
                         e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, 
-                        e.choferAsignado, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial`;
+                        e.choferAsignado,ei.valor, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial`;
 
         if (company.did == 4) {
             estadoAsignacion = ', e.estadoAsignacion';
@@ -234,7 +240,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%' )
                       LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
                       ${leftjoinCliente}
-                      WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > ${hour} ${sqlduenio} and e.didCliente!=0 
+                      WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > '${hour}' ${sqlduenio} and e.didCliente!=0 
                       ORDER BY rp.orden ASC`;
         } else if (dashboardValue == 1) {
             query = `SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
@@ -257,7 +263,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       WHERE ea.superado=0 ${sqlduenio}
                       AND ea.elim=0
                       AND ea.autofecha > '${hoy} 00:00:00'`;
-        } if (dashboardValue == 2 || dashboardValue == 4) {
+        } else if (dashboardValue == 2 || dashboardValue == 4) {
             query = `
                 SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
                        e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia, 
@@ -285,8 +291,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 ${sqlduenio}
                 ORDER BY rp.orden ASC;
             `;
-        }
-        else if (dashboardValue == 0 || dashboardValue == 3) {
+        } else if (dashboardValue == 0 || dashboardValue == 3) {
             query = `SELECT eh.didEnvio, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, e.flex, 
                       e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia, 
                       e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
@@ -325,14 +330,14 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             const estadoAsignacion = row.estadoAsignacion || 0;
 
             const monto = row.monto_total_a_cobrar || "0";
-
+            const nombre = clientes[row.didCliente] ? clientes[row.didCliente].nombre : 'Cliente no encontrado';
             lista.push({
                 didEnvio: row.didEnvio * 1,
                 flex: row.flex * 1,
                 shipmentid: row.ml_shipment_id,
                 ml_venta_id: row.ml_venta_id,
                 estado: row.estado_envio * 1,
-                nombreCliente: clientes[row.didCliente] || 'Cliente no encontrado',
+                nombreCliente: nombre || 'Cliente no encontrado',
                 didCliente: row.didCliente * 1,
                 fechaEmpresa: row.fecha_inicio,
                 fechaHistorial: row.fecha_historial || null,
