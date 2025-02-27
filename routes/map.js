@@ -4,6 +4,7 @@ import { getRoutaByUserId, geolocalize, saveRoute } from '../controller/mapsCont
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const map = Router();
+
 map.post('/get-route-by-user', async (req, res) => {
 
     const mensajeError = verifyParamaters(req.body, [], true);
@@ -46,7 +47,6 @@ map.post('/geolocalize', async (req, res) => {
 
 });
 map.post('/save-route', async (req, res) => {
-
     const mensajeError = verifyParamaters(req.body, ['totalDelay', 'operationDate', 'distance', 'additionalRouteData', 'orders'], true);
 
     if (mensajeError) {
