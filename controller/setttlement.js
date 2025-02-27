@@ -1,4 +1,4 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany } from "../../db.js";
+import { executeQuery, getProdDbConfig, getZonesByCompany } from "../db.js";
 import mysql from 'mysql';
 
 export async function getSettlementList(company, userId, from, to) {

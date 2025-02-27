@@ -1,4 +1,4 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery } from "../db.js";
 import mysql from 'mysql';
 import imageType from 'image-type';
 import axios from 'axios';

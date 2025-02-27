@@ -1,5 +1,5 @@
 import mysql from 'mysql';
-import { executeQuery, getDbConfig } from '../../db.js';
+import { executeQuery, getDbConfig } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';

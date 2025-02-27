@@ -1,4 +1,4 @@
-import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClientsByCompany, getDriversByCompany } from "../../db.js";
+import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClientsByCompany, getDriversByCompany } from "../db.js";
 import mysql from 'mysql';
 import axios from 'axios';
 

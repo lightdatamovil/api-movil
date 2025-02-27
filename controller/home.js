@@ -1,5 +1,5 @@
 import mysql from 'mysql';
-import { getProdDbConfig, executeQuery } from '../../db.js';
+import { getProdDbConfig, executeQuery } from '../db.js';
 
 export async function verifyStartedRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
