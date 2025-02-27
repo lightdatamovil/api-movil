@@ -1,30 +1,31 @@
 import { Router } from 'express';
 import { getCompanyById } from '../db.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
+import { registerVisit, uploadImage } from '../controller/registerVisitController.js';
 
-const registerVisit = Router();
+const registerVisitRoute = Router();
 
-registerVisit.post('/register', async (req, res) => {
-    const mensajeError = verifyParamaters(req.body, [], true);
+registerVisitRoute.post('/register', async (req, res) => {
+    const mensajeError = verifyParamaters(req.body, ['shipmentId', 'shipmentState', 'observation', 'latitude', 'longitude', 'recieverName', 'recieverDNI'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, userId, profile } = req.body;
+    const { companyId, userId, shipmentId, recieverDNI, recieverName, latitude, longitude, shipmentState, observation } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const result = await registerVisit(company, userId, profile);
+        const result = await registerVisit(company, userId, shipmentId, recieverDNI, recieverName, latitude, longitude, shipmentState, observation);
 
-        return res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+        return res.status(200).json({ body: result, message: "Visita registrada correctamente" });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
 });
 
-registerVisit.post('/upload-image', async (req, res) => {
+registerVisitRoute.post('/upload-image', async (req, res) => {
 
     const mensajeError = verifyParamaters(req.body, ['shipmentId', 'shipmentState', 'image'], true);
 
@@ -45,4 +46,4 @@ registerVisit.post('/upload-image', async (req, res) => {
     }
 });
 
-export default registerVisit;
+export default registerVisitRoute;

@@ -448,8 +448,6 @@ async function getToken(sellerid) {
 }
 
 async function getShipmentDetails(shipmentId, token) {
-    console.log("shipmentId", shipmentId);
-    console.log("token", token);
     const url = `https://api.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
 
     try {

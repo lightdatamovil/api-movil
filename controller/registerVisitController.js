@@ -1,3 +1,6 @@
+import { getProdDbConfig, executeQuery } from "../db.js";
+import mysql from "mysql";
+import axios from "axios";
 
 export async function uploadImage(company, shipmentId, userId, didEstado, didLine, image) {
     const dbConfig = getProdDbConfig(company);
@@ -40,7 +43,7 @@ export async function uploadImage(company, shipmentId, userId, didEstado, didLin
     }
 }
 
-export async function registerVisit(company, shipmentId) {
+export async function registerVisit(company, userId, shipmentId, recieverDNI, recieverName, latitude, longitude, shipmentState, observation) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect()
@@ -50,13 +53,17 @@ export async function registerVisit(company, shipmentId) {
 
         const estadoActualRows = await executeQuery(dbConnection, queryEnviosHistorial, [shipmentId]);
 
+        if (estadoActualRows.length == 0) {
+            throw new Error("No se encontró el envío");
+        }
+
         if (estadoActualRows.length > 0 && estadoActualRows[0].estado == 8) {
             throw new Error("El envío fue cancelado");
         }
 
         const shipmentState = estadoActualRows[0].estado;
 
-        // Para winflex si esta entregado
+        // Para wynflex si esta entregado
         if (shipmentState == 5 && company.did == 72) {
             const queryEnvios = "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
@@ -105,42 +112,39 @@ export async function registerVisit(company, shipmentId) {
 
         const queryEnviosRecibe = "INSERT INTO envios_recibe (didEnvio, dni, nombre, ilat, ilong, quien) VALUES (?, ?, ?, ?, ?, ?)";
 
-        await executeQuery(dbConnection, queryEnviosRecibe[shipmentId, dnirecibe, nombrerecibe, ilat, ilong, quien]);
+        await executeQuery(dbConnection, queryEnviosRecibe, [shipmentId, recieverDNI, recieverName, latitude, longitude, userId]);
 
         const queryEnvios = "SELECT choferAsignado, estado_envio FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
         const choferRows = await executeQuery(dbConnection, queryEnvios, [shipmentId]);
 
-        const choferAsignado = choferRows[0]?.choferAsignado ?? null;
+        const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
 
         const queryInsertEnviosHistorial = "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, NOW(), 'MOVIL', ?)";
 
-        const historialResult = await executeQuery(dbConnection, queryInsertEnviosHistorial, [shipmentId, estado, choferAsignado, quien]);
+        const historialResult = await executeQuery(dbConnection, queryInsertEnviosHistorial, [shipmentId, shipmentState, assignedDriverId, userId]);
 
         const idInsertado = historialResult.insertId;
 
         const updates = [
             { query: "UPDATE envios_historial SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?", values: [shipmentId, idInsertado] },
-            { query: "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0", values: [estado, shipmentId] },
-            { query: "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0", values: [estado, shipmentId] }
+            { query: "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0", values: [shipmentState, shipmentId] },
+            { query: "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0", values: [shipmentState, shipmentId] }
         ];
 
         for (const { query, values } of updates) {
             await executeQuery(dbConnection, query, values);
         }
 
-        if (observacion) {
+        if (observation) {
             const queryInsertObservaciones = "INSERT INTO envios_observaciones (didEnvio, observacion, quien) VALUES (?, ?, ?)";
 
-            const obsResult = await executeQuery(dbConnection, queryInsertObservaciones, [shipmentId, observacion, quien]);
+            const obsResult = await executeQuery(dbConnection, queryInsertObservaciones, [shipmentId, observation, quien]);
 
             const queryUpdateEnviosObservaciones = "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
 
             await executeQuery(dbConnection, queryUpdateEnviosObservaciones, [shipmentId, obsResult.insertId]);
-        }
-
-        return { message: "Visita registrada" };
-
+        };
     } catch (error) {
         console.error("Error in register visit:", error);
         throw error;
