@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { verifyStartedRoute, getHomeData, startRoute, endRoute } from '../controller/homeController/home.js';
+import { verifyStartedRoute, getHomeData, startRoute, endRoute } from '../controller/homeController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const home = Router();

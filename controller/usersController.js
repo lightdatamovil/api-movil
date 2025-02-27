@@ -94,7 +94,6 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
 }
 
 export async function changeProfilePicture(company, userId, profile, image) {
-
     if (image && image !== "") {
         const imageB64 = image.split(",");
 

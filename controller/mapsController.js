@@ -136,7 +136,7 @@ export async function saveRoute(company, userId, operationDate, orders, distance
 
         for (const order of orders) {
             const { index, shipmentId, arrivalTime } = order;
-            console.log("order", order);
+
             await executeQuery(
                 dbConnection,
                 "INSERT INTO ruteo_paradas (didRuteo, tipoParada, didPaquete, retira, didCliente, didDireccion, orden, hora_llegada) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

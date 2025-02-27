@@ -1,6 +1,6 @@
 import express, { json, urlencoded } from 'express';
-import accounts from './routes/accounts.js';
 import cluster from 'cluster';
+import accounts from './routes/accounts.js';
 import auth from './routes/auth.js';
 import shipments from './routes/shipments.js';
 import qr from './routes/qr.js';
@@ -8,9 +8,10 @@ import home from './routes/home.js';
 import users from './routes/users.js';
 import map from './routes/map.js';
 import settlements from './routes/settlements.js';
+import registerVisit from './routes/registerVisit.js';
+import collect from './routes/collect.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
-import collect from './routes/collect.js';
 
 const numCPUs = 2;
 const PORT = 13000;
@@ -59,6 +60,7 @@ if (cluster.isMaster) {
             app.use('/api/users', users);
             app.use('/api/map', map);
             app.use("/api/collect", collect)
+            app.use("/api/register-visit", registerVisit)
 
             app.listen(PORT, () => {
                 console.log(`Worker ${process.pid} escuchando en el puerto ${PORT}`);

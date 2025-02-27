@@ -1,7 +1,7 @@
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { Router } from 'express';
-import { accountList } from '../controller/accountsController/accounts.js';
+import { accountList } from '../controller/accountsController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const accounts = Router();

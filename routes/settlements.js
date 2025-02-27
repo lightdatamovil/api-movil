@@ -1,6 +1,6 @@
 import express from 'express';
 import { getCompanyById } from '../db.js';
-import { getSettlementList, getSettlementDetails, getSettlementShipmentDetails } from '../controller/settlementController/setttlement.js';
+import { getSettlementList, getSettlementDetails, getSettlementShipmentDetails } from '../controller/settlementController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const settlements = express.Router();

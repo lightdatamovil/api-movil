@@ -1,6 +1,5 @@
-import { executeQuery, getProdDbConfig, getClientsByCompany, getDrivers, getDriversByCompany } from '../db.js';
+import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../db.js';
 import mysql from 'mysql';
-import axios from 'axios';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -367,47 +366,6 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         return lista;
     } catch (error) {
         console.error("Error en shipmentList", error);
-        throw error;
-    } finally {
-        dbConnection.end();
-    }
-}
-
-export async function uploadImage(company, shipmentId, userId, didEstado, didLine, image) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
-    dbConnection.connect()
-
-    try {
-        const companyId = company.did;
-        const reqBody = { image, shipmentId, userId, companyId, didEstado, didLine };
-        const server = 1;
-        const url = 'https://files.lightdata.app/upload.php';
-
-        const response = await axios.post(url, reqBody, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.data) {
-            throw new Error("Error servidor files");
-        }
-
-        const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
-
-        await executeQuery(dbConnection, insertQuery, [
-            shipmentId,
-            response.data,
-            server,
-            userId,
-            lineId,
-            shipmentState
-        ]);
-
-        return;
-    } catch (error) {
-        console.error("Error en uploadImage:", error);
         throw error;
     } finally {
         dbConnection.end();

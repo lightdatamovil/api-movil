@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getCompanyById } from '../db.js';
-import { getRoutaByUserId, geolocalize, saveRoute } from '../controller/mapsController/maps.js';
+import { getRoutaByUserId, geolocalize, saveRoute } from '../controller/mapsController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const map = Router();

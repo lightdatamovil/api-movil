@@ -82,6 +82,7 @@ export async function getSettlementDetails(company, settlementId) {
         throw error;
     }
 }
+
 export async function getSettlementShipmentDetails(company, shipmentId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);

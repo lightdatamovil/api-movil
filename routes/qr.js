@@ -1,7 +1,7 @@
 import { getCompanyById } from '../db.js';
 import verifyToken from '../src/funciones/verifyToken.js';
 import express from 'express';
-import { getShipmentIdFromQr, crossDocking, driverList, enterFlex, getProductsFromShipment } from "../controller/qrController/qr.js";
+import { getShipmentIdFromQr, crossDocking, driverList, enterFlex, getProductsFromShipment } from "../controller/qrController.js";
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 
 const qr = express.Router();
@@ -77,12 +77,10 @@ qr.post('/products-from-shipment', async (req, res) => {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, dataQr } = req.body;
+    const { dataQr } = req.body;
 
     try {
-        const company = await getCompanyById(companyId);
-
-        const response = await getProductsFromShipment(company, dataQr);
+        const response = await getProductsFromShipment(JSON.parse(dataQr));
 
         return res.json(response);
     } catch (error) {

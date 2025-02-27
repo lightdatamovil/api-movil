@@ -10,9 +10,10 @@ export function getUrls(company) {
         /// SHIPMENT-LIST
         shipmentList: ["http://apimovil2.lightdata.app/api/shipments/shipment-list"],
         shipmentDetails: ["http://apimovil2.lightdata.app/api/shipments/shipment-details"],
-        saveImage: ["http://apimovil2.lightdata.app/api/rutas/save-image"],
-        registerVisit: ["https://registros.lightdatas2.com.ar/registrarVisita.php"],
         nextToDeliver: ["https://apimovil.lightdata.app/api/envios/proximaentrega.php"],
+
+        saveImage: ["http://apimovil2.lightdata.app/api/register-visit/upload-image"],
+        registerVisit: ["http://apimovil2.lightdata.app/api/register-visit/register"],
 
         /// SETTLEMENTS
         settlementList: ["http://apimovil2.lightdata.app/api/settlements/get-settlement-list"],

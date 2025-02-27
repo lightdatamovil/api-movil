@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getCompanyById, getCompanyByCode } from '../db.js';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { login, identification, whatsappMessagesList } from '../controller/authController/auth.js';
+import { login, identification, whatsappMessagesList } from '../controller/authController.js';
 
 const auth = Router();
 
