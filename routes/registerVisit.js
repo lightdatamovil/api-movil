@@ -27,18 +27,18 @@ registerVisitRoute.post('/register', async (req, res) => {
 
 registerVisitRoute.post('/upload-image', async (req, res) => {
 
-    const mensajeError = verifyParamaters(req.body, ['shipmentId', 'shipmentState', 'image'], true);
+    const mensajeError = verifyParamaters(req.body, ['shipmentId', 'shipmentState', 'image', 'lineId'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, shipmentId, userId, shipmentState, image } = req.body;
+    const { companyId, shipmentId, userId, shipmentState, image, lineId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const response = await uploadImage(company, shipmentId, userId, shipmentState, image);
+        const response = await uploadImage(company, shipmentId, userId, shipmentState, image, lineId);
 
         res.status(200).json({ body: response, message: "Imagen subida correctamente" });
     } catch (error) {

@@ -13,12 +13,13 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
         throw error;
     }
 };
+
 function convertirFecha(fecha) {
     // Convertir la fecha del formato 'DD/MM/YYYY' a 'YYYY-MM-DD'
     const fechaObj = fecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
 
     if (fechaObj) {
-        const [, dia, mes, año] = fechaObj;
+        const [dia, mes, año] = fechaObj;
         return `${año}-${mes}-${dia} 00:00:00`;
     } else {
         return "Fecha inválida";
@@ -115,7 +116,6 @@ export async function shipmentDetails(company, shipmentId, userId) {
     dbConnection.connect();
 
     try {
-
         let shipmentData = await shipmentInformation(dbConnection, shipmentId);
 
         let lat = 0;
@@ -366,6 +366,23 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         return lista;
     } catch (error) {
         console.error("Error en shipmentList", error);
+        throw error;
+    } finally {
+        dbConnection.end();
+    }
+}
+
+export async function nextDeliver(company, shipmentId, date, userId) {
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+
+    try {
+        const query = "INSERT INTO proximas_entrega (didEnvio, fecha, quien) VALUES (?, ?, ?)";
+
+        await executeQuery(dbConnection, query, [shipmentId, date, userId]);
+    } catch (error) {
+        console.error("Error en nextDeliver:", error);
         throw error;
     } finally {
         dbConnection.end();

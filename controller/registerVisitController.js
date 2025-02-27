@@ -2,14 +2,14 @@ import { getProdDbConfig, executeQuery } from "../db.js";
 import mysql from "mysql";
 import axios from "axios";
 
-export async function uploadImage(company, shipmentId, userId, didEstado, didLine, image) {
+export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect()
 
     try {
         const companyId = company.did;
-        const reqBody = { image, shipmentId, userId, companyId, didEstado, didLine };
+        const reqBody = { image, shipmentId, userId, companyId, shipmentState, lineId };
         const server = 1;
         const url = 'https://files.lightdata.app/upload.php';
 
@@ -25,16 +25,7 @@ export async function uploadImage(company, shipmentId, userId, didEstado, didLin
 
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
-        await executeQuery(dbConnection, insertQuery, [
-            shipmentId,
-            response.data,
-            server,
-            userId,
-            lineId,
-            shipmentState
-        ]);
-
-        return;
+        await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
     } catch (error) {
         console.error("Error en uploadImage:", error);
         throw error;
@@ -145,6 +136,8 @@ export async function registerVisit(company, userId, shipmentId, recieverDNI, re
 
             await executeQuery(dbConnection, queryUpdateEnviosObservaciones, [shipmentId, obsResult.insertId]);
         };
+
+        return idInsertado;
     } catch (error) {
         console.error("Error in register visit:", error);
         throw error;
