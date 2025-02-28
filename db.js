@@ -215,7 +215,7 @@ export async function getZonesByCompany(companyId) {
 export async function getCompanyById(companyCode) {
     let company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
 
-    if (!Array.isArray(companiesList) || companiesList.length === 0 || company == null) {
+    if (!Array.isArray(companiesList) || companiesList.length === 0 || companiesList == null) {
         try {
             await loadCompaniesFromRedis();
             company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
@@ -231,7 +231,7 @@ export async function getCompanyById(companyCode) {
 export async function getCompanyByCode(companyCode) {
     let company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
 
-    if (!Array.isArray(companiesList) || companiesList.length == 0 || company == null) {
+    if (!Array.isArray(companiesList) || companiesList.length == 0 || companiesList == null) {
         try {
             await loadCompaniesFromRedis();
             company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
