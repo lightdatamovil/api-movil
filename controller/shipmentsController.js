@@ -15,17 +15,17 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
 };
 
 function convertirFecha(fecha) {
-    // Convertir la fecha del formato 'DD/MM/YYYY' a 'YYYY-MM-DD'
+    console.log("Fecha original:", fecha);
+
     const fechaObj = fecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
 
     if (fechaObj) {
-        const [dia, mes, año] = fechaObj;
+        const [, dia, mes, año] = fechaObj;
         return `${año}-${mes}-${dia} 00:00:00`;
     } else {
         return "Fecha inválida";
     }
 }
-
 
 async function getHistorial(dbConnection, shipmentId) {
     let historial = [];
@@ -199,7 +199,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
         const drivers = await getDriversByCompany(company.did);
 
-        const hour = convertirFecha(from);
+        const dateWithHour = convertirFecha(from);
 
         let sqlchoferruteo = "";
         let leftjoinCliente = "";
@@ -220,13 +220,15 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                         e.ml_venta_id, e.destination_shipping_address_line as address_line, 
                         e.estado_envio, e.destination_comments, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
                         e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, 
-                        e.choferAsignado,ei.valor, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial`;
+                        e.choferAsignado,ei.valor, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, pe.id as proximaentregaId`;
 
         if (company.did == 4) {
             estadoAsignacion = ', e.estadoAsignacion';
         }
 
         let query = "";
+        console.log(dateWithHour);
+        console.log(hoy);
 
         if (dashboardValue == -1) {
             query = `SELECT ${campos} ${estadoAsignacion} FROM envios AS e 
@@ -236,8 +238,9 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = now() ${sqlchoferruteo} )
                       LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%' )
                       LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
+                      LEFT JOIN proximas_entregas as pe on ( pe.elim=0 AND pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}' )
                       ${leftjoinCliente}
-                      WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > '${hour}' ${sqlduenio} and e.didCliente!=0 
+                      WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > '${dateWithHour}' ${sqlduenio} and e.didCliente!=0 
                       ORDER BY rp.orden ASC`;
         } else if (dashboardValue == 1) {
             query = `SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
@@ -257,6 +260,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN ruteo as r ON(r.elim=0 and r.superado=0 and r.fechaOperativa = now() ${sqlchoferruteo})
                       LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%')
                       LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
+                      LEFT JOIN proximas_entregas as pe on (pe.elim=0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                       WHERE ea.superado=0 ${sqlduenio}
                       AND ea.elim=0
                       AND ea.autofecha > '${hoy} 00:00:00'`;
@@ -279,6 +283,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 LEFT JOIN ruteo as r ON (r.elim = 0 AND r.superado = 0 AND r.fechaOperativa = NOW() ${sqlchoferruteo})
                 LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did AND rp.autofecha LIKE '${hoy}%')
                 LEFT JOIN envios_cobranzas as ec ON (ec.elim = 0 AND ec.superado = 0 AND ec.didCampoCobranza = 4 AND e.did = ec.didEnvio)
+                LEFT JOIN proximas_entregas as pe on (pe.elim=0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                 WHERE ${lineaEnviosHistorial}
                 AND eh.superado = 0
                 AND eh.elim = 0
@@ -305,6 +310,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = now() ${sqlchoferruteo} )
                       LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%')
                       LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
+                      LEFT JOIN proximas_entregas as pe on ( pe.elim=0 and pe.didEnvio = e.did AND pe.fecha >= '${hoy}' )
                       WHERE eh.autofecha > '${hoy} 00:00:00' 
                       AND eh.superado=0
                       AND eh.elim=0
@@ -332,6 +338,8 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
             const nombreChofer = drivers[row.choferAsignado] ? drivers[row.choferAsignado].nombre : 'Chofer no encontrado';
 
+            const isOnTheWay = (row.estado_envio == 2 || row.estado_envio == 11 || row.estado_envio == 12) || (company.did == 20 && row.estado_envio == 16);
+
             lista.push({
                 didEnvio: row.didEnvio * 1,
                 flex: row.flex * 1,
@@ -352,7 +360,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 long: long,
                 logisticainversa: logisticainversa,
                 observacionDestinatario: row.destination_comments,
-                proximaentrega: false,
+                hasNextDeliverButton: isOnTheWay && row.proximaentregaId == null,
                 orden: row.orden * 1,
                 cobranza: 0,
                 chofer: nombreChofer,
