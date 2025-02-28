@@ -15,12 +15,11 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
 };
 
 function convertirFecha(fecha) {
-    console.log("Fecha original:", fecha);
-
     const fechaObj = fecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
 
     if (fechaObj) {
         const [, dia, mes, año] = fechaObj;
+
         return `${año}-${mes}-${dia} 00:00:00`;
     } else {
         return "Fecha inválida";
@@ -192,7 +191,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         }
 
         if (!lineaEnviosHistorial) {
-            lineaEnviosHistorial = `eh.autofecha > ${desde}`;
+            lineaEnviosHistorial = `eh.autofecha > ${from}`;
         }
 
         const clientes = await getClientsByCompany(company.did);
@@ -227,21 +226,10 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         }
 
         let query = "";
-        console.log(dateWithHour);
-        console.log(hoy);
 
         if (dashboardValue == -1) {
             query = `SELECT ${campos} ${estadoAsignacion} FROM envios AS e 
-                    LEFT JOIN envios_historial as eh ON eh.id = (
-                        SELECT
-                        MAX(eh_inner.id)
-                        FROM
-                        envios_historial eh_inner
-                        WHERE
-                        eh_inner.didEnvio = e.did
-                        AND eh_inner.superado = 0
-                        AND eh_inner.elim = 0
-                    )
+                    LEFT JOIN envios_historial as eh on (eh.superado=0 and eh.elim=0 and e.did = eh.didEnvio)
                     LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
                     LEFT JOIN envios_observaciones as eo on(eo.superado=0 and eo.elim=0 and eo.didEnvio = e.did) 
                     LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = now() ${sqlchoferruteo} )
@@ -260,16 +248,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       e.choferAsignado, ei.valor, edd.destination_comments, rp.orden, edd.provincia ${estadoAsignacion}
                       FROM envios_asignaciones as ea
                       ${leftjoinCliente}
-                      LEFT JOIN envios_historial as eh ON eh.id = (
-                        SELECT
-                        MAX(eh_inner.id)
-                        FROM
-                        envios_historial eh_inner
-                        WHERE
-                        eh_inner.didEnvio = ea.did
-                        AND eh_inner.superado = 0
-                        AND eh_inner.elim = 0
-                    )
+                      LEFT JOIN envios_historial as eh on (eh.superado=0 and eh.elim=0 and ea.didEnvio = eh.didEnvio)
                       LEFT JOIN envios as e ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
                       LEFT JOIN clientes as c on (c.superado=0 and c.elim=0 and c.did=e.didCliente)
                       LEFT JOIN envios_direcciones_destino as edd on (edd.superado=0 and edd.elim=0 and edd.didEnvio=eh.didEnvio)
@@ -281,7 +260,8 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN proximas_entregas as pe on (pe.elim=0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                       WHERE ea.superado=0 ${sqlduenio}
                       AND ea.elim=0
-                      AND ea.autofecha > '${hoy} 00:00:00'`;
+                      AND ea.autofecha > '${hoy} 00:00:00'
+                      GROUP BY ea.didEnvio`;
         } else if (dashboardValue == 2 || dashboardValue == 4) {
             query = `
                 SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
@@ -309,6 +289,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 AND e.superado = 0
                 AND e.didCliente != 0 
                 ${sqlduenio}
+                GROUP BY eh.didEnvio
                 ORDER BY rp.orden ASC;
             `;
         } else if (dashboardValue == 0 || dashboardValue == 3) {
@@ -337,11 +318,11 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       ${sqlduenio}
                       AND e.didCliente!=0 
                       AND e.didCliente!='null'
+                      GROUP BY eh.didEnvio
                       ORDER BY rp.orden ASC`;
         }
 
         console.log(query);
-
 
         const rows = await executeQuery(dbConnection, query, []);
 
