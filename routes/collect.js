@@ -6,18 +6,18 @@ import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getR
 const collect = Router();
 
 collect.post("/get-route", async (req, res) => {
-    const mensajeError = verifyParamaters(req.body, ['date'], true);
+    const mensajeError = verifyParamaters(req.body, [], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, userId, date } = req.body;
+    const { companyId, userId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const route = await getRoute(company, userId, date);
+        const route = await getRoute(company, userId);
 
         res.status(200).json({ body: route, message: "Ruta obtenida correctamente" });
     } catch (error) {

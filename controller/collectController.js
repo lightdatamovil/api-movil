@@ -1,16 +1,19 @@
 import mysql from 'mysql';
 import { getProdDbConfig, executeQuery } from '../db.js';
 
-export async function getRoute(company, userId, date) {
+export async function getRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
+        const date = new Date();
+        const dia = date.toISOString().split('T')[0];
+
         let hasRoute, routeId, additionalRouteData, client = null;
 
         const routeQuery = "SELECT id, did, dataRuta FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND fecha = ? AND didChofer = ?";
-        const routeResult = await executeQuery(dbConnection, routeQuery, [date, userId]);
+        const routeResult = await executeQuery(dbConnection, routeQuery, [dia, userId]);
 
         if (routeResult.length > 0) {
             const dataRoute = JSON.parse(routeResult[0].dataRuta);
@@ -68,7 +71,7 @@ export async function getRoute(company, userId, date) {
         }
 
         return {
-            hasRote: hasRoute,
+            hasRote: hasRoute ?? false,
             routeId: routeId,
             additionalRouteData: additionalRouteData,
             client: client
