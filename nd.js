@@ -1,43 +1,26 @@
 
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const mysql = require('mysql');
-const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const redis = require('redis');
 
-// Configuración de Redis
-/*
-const redisClient = redis.createClient({
-  socket: {
-    path: "/home/apimovil/ea-podman.d/ea-redis62.apimovil.01/redis.sock",
-    family: 0,
-  }
-});
-
-'192.99.190.137', 50301
-*/
 const redisClient = redis.createClient({
     socket: {
-        host: '192.99.190.137', // IP interna
-        port: 50301,          // Puerto interno
+        host: '192.99.190.137',
+        port: 50301,
     },
-    password: 'sdJmdxXC8luknTrqmHceJS48NTyzExQg', // Contraseña para autenticación
+    password: 'sdJmdxXC8luknTrqmHceJS48NTyzExQg',
 });
 
-// Manejo de errores
 redisClient.on('error', (err) => {
     console.error('Error al conectar con Redis:', err);
 });
 
-
-//Me traigo las empresas habilitadas
 let empresasDB = null;
 var AclientesXEmpresa = new Object();
 var AusuariosXEmpresa = new Object();
 var AzonasXEmpresa = new Object();
-var Aconexiones = new Object();
-// Importar las clases
+
 const verifyToken = require('./src/funciones/verifyToken');
 const InstallAPP = require('./src/clases/InstallAPP');
 const Login = require('./src/clases/login');
@@ -54,49 +37,56 @@ async function crearLog(idEmpresa, operador, endpoint, result, quien, idDisposit
         password: "}atbYkG0P,VS",
         database: "apimovil_log"
     };
+
     const dbConnection = mysql.createConnection(dbConfig);
+    try {
+        return new Promise((resolve, reject) => {
+            dbConnection.connect((err) => {
+                if (err) {
+                    console.error('Error al conectar con la base de datos:', err.stack);
+                    return reject({ error: "error", details: err.message });
+                }
 
-    return new Promise((resolve, reject) => {
-        dbConnection.connect((err) => {
-            if (err) {
-                console.error('Error al conectar con la base de datos:', err.stack);
-                return reject({ error: "error", details: err.message });
-            }
-
-            const sql = `
+                const sql = `
                 INSERT INTO logs (empresa, operador, request, response, quien, dispositivo, uid, appversion)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
-            const values = [
-                idEmpresa,
-                operador,
-                endpoint,
-                JSON.stringify(result),
-                quien,
-                `${modelo} ${marca} ${versionAndroid}`,
-                idDispositivo,
-                versionApp
-            ];
+                const values = [
+                    idEmpresa,
+                    operador,
+                    endpoint,
+                    JSON.stringify(result),
+                    quien,
+                    `${modelo} ${marca} ${versionAndroid}`,
+                    idDispositivo,
+                    versionApp
+                ];
 
-            const queryString = mysql.format(sql, values);
-            console.log("QUERY A EJECUTAR:", queryString);
+                const queryString = mysql.format(sql, values);
+                console.log("QUERY A EJECUTAR:", queryString);
 
-            dbConnection.query(sql, values, (err, results) => {
-                dbConnection.end();
-                if (err) {
-                    console.error('Error al ejecutar la consulta de logs:', err.stack);
-                    return reject({ error: "error", details: err.message, query: queryString });
-                } else {
-                    return resolve({ error: "no error", results: results, query: queryString });
-                }
+                dbConnection.query(sql, values, (err, results) => {
+                    dbConnection.end();
+                    if (err) {
+                        console.error('Error al ejecutar la consulta de logs:', err.stack);
+                        return reject({ error: "error", details: err.message, query: queryString });
+                    } else {
+                        return resolve({ error: "no error", results: results, query: queryString });
+                    }
+                });
             });
         });
-    });
+    } catch (error) {
+
+    } finally {
+        dbConnection.end();
+    }
+
 }
 
-// Configurar rutas
 app.use(express.json());
+
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password, idEmpresa, idDispositivo, versionApp, marca, modelo, versionAndroid } = req.body;
@@ -117,6 +107,7 @@ app.post('/api/login', async (req, res) => {
         res.json({ status: false, error });
     }
 });
+
 app.post('/api/install', async (req, res) => {
     const { codigoEmpresa, idEmpresa, idDispositivo, versionApp, marca, modelo, versionAndroid } = req.body;
 
@@ -140,23 +131,25 @@ app.post('/api/install', async (req, res) => {
     res.json(installResult);
 
 });
+
 app.post('/api/verificarrutacomenzada', verifyToken, async (req, res) => {
-    const { didEmpresa, perfil, didUser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
+    const { didEmpresa, didUser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
+    const empresa = getDbConfig(didEmpresa);
+    let dbConfig = {
+        host: "bhsmysql1.lightdata.com.ar",
+        user: empresa.dbuser,
+        password: empresa.dbpass,
+        database: empresa.dbname
+    };
+
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
     try {
-        const empresa = getDbConfig(didEmpresa);
         if (!empresa) {
             return res.status(400).json({ estadoRespuesta: false, body: {}, mensaje: 'Empresa no encontrada' });
         } else {
 
-            let dbConfig = {
-                host: "bhsmysql1.lightdata.com.ar",
-                user: empresa.dbuser,
-                password: empresa.dbpass,
-                database: empresa.dbname
-            };
 
-            const dbConnection = mysql.createConnection(dbConfig);
-            await dbConnection.connect();
 
             const sql = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ${didUser} AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
 
@@ -193,23 +186,27 @@ app.post('/api/verificarrutacomenzada', verifyToken, async (req, res) => {
     } catch (e) {
         res.status(400).json({ estadoRespuesta: true, body: {}, mensaje: e });
     }
+    finally {
+        dbConnection.end();
+    }
 });
+
 app.post('/api/listadochoferes', verifyToken, async (req, res) => {
 
-    const { idEmpresa, perfil, diduser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
+    const { idEmpresa, diduser, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
     const empresa = getDbConfig(idEmpresa);
     if (!empresa) {
         return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
-    } else {
-
-        let dbConfig = {
-            host: "bhsmysql1.lightdata.com.ar",
-            user: empresa.dbuser,
-            password: empresa.dbpass,
-            database: empresa.dbname
-        };
-        const dbConnection = mysql.createConnection(dbConfig);
-        await dbConnection.connect();
+    }
+    let dbConfig = {
+        host: "bhsmysql1.lightdata.com.ar",
+        user: empresa.dbuser,
+        password: empresa.dbpass,
+        database: empresa.dbname
+    };
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
+    try {
         var Atemp = [];
 
         let query = "SELECT u.did, concat( u.nombre,' ', u.apellido) as nombre FROM `sistema_usuarios` as u JOIN sistema_usuarios_accesos as a on ( a.elim=0 and a.superado=0 and a.usuario = u.did) where u.elim=0 and u.superado=0 and a.perfil=3 ORDER BY nombre ASC";
@@ -236,6 +233,11 @@ app.post('/api/listadochoferes', verifyToken, async (req, res) => {
         // 	});
         crearLog(idEmpresa, 0, "/api/listadochoferes", { estadoRespuesta: true, body: Atemp, mensaje: "" }, diduser, idDispositivo, modelo, marca, versionAndroid, versionApp);
         res.status(200).json({ estadoRespuesta: true, body: Atemp, mensaje: "" });
+
+    } catch (error) {
+
+    } finally {
+        dbConnection.end();
     }
 });
 
@@ -244,10 +246,6 @@ app.post('/api/listadowsp', verifyToken, async (req, res) => {
         const { idEmpresa, userId, idDispositivo, modelo, marca, versionAndroid, versionApp } = req.body;
 
         const empresa = getDbConfig(idEmpresa);
-
-        if (!empresa) {
-            return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
-        }
 
         let dbConfig = {
             host: "bhsmysql1.lightdata.com.ar",
@@ -258,7 +256,11 @@ app.post('/api/listadowsp', verifyToken, async (req, res) => {
 
         const dbConnection = mysql.createConnection(dbConfig);
 
-        await dbConnection.connect();
+        dbConnection.connect();
+
+        if (!empresa) {
+            return res.status(400).json({ estadoRespuesta: false, body: "", mensaje: 'Empresa no encontrada' });
+        }
 
         const Atemp = [];
 
@@ -271,6 +273,7 @@ app.post('/api/listadowsp', verifyToken, async (req, res) => {
         dbConnection.end();
 
         crearLog(idEmpresa, 0, "/api/listadowsp", { estadoRespuesta: true, body: Atemp, mensaje: "Mensajes traídos correctamente" }, userId, idDispositivo, modelo, marca, versionAndroid, versionApp);
+
         res.status(200).json({
             estadoRespuesta: true,
             body: Atemp,
@@ -283,13 +286,14 @@ app.post('/api/listadowsp', verifyToken, async (req, res) => {
             body: null,
             mensaje: `Algo falló... ${e}`
         });
+    } finally {
+        dbConnection.end();
     }
 });
 
 
 app.post('/api/testapi', async (req, res) => {
     res.status(200).json("Funciona");
-
 });
 
 
@@ -300,7 +304,7 @@ function getDbConfig(idEmpresa) {
             data = empresasDB[j];
         }
     }
-    return data // Devuelve null si la clave no existe
+    return data;
 }
 
 async function actualizarEmpresas() {
@@ -384,10 +388,8 @@ async function obtenerClientes_cadetes() {
     try {
         await redisClient.connect();
 
-        // Actualizar empresas antes de iniciar el servidor
         await actualizarEmpresas();
 
-        // Registrar rutas
         const enviosRoutes = require('./routes/enviosRoutes');
         const dashboardRoutes = require('./routes/dashboardRoutes');
         const clientesRoutes = require('./routes/clientesRoutes');
@@ -396,7 +398,6 @@ async function obtenerClientes_cadetes() {
         app.use('/api/dashboard', dashboardRoutes);
         app.use('/api/clientes', clientesRoutes);
 
-        // Iniciar servidor
         app.listen(PORT, () => {
             console.log(`Servidor escuchando en el puerto ${PORT}`);
         });
