@@ -13,7 +13,7 @@ redisClient.on('error', (err) => {
     console.error('Error al conectar con Redis:', err);
 });
 
-let companiesList = [];
+let companiesList = {};
 let driverList = [];
 let zoneList = [];
 let clientList = [];
@@ -39,8 +39,7 @@ export function getProdDbConfig(company) {
 
 async function loadCompaniesFromRedis() {
     try {
-        const companysDataJson = await redisClient.get('empresasData');
-        companiesList = companysDataJson ? Object.values(JSON.parse(companysDataJson)) : [];
+        companiesList = await redisClient.get('empresasData');
     } catch (error) {
         console.error("Error en loadCompaniesFromRedis:", error);
         throw error;
@@ -78,8 +77,9 @@ export async function getDrivers(companyId) {
     } catch (error) {
         console.error("Error en getDrivers:", error);
         throw error;
+    } finally {
+        dbConnection.end();
     }
-
 }
 
 export async function getClients(companyId) {
@@ -154,6 +154,8 @@ export async function getZones(companyId) {
     } catch (error) {
         console.error("Error en getZones:", error);
         throw error;
+    } finally {
+        dbConnection.end();
     }
 }
 
@@ -214,36 +216,46 @@ export async function getZonesByCompany(companyId) {
     }
 }
 
-export async function getCompanyById(companyCode) {
-    let company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
+export async function getCompanyById(companyId) {
+    try {
+        let company = companiesList[companyId] || null;
 
-    if (!Array.isArray(companiesList) || companiesList.length === 0 || companiesList == null) {
-        try {
-            await loadCompaniesFromRedis();
-            company = companiesList.find(company => Number(company.did) === Number(companyCode)) || null;
-        } catch (error) {
-            console.error("Error en getCompanyById:", error);
-            throw error;
+        if (!Array.isArray(companiesList) || companiesList.length === 0 || companiesList == null) {
+            try {
+                await loadCompaniesFromRedis();
+                company = companiesList[companyId];
+            } catch (error) {
+                console.error("Error en getCompanyById:", error);
+                throw error;
+            }
         }
-    }
 
-    return company;
+        return company;
+    } catch (error) {
+        console.error("Error en getCompanyById:", error);
+        throw error;
+    }
 }
 
 export async function getCompanyByCode(companyCode) {
-    let company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
+    try {
+        let company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
 
-    if (!Array.isArray(companiesList) || companiesList.length == 0 || companiesList == null) {
-        try {
-            await loadCompaniesFromRedis();
-            company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
-        } catch (error) {
-            console.error("Error en getCompanyByCode:", error);
-            throw error;
+        if (!Array.isArray(companiesList) || companiesList.length == 0 || companiesList == null) {
+            try {
+                await loadCompaniesFromRedis();
+                company = companiesList.find(company => String(company.codigo) === String(companyCode));
+            } catch (error) {
+                console.error("Error en getCompanyByCode:", error);
+                throw error;
+            }
         }
-    }
 
-    return company;
+        return company;
+    } catch (error) {
+        console.error("Error en getCompanyByCode:", error);
+        throw error;
+    }
 }
 
 export async function executeQuery(connection, query, values) {
