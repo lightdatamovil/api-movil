@@ -116,6 +116,8 @@ export async function getClients(companyId) {
     } catch (error) {
         console.error("Error en getClients:", error);
         throw error;
+    } finally {
+        dbConnection.end();
     }
 }
 

@@ -123,7 +123,8 @@ export async function saveRoute(company, userId, operationDate, orders, distance
 
         if (routeId !== 0) {
             await executeQuery(dbConnection, "UPDATE `ruteo` SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ?", [routeId]);
-            await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
+            // TODO: Verificar si es necesario actualizar las paradas
+            // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
         }
 
         const result = await executeQuery(
