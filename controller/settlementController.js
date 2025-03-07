@@ -80,6 +80,8 @@ export async function getSettlementDetails(company, settlementId) {
     } catch (error) {
         console.error("Error en getSettlementDetails:", error);
         throw error;
+    } finally {
+        dbConnection.end();
     }
 }
 
@@ -122,9 +124,10 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
         } else {
             throw new Error("No se encontraron datos para el envío");
         }
-
     } catch (error) {
         console.error("Error en getSettlementShipmentDetails:", error);
         throw error;
+    } finally {
+        dbConnection.end();
     }
 }

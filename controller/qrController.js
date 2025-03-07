@@ -263,6 +263,8 @@ export async function enterFlex(company, dataQr, userId) {
     } catch (error) {
         console.error("Error en enterFlex:", error);
         throw error;
+    } finally {
+        dbConnection.end();
     }
 }
 

@@ -88,7 +88,13 @@ export async function startRoute(company) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
-    return true;
+    try {
+
+        return true;
+    } catch (error) {
+        console.error("Error en startRoute:", error);
+        throw error;
+    }
 }
 
 export async function saveRoute(company, date, userId, additionalRouteData, orders) {

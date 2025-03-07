@@ -180,5 +180,7 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
     } catch (error) {
         console.error("Error en geolocalize:", error);
         throw error;
+    } finally {
+        dbConnection.end();
     }
 }
