@@ -45,81 +45,88 @@ async function loadCompaniesFromRedis() {
         throw error;
     }
 }
+//hecho
+export async function getDrivers(companies) {
+    const driversByCompany = {};
 
-export async function getDrivers(companyId) {
-    const dbConfig = getDbConfig(companyId);
-    const dbConnection = mysql.createConnection(dbConfig);
-    dbConnection.connect();
+    for (const companyId of companies) {
+        const dbConfig = getDbConfig(companyId);
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.connect();
 
-    try {
-        const queryUsers = "SELECT * FROM sistema_usuarios WHERE perfil = 3";
+        try {
+            const queryUsers = "SELECT * FROM sistema_usuarios WHERE perfil = 3";
+            const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
 
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+            // Inicializar el objeto para la compañía
+            driversByCompany[companyId] = {};
 
-        const drivers = [];
+            for (let i = 0; i < resultQueryUsers.length; i++) {
+                const row = resultQueryUsers[i];
 
-        for (let i = 0; i < resultQueryUsers.length; i++) {
-            const row = resultQueryUsers[i];
-
-            const driver = {
-                id: row.id,
-                id_origen: row.id_origen,
-                fecha_sincronizacion: row.fecha_sincronizacion,
-                did: row.did,
-                codigo: row.codigo_empleado,
-                nombre: row.nombre,
-            };
-            drivers.push(driver);
+                // Usar el id del conductor como clave
+                driversByCompany[companyId][row.id] = {
+                    id: row.id,
+                    id_origen: row.id_origen,
+                    fecha_sincronizacion: row.fecha_sincronizacion,
+                    did: row.did,
+                    codigo: row.codigo_empleado,
+                    nombre: row.nombre,
+                };
+            }
+        } catch (error) {
+            console.error(`Error en getDrivers para la compañía ${companyId}:`, error);
+            throw error;
+        } finally {
+            dbConnection.end();
         }
-        driverList.push({ companyId: companyId, drivers: drivers });
-
-        return driverList;
-    } catch (error) {
-        console.error("Error en getDrivers:", error);
-        throw error;
-    } finally {
-        dbConnection.end();
     }
+
+    return driversByCompany; // Devolver todos los conductores organizados por compañía
 }
 
-export async function getClients(companyId) {
-    const dbConfig = getDbConfig(companyId);
-    const dbConnection = mysql.createConnection(dbConfig);
-    dbConnection.connect();
+//hecho
+export async function getClients(companies) {
+    const clientsByCompany = {};
 
-    try {
-        const queryUsers = "SELECT * FROM clientes";
+    for (const companyId of companies) {
+        const dbConfig = getDbConfig(companyId);
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.connect();
 
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+        try {
+            const queryUsers = "SELECT * FROM clientes";
+            const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
 
-        const clients = [];
+            // Inicializar el objeto para la compañía
+            clientsByCompany[companyId] = {};
 
-        for (let i = 0; i < resultQueryUsers.length; i++) {
-            const row = resultQueryUsers[i];
+            for (let i = 0; i < resultQueryUsers.length; i++) {
+                const row = resultQueryUsers[i];
 
-            const client = {
-                id: row.id,
-                id_origen: row.id_origen,
-                fecha_sincronizacion: row.fecha_sincronizacion,
-                did: row.did,
-                codigo: row.codigo,
-                nombre: row.nombre_fantasia,
-                codigos: row.codigos,
-                dataGeo: row.dataGeo,
-            };
-
-            clients.push(client);
+                // Agregar el cliente directamente al objeto de la compañía
+                clientsByCompany[companyId][row.id] = {
+                    id_origen: row.id_origen,
+                    fecha_sincronizacion: row.fecha_sincronizacion,
+                    did: row.did,
+                    codigo: row.codigo,
+                    nombre: row.nombre_fantasia,
+                    codigos: row.codigos,
+                    dataGeo: row.dataGeo,
+                };
+            }
+        } catch (error) {
+            console.error(`Error en getClients para la compañía ${companyId}:`, error);
+            throw error;
+        } finally {
+            dbConnection.end();
         }
-        clientList.push({ companyId: companyId, clients: clients });
-
-        return clientList;
-    } catch (error) {
-        console.error("Error en getClients:", error);
-        throw error;
-    } finally {
-        dbConnection.end();
     }
+
+    return clientsByCompany; // Devolver todos los clientes organizados por compañía
 }
+
+//hecho 
 
 export async function getZones(companyId) {
     const dbConfig = getDbConfig(companyId);
@@ -128,15 +135,18 @@ export async function getZones(companyId) {
 
     try {
         const queryZones = "SELECT * FROM envios_zonas";
-
         const resultQueryZones = await executeQuery(dbConnection, queryZones, []);
 
-        const zones = [];
+        const zonesByCompany = {};
+
+        // Inicializar el objeto para la compañía
+        zonesByCompany[companyId] = {};
 
         for (let i = 0; i < resultQueryZones.length; i++) {
             const row = resultQueryZones[i];
 
-            const zone = {
+            // Usar el id de la zona como clave
+            zonesByCompany[companyId][row.id] = {
                 id: row.id,
                 id_origen: row.id_origen,
                 fecha_sincronizacion: row.fecha_sincronizacion,
@@ -146,11 +156,9 @@ export async function getZones(companyId) {
                 codigos: row.codigos,
                 dataGeo: row.dataGeo,
             };
-            zones.push(zone);
         }
-        zoneList.push({ companyId: companyId, zones: zones });
 
-        return zoneList;
+        return zonesByCompany; // Devolver zonas organizadas por compañía
     } catch (error) {
         console.error("Error en getZones:", error);
         throw error;
@@ -159,37 +167,40 @@ export async function getZones(companyId) {
     }
 }
 
+
+
+//hecho
 export async function getDriversByCompany(companyId) {
     try {
-        const companyDrivers = driverList.find(driver => driver.companyId == companyId);
+        // Obtener todos los conductores organizados por compañía
+        const drivers = await getDrivers([companyId]);
 
-        if (companyDrivers === undefined || companyDrivers === null || companyDrivers.length == 0) {
-            const drivers = await getDrivers(companyId);
+        // Acceder a los conductores de la compañía específica
+        const companyDrivers = drivers[companyId];
 
-            const companyDriversR = drivers.find(driver => driver.companyId == companyId).drivers || [];
-
-            return companyDriversR;
-        } else {
-
-            return companyDrivers.drivers || [];
-        }
+        // Retornar los conductores o un array vacío si no hay conductores
+        return companyDrivers ? Object.values(companyDrivers) : [];
     } catch (error) {
         console.error("Error en getDriversByCompany:", error);
         throw error;
     }
 }
 
+
+
+//hecho
 export async function getClientsByCompany(companyId) {
     try {
-        const companyClients = clientList.find(client => client.companyId == companyId);
+        // Suponiendo que clientList ahora tiene la estructura de múltiples compañías
+        const companyClients = clientList[companyId];
 
-        if (companyClients === undefined || companyClients === null || companyClients.length == 0) {
-            const clients = await getClients(companyId);
-            const companyClientsR = clients.find(client => client.companyId == companyId).clients || [];
+        if (companyClients === undefined || companyClients === null || Object.keys(companyClients).length === 0) {
+            const clients = await getClients([companyId]); // Llamar a getClients con un array de companyId
+            const companyClientsR = clients[companyId] || {}; // Obtener los clientes de la compañía
 
-            return companyClientsR;
+            return companyClientsR; // Devolver los clientes de la compañía
         } else {
-            return companyClients.clients || [];
+            return companyClients || {}; // Devolver los clientes si ya existen
         }
     } catch (error) {
         console.error("Error en getClientsByCompany:", error);
@@ -197,35 +208,41 @@ export async function getClientsByCompany(companyId) {
     }
 }
 
+//hecho 
 export async function getZonesByCompany(companyId) {
     try {
-        const companyZones = zoneList.find(zone => zone.companyId == companyId);
+        // Obtener todas las zonas organizadas por compañía
+        const zones = await getZones(companyId);
 
-        if (companyZones === undefined || companyZones === null || companyZones.length == 0) {
-            const zones = await getZones(companyId);
+        // Acceder a las zonas de la compañía específica
+        const companyZones = zones[companyId];
 
-            const companyZonesR = zones.find(zone => zone.companyId == companyId).zones || [];
-
-            return companyZonesR;
-        } else {
-            return companyZones.zones || [];
-        }
+        // Retornar las zonas o un array vacío si no hay zonas
+        return companyZones ? Object.values(companyZones) : [];
     } catch (error) {
         console.error("Error en getZonesByCompany:", error);
         throw error;
     }
 }
-
 export async function getCompanyById(companyId) {
     try {
+        // Verificar si companiesList es un objeto y no un array
         let company = companiesList[companyId] || null;
 
-        if (!Array.isArray(companiesList) || companiesList.length === 0 || companiesList == null) {
+        // Verificar si companiesList no es válido
+        if (typeof companiesList !== 'object' || Object.keys(companiesList).length === 0) {
             try {
                 await loadCompaniesFromRedis();
-                company = companiesList[companyId];
+       
+                // Si companiesList es un string, parsearlo
+                if (typeof companiesList === 'string') {
+                    companiesList = JSON.parse(companiesList);
+                }
+
+                // Obtener la compañía después de cargar
+                company = companiesList[companyId] || null;
             } catch (error) {
-                console.error("Error en getCompanyById:", error);
+                console.error("Error al cargar compañías desde Redis:", error);
                 throw error;
             }
         }
@@ -237,17 +254,29 @@ export async function getCompanyById(companyId) {
     }
 }
 
+
 export async function getCompanyByCode(companyCode) {
     try {
-        let company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
-
-        if (!Array.isArray(companiesList) || companiesList.length == 0 || companiesList == null) {
+       
+        if (typeof companiesList !== 'object' || Object.keys(companiesList).length === 0) {
             try {
                 await loadCompaniesFromRedis();
-                company = companiesList.find(company => String(company.codigo) === String(companyCode));
             } catch (error) {
-                console.error("Error en getCompanyByCode:", error);
+                console.error("Error al cargar compañías desde Redis:", error);
                 throw error;
+            }
+        }
+
+     
+        let company = null;
+
+        for (const key in companiesList) {
+            if (companiesList.hasOwnProperty(key)) {
+                const currentCompany = companiesList[key];
+                if (String(currentCompany.codigo) === String(companyCode)) {
+                    company = currentCompany;
+                    break; // Salir del bucle si se encuentra la compañía
+                }
             }
         }
 
@@ -257,6 +286,7 @@ export async function getCompanyByCode(companyCode) {
         throw error;
     }
 }
+
 
 export async function executeQuery(connection, query, values) {
     // console.log("Query:", query);

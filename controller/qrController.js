@@ -3,8 +3,12 @@ import mysql from 'mysql';
 import axios from 'axios';
 
 export async function crossDocking(dataQr, company) {
+    console.log(company,"goa");
+    
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
+    console.log(dbConfig);
+    
     dbConnection.connect();
 
     try {
@@ -54,7 +58,7 @@ export async function crossDocking(dataQr, company) {
             body: {
                 shipmentState: row.shipmentState,
                 date: row.date,
-                client: clients.find(client => client.id === row.clientId)?.nombre || "Desconocido",
+                client: clients[row.clientId]?.nombre || "Desconocido",
                 zone: zones.find(zone => zone.id === row.zoneId)?.nombre || "Desconocido",
                 driver: row.driver ?? "Sin asignar"
             },
