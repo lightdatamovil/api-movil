@@ -39,7 +39,10 @@ export function getProdDbConfig(company) {
 
 async function loadCompaniesFromRedis() {
     try {
-        companiesList = await redisClient.get('empresasData');
+        const companiesListString = await redisClient.get('empresasData');
+
+        companiesList = JSON.parse(companiesListString);
+
     } catch (error) {
         console.error("Error en loadCompaniesFromRedis:", error);
         throw error;
@@ -218,11 +221,12 @@ export async function getZonesByCompany(companyId) {
 
 export async function getCompanyById(companyId) {
     try {
-        let company = companiesList[companyId] || null;
+        let company = companiesList[companyId];
 
         if (!Array.isArray(companiesList) || companiesList.length === 0 || companiesList == null) {
             try {
                 await loadCompaniesFromRedis();
+
                 company = companiesList[companyId];
             } catch (error) {
                 console.error("Error en getCompanyById:", error);

@@ -168,6 +168,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
 }
 
 export async function shipmentList(company, userId, profile, from, dashboardValue) {
+
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -321,8 +322,6 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       GROUP BY eh.didEnvio
                       ORDER BY rp.orden ASC`;
         }
-
-        console.log(query);
 
         const rows = await executeQuery(dbConnection, query, []);
 
