@@ -49,78 +49,63 @@ async function loadCompaniesFromRedis() {
     }
 }
 
-export async function getDrivers(companyId) {
-    const dbConfig = getDbConfig(companyId);
-    const dbConnection = mysql.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getClients(companies) {
+    const clientsByCompany = {};
 
-    try {
-        const queryUsers = "SELECT * FROM sistema_usuarios WHERE perfil = 3";
+    for (const companyId of companies) {
+        const dbConfig = getDbConfig(companyId);
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.connect();
 
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+        try {
+            const queryUsers = "SELECT * FROM clientes";
+            const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
 
-        const drivers = [];
+            clientsByCompany[companyId] = {};
 
-        for (let i = 0; i < resultQueryUsers.length; i++) {
-            const row = resultQueryUsers[i];
+            for (let i = 0; i < resultQueryUsers.length; i++) {
+                const row = resultQueryUsers[i];
 
-            const driver = {
-                id: row.id,
-                id_origen: row.id_origen,
-                fecha_sincronizacion: row.fecha_sincronizacion,
-                did: row.did,
-                codigo: row.codigo_empleado,
-                nombre: row.nombre,
-            };
-            drivers.push(driver);
+                clientsByCompany[companyId][row.id] = {
+                    id_origen: row.id_origen,
+                    fecha_sincronizacion: row.fecha_sincronizacion,
+                    did: row.did,
+                    codigo: row.codigo,
+                    nombre: row.nombre_fantasia,
+                    codigos: row.codigos,
+                    dataGeo: row.dataGeo,
+                };
+            }
+        } catch (error) {
+            console.error(`Error en getClients para la compañía ${companyId}:`, error);
+            throw error;
+        } finally {
+            dbConnection.end();
         }
-        driverList.push({ companyId: companyId, drivers: drivers });
-
-        return driverList;
-    } catch (error) {
-        console.error("Error en getDrivers:", error);
-        throw error;
-    } finally {
-        dbConnection.end();
     }
+
+    return clientsByCompany;
 }
 
-export async function getClients(companyId) {
-    const dbConfig = getDbConfig(companyId);
-    const dbConnection = mysql.createConnection(dbConfig);
-    dbConnection.connect();
-
+export async function getClientByCompany(companyId) {
     try {
-        const queryUsers = "SELECT * FROM clientes";
+        let companyClients = clientList[companyId];
 
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+        if (companyClients == undefined || Object.keys(clientList).length === 0) {
+            try {
+                await loadCompaniesFromRedis();
 
-        const clients = [];
-
-        for (let i = 0; i < resultQueryUsers.length; i++) {
-            const row = resultQueryUsers[i];
-
-            const client = {
-                id: row.id,
-                id_origen: row.id_origen,
-                fecha_sincronizacion: row.fecha_sincronizacion,
-                did: row.did,
-                codigo: row.codigo,
-                nombre: row.nombre_fantasia,
-                codigos: row.codigos,
-                dataGeo: row.dataGeo,
-            };
-
-            clients.push(client);
+                companyClients = clientList[companyId];
+            } catch (error) {
+                console.error("Error al cargar compañías desde Redis:", error);
+                throw companyClients;
+            }
         }
-        clientList.push({ companyId: companyId, clients: clients });
 
-        return clientList;
+        return companyClients;
     } catch (error) {
-        console.error("Error en getClients:", error);
+        console.error("Error en getZonesByCompany:", error);
         throw error;
-    } finally {
-        dbConnection.end();
     }
 }
 
@@ -131,15 +116,16 @@ export async function getZones(companyId) {
 
     try {
         const queryZones = "SELECT * FROM envios_zonas";
-
         const resultQueryZones = await executeQuery(dbConnection, queryZones, []);
 
-        const zones = [];
+        const zonesByCompany = {};
+
+        zonesByCompany[companyId] = {};
 
         for (let i = 0; i < resultQueryZones.length; i++) {
             const row = resultQueryZones[i];
 
-            const zone = {
+            zonesByCompany[companyId][row.id] = {
                 id: row.id,
                 id_origen: row.id_origen,
                 fecha_sincronizacion: row.fecha_sincronizacion,
@@ -149,11 +135,9 @@ export async function getZones(companyId) {
                 codigos: row.codigos,
                 dataGeo: row.dataGeo,
             };
-            zones.push(zone);
         }
-        zoneList.push({ companyId: companyId, zones: zones });
 
-        return zoneList;
+        return zonesByCompany;
     } catch (error) {
         console.error("Error en getZones:", error);
         throw error;
@@ -162,59 +146,83 @@ export async function getZones(companyId) {
     }
 }
 
-export async function getDriversByCompany(companyId) {
-    try {
-        const companyDrivers = driverList.find(driver => driver.companyId == companyId);
-
-        if (companyDrivers === undefined || companyDrivers === null || companyDrivers.length == 0) {
-            const drivers = await getDrivers(companyId);
-
-            const companyDriversR = drivers.find(driver => driver.companyId == companyId).drivers || [];
-
-            return companyDriversR;
-        } else {
-
-            return companyDrivers.drivers || [];
-        }
-    } catch (error) {
-        console.error("Error en getDriversByCompany:", error);
-        throw error;
-    }
-}
-
-export async function getClientsByCompany(companyId) {
-    try {
-        const companyClients = clientList.find(client => client.companyId == companyId);
-
-        if (companyClients === undefined || companyClients === null || companyClients.length == 0) {
-            const clients = await getClients(companyId);
-            const companyClientsR = clients.find(client => client.companyId == companyId).clients || [];
-
-            return companyClientsR;
-        } else {
-            return companyClients.clients || [];
-        }
-    } catch (error) {
-        console.error("Error en getClientsByCompany:", error);
-        throw error;
-    }
-}
-
 export async function getZonesByCompany(companyId) {
     try {
-        const companyZones = zoneList.find(zone => zone.companyId == companyId);
+        let zones = zoneList[companyId];
 
-        if (companyZones === undefined || companyZones === null || companyZones.length == 0) {
-            const zones = await getZones(companyId);
+        if (zones == undefined || Object.keys(zoneList).length === 0) {
+            try {
+                await loadCompaniesFromRedis();
 
-            const companyZonesR = zones.find(zone => zone.companyId == companyId).zones || [];
-
-            return companyZonesR;
-        } else {
-            return companyZones.zones || [];
+                zones = zoneList[companyId];
+            } catch (error) {
+                console.error("Error al cargar compañías desde Redis:", error);
+                throw error;
+            }
         }
+
+        return zones;
     } catch (error) {
         console.error("Error en getZonesByCompany:", error);
+        throw error;
+    }
+}
+
+export async function getDrivers(companies) {
+    const driversByCompany = {};
+
+    for (const companyId of companies) {
+        const dbConfig = getDbConfig(companyId);
+        const dbConnection = mysql.createConnection(dbConfig);
+        dbConnection.connect();
+
+        try {
+            const queryUsers = "SELECT * FROM sistema_usuarios WHERE perfil = 3";
+            const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+
+            driversByCompany[companyId] = {};
+
+            for (let i = 0; i < resultQueryUsers.length; i++) {
+                const row = resultQueryUsers[i];
+
+                driversByCompany[companyId][row.id] = {
+                    id: row.id,
+                    id_origen: row.id_origen,
+                    fecha_sincronizacion: row.fecha_sincronizacion,
+                    did: row.did,
+                    codigo: row.codigo_empleado,
+                    nombre: row.nombre,
+                };
+            }
+        } catch (error) {
+            console.error(`Error en getDrivers para la compañía ${companyId}:`, error);
+            throw error;
+        } finally {
+            dbConnection.end();
+        }
+    }
+
+    return driversByCompany;
+}
+
+export async function getDriversByCompany(companyId) {
+    try {
+        let drivers = driverList[companyId];
+
+        if (drivers == undefined || Object.keys(driverList).length === 0) {
+            try {
+                await loadCompaniesFromRedis();
+
+                drivers = driverList[companyId];
+            } catch (error) {
+                console.error("Error al cargar compañías desde Redis:", error);
+                throw drivers;
+            }
+        }
+
+        return drivers;
+    } catch (error) {
+        console.error("Error en getDriversByCompany:", error);
         throw error;
     }
 }
@@ -223,13 +231,14 @@ export async function getCompanyById(companyId) {
     try {
         let company = companiesList[companyId];
 
-        if (!Array.isArray(companiesList) || companiesList.length === 0 || companiesList == null) {
+        // Verificar si companiesList no es válido
+        if (company == undefined || Object.keys(companiesList).length === 0) {
             try {
                 await loadCompaniesFromRedis();
 
                 company = companiesList[companyId];
             } catch (error) {
-                console.error("Error en getCompanyById:", error);
+                console.error("Error al cargar compañías desde Redis:", error);
                 throw error;
             }
         }
@@ -243,15 +252,24 @@ export async function getCompanyById(companyId) {
 
 export async function getCompanyByCode(companyCode) {
     try {
-        let company = companiesList.find(company => String(company.codigo) === String(companyCode)) || null;
+        let company;
 
-        if (!Array.isArray(companiesList) || companiesList.length == 0 || companiesList == null) {
+        if (Object.keys(companiesList).length === 0) {
             try {
                 await loadCompaniesFromRedis();
-                company = companiesList.find(company => String(company.codigo) === String(companyCode));
             } catch (error) {
-                console.error("Error en getCompanyByCode:", error);
+                console.error("Error al cargar compañías desde Redis:", error);
                 throw error;
+            }
+        }
+
+        for (const key in companiesList) {
+            if (companiesList.hasOwnProperty(key)) {
+                const currentCompany = companiesList[key];
+                if (String(currentCompany.codigo) === String(companyCode)) {
+                    company = currentCompany;
+                    break;
+                }
             }
         }
 

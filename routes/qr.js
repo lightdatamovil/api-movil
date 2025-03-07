@@ -39,7 +39,11 @@ qr.post('/cross-docking', async (req, res) => {
     const { companyId, dataQr } = req.body;
 
     try {
+        console.log(companyId,"golasads");
+        
         const company = await getCompanyById(companyId);
+  
+        
 
         const response = await crossDocking(dataQr, company);
 
