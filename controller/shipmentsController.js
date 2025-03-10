@@ -233,8 +233,8 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                     LEFT JOIN envios_historial as eh on (eh.superado=0 and eh.elim=0 and e.did = eh.didEnvio)
                     LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
                     LEFT JOIN envios_observaciones as eo on(eo.superado=0 and eo.elim=0 and eo.didEnvio = e.did) 
-                    LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = now() ${sqlchoferruteo} )
-                    LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%' )
+                    LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo} )
+                    LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did and rp.autofecha like '${hoy}%' )
                     LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
                     LEFT JOIN proximas_entregas as pe on ( pe.elim=0 AND pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}' )
                     ${leftjoinCliente}
@@ -255,8 +255,8 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN envios_direcciones_destino as edd on (edd.superado=0 and edd.elim=0 and edd.didEnvio=eh.didEnvio)
                       LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
                       LEFT JOIN envios_observaciones as eo on(eo.superado=0 and eo.elim=0 and eo.didEnvio = eh.didEnvio)
-                      LEFT JOIN ruteo as r ON(r.elim=0 and r.superado=0 and r.fechaOperativa = now() ${sqlchoferruteo})
-                      LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%')
+                      LEFT JOIN ruteo as r ON(r.elim=0 and r.superado=0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo})
+                      LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did and rp.autofecha like '${hoy}%')
                       LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
                       LEFT JOIN proximas_entregas as pe on (pe.elim=0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                       WHERE ea.superado=0 ${sqlduenio}
@@ -279,8 +279,8 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 LEFT JOIN envios_direcciones_destino as edd ON (edd.superado = 0 AND edd.elim = 0 AND edd.didEnvio = eh.didEnvio) 
                 LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did) 
                 LEFT JOIN envios_observaciones as eo ON (eo.superado = 0 AND eo.elim = 0 AND eo.didEnvio = eh.didEnvio) 
-                LEFT JOIN ruteo as r ON (r.elim = 0 AND r.superado = 0 AND r.fechaOperativa = NOW() ${sqlchoferruteo})
-                LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did AND rp.autofecha LIKE '${hoy}%')
+                LEFT JOIN ruteo as r ON (r.elim = 0 AND r.superado = 0 AND r.fechaOperativa = CURDATE() ${sqlchoferruteo})
+                LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did AND rp.autofecha LIKE '${hoy}%')
                 LEFT JOIN envios_cobranzas as ec ON (ec.elim = 0 AND ec.superado = 0 AND ec.didCampoCobranza = 4 AND e.did = ec.didEnvio)
                 LEFT JOIN proximas_entregas as pe on (pe.elim=0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                 WHERE ${lineaEnviosHistorial}
@@ -307,8 +307,8 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       LEFT JOIN envios_direcciones_destino as edd on (edd.superado=0 and edd.elim=0 and edd.didEnvio=eh.didEnvio) 
                       LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did) 
                       LEFT JOIN envios_observaciones as eo on(eo.superado=0 and eo.elim=0 and eo.didEnvio = eh.didEnvio) 
-                      LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = now() ${sqlchoferruteo} )
-                      LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.autofecha like '${hoy}%')
+                      LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo} )
+                      LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did and rp.autofecha like '${hoy}%')
                       LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
                       LEFT JOIN proximas_entregas as pe on ( pe.elim=0 and pe.didEnvio = e.did AND pe.fecha >= '${hoy}' )
                       WHERE eh.autofecha > '${hoy} 00:00:00' 
