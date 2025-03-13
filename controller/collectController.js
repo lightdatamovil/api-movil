@@ -77,7 +77,7 @@ export async function getRoute(company, userId) {
             client: client
         };
     } catch (error) {
-        console.error("Error en getRoute:", error);
+        logRed(`Error en getRoute: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -92,7 +92,7 @@ export async function startRoute(company) {
 
         return true;
     } catch (error) {
-        console.error("Error en startRoute:", error);
+        logRed(`Error en startRoute: ${error.message}`);
         throw error;
     }
 }
@@ -157,7 +157,7 @@ export async function saveRoute(company, date, userId, additionalRouteData, orde
 
         return;
     } catch (error) {
-        console.error("Error en saveRoute:", error);
+        logRed(`Error en saveRoute: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -185,7 +185,7 @@ export async function getCollectDetails(company) {
             dbConnection,
             `SELECT didCliente, didEnvio 
              FROM colecta_asignacion 
-             WHERE superado=0 AND elim=0 AND didChofer = ? AND fecha = ?`,
+             WHERE superado = 0 AND elim = 0 AND didChofer = ? AND fecha = ? `,
             [userId, date]
         );
 
@@ -208,7 +208,7 @@ export async function getCollectDetails(company) {
 
         return respuesta;
     } catch (error) {
-        console.error("Error en getCollectDetails:", error);
+        logRed(`Error en getCollectDetails: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -239,7 +239,7 @@ export async function shipmentsFromClient(company, date, clientId) {
 
         return shipmentsFromClient;
     } catch (error) {
-        console.error("Error en shipmentsFromClient:", error);
+        logRed(`Error en shipmentsFromClient: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -255,9 +255,9 @@ export async function getCollectList(company, userId, from, to) {
         const query = `
             SELECT fecha, COUNT(didEnvio) as total 
             FROM colecta_asignacion 
-            WHERE superado = 0 AND didChofer = ? AND elim = 0 AND fecha BETWEEN ? AND ? 
+            WHERE superado = 0 AND didChofer = ? AND elim = 0 AND fecha BETWEEN ? AND ?
             GROUP BY fecha
-        `;
+            `;
 
         const results = await executeQuery(dbConnection, query, [userId, from, to]);
 
@@ -278,12 +278,12 @@ export async function getSettlementList(company, from, to) {
 
     try {
         const sql = `
-            SELECT did, DATE_FORMAT(desde, '%d/%m/%Y') AS desde, total, 
-                   DATE_FORMAT(hasta, '%d/%m/%Y') AS hasta, DATE_FORMAT(fecha, '%d/%m/%Y') AS fecha
+            SELECT did, DATE_FORMAT(desde, '%d/%m/%Y') AS desde, total,
+            DATE_FORMAT(hasta, '%d/%m/%Y') AS hasta, DATE_FORMAT(fecha, '%d/%m/%Y') AS fecha
             FROM colecta_liquidaciones
             WHERE superado = 0 AND elim = 0 AND tipo = 2
             AND fecha BETWEEN ? AND ?
-        `;
+            `;
 
         const result = await executeQuery(dbConnection, sql, [from, to]);
 
@@ -297,7 +297,7 @@ export async function getSettlementList(company, from, to) {
 
         return settlementList;
     } catch (error) {
-        console.error("Error en getSettlementList:", error);
+        logRed(`Error en getSettlementList: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -336,7 +336,7 @@ export async function getSettlementDetails(company, settlementId) {
 
         return collectDetails;
     } catch (error) {
-        console.error("Error en getSettlementDetails:", error);
+        logRed(`Error en getSettlementDetails: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();

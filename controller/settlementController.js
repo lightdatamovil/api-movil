@@ -34,7 +34,7 @@ export async function getSettlementList(company, userId, from, to) {
             did: row.did * 1
         }));
     } catch (error) {
-        console.error("Error en getSettlementList:", error);
+        logRed(`Error en getSettlementList: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -60,12 +60,12 @@ export async function getSettlementDetails(company, settlementId) {
 
         const idLine = resultQueryLine.length > 0 ? resultQueryLine[0].idlineas : "";
 
-        const sql = `SELECT e.ml_shipment_id, e.didEnvioZona, e.flex, ce.chofer, e.did, 
-                        DATE_FORMAT(eh.fecha, '%d/%m/%Y') as fecha, eh.estado
+        const sql = `SELECT e.ml_shipment_id, e.didEnvioZona, e.flex, ce.chofer, e.did,
+            DATE_FORMAT(eh.fecha, '%d/%m/%Y') as fecha, eh.estado
                  FROM envios_historial AS eh 
-                 JOIN envios AS e ON e.elim=0 AND e.superado=0 AND e.did = eh.didEnvio
-                 JOIN costos_envios AS ce ON ce.elim=0 AND ce.superado=0 AND ce.didEnvio = e.did
-                 WHERE eh.id IN (${idLine})`;
+                 JOIN envios AS e ON e.elim = 0 AND e.superado = 0 AND e.did = eh.didEnvio
+                 JOIN costos_envios AS ce ON ce.elim = 0 AND ce.superado = 0 AND ce.didEnvio = e.did
+                 WHERE eh.id IN(${idLine})`;
 
         const results = await executeQuery(dbConnection, sql, []);
 
@@ -78,7 +78,7 @@ export async function getSettlementDetails(company, settlementId) {
             zona: zones[row.didEnvioZona] || "Zona desconocida"
         }));
     } catch (error) {
-        console.error("Error en getSettlementDetails:", error);
+        logRed(`Error en getSettlementDetails: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -94,15 +94,15 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
         const zones = await getZonesByCompany(company.did);
 
         const sql = `
-        SELECT e.did, ce.chofer, e.estado_envio, e.flex, e.didEnvioZona, 
-               DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha, cl.razon_social, 
-               edd.cp, CONCAT(edd.address_line, ' ', edd.localidad) as direccion, 
-               edd.destination_comments 
+        SELECT e.did, ce.chofer, e.estado_envio, e.flex, e.didEnvioZona,
+            DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha, cl.razon_social,
+            edd.cp, CONCAT(edd.address_line, ' ', edd.localidad) as direccion,
+            edd.destination_comments 
         FROM envios AS e 
-        LEFT JOIN costos_envios AS ce ON (ce.elim=0 AND ce.superado=0 AND ce.didEnvio = e.did) 
-        LEFT JOIN clientes AS cl ON (cl.elim=0 AND cl.superado=0 AND cl.did = e.didCliente) 
-        LEFT JOIN envios_direcciones_destino AS edd ON (edd.elim=0 AND edd.superado=0 AND edd.didEnvio = e.did) 
-        WHERE e.superado=0 AND e.elim=0 AND e.did = ?`;
+        LEFT JOIN costos_envios AS ce ON(ce.elim = 0 AND ce.superado = 0 AND ce.didEnvio = e.did) 
+        LEFT JOIN clientes AS cl ON(cl.elim = 0 AND cl.superado = 0 AND cl.did = e.didCliente) 
+        LEFT JOIN envios_direcciones_destino AS edd ON(edd.elim = 0 AND edd.superado = 0 AND edd.didEnvio = e.did) 
+        WHERE e.superado = 0 AND e.elim = 0 AND e.did = ? `;
 
         const resultados = await executeQuery(dbConnection, sql, [shipmentId]);
 
@@ -125,7 +125,7 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
             throw new Error("No se encontraron datos para el envío");
         }
     } catch (error) {
-        console.error("Error en getSettlementShipmentDetails:", error);
+        logRed(`Error en getSettlementShipmentDetails: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();

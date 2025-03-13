@@ -1,5 +1,6 @@
 import redis from 'redis';
 import mysql from 'mysql';
+import { logRed } from './src/funciones/logsCustom';
 
 export const redisClient = redis.createClient({
     socket: {
@@ -10,7 +11,7 @@ export const redisClient = redis.createClient({
 });
 
 redisClient.on('error', (err) => {
-    console.error('Error al conectar con Redis:', err);
+    logRed(`Error al conectar con Redis: ${err.message}`);
 });
 
 let companiesList = {};
@@ -44,7 +45,8 @@ async function loadCompaniesFromRedis() {
         companiesList = JSON.parse(companiesListString);
 
     } catch (error) {
-        console.error("Error en loadCompaniesFromRedis:", error);
+        logRed(`Error en loadCompaniesFromRedis: ${error.message}`);
+
         throw error;
     }
 }
@@ -59,14 +61,14 @@ export async function getCompanyById(companyId) {
 
                 company = companiesList[companyId];
             } catch (error) {
-                console.error("Error al cargar compañías desde Redis:", error);
+                logRed(`Error al cargar compañías desde Redis: ${error.message}`);
                 throw error;
             }
         }
 
         return company;
     } catch (error) {
-        console.error("Error en getCompanyById:", error);
+        logRed(`Error en getCompanyById: ${error.message}`);
         throw error;
     }
 }
@@ -79,7 +81,7 @@ export async function getCompanyByCode(companyCode) {
             try {
                 await loadCompaniesFromRedis();
             } catch (error) {
-                console.error("Error al cargar compañías desde Redis:", error);
+                logRed(`Error al cargar compañías desde Redis: ${error.message}`);
                 throw error;
             }
         }
@@ -96,7 +98,7 @@ export async function getCompanyByCode(companyCode) {
 
         return company;
     } catch (error) {
-        console.error("Error en getCompanyByCode:", error);
+        logRed(`Error en getCompanyByCode: ${error.message}`);
         throw error;
     }
 }
@@ -129,7 +131,7 @@ async function loadClients(dbConnection, companyId) {
 
         return clientList[companyId];
     } catch (error) {
-        console.error(`Error en getClients para la compañía ${companyId}:`, error);
+        logRed(`Error en getClients para la compañía ${companyId}: ${error.message}`);
         throw error;
     }
 }
@@ -144,14 +146,14 @@ export async function getClientsByCompany(dbConnection, company) {
 
                 companyClients = clientList[company.did];
             } catch (error) {
-                console.error("Error al cargar compañías desde Redis:", error);
+                logRed(`Error al cargar compañías desde Redis: ${error.message}`);
                 throw companyClients;
             }
         }
 
         return companyClients;
     } catch (error) {
-        console.error("Error en getZonesByCompany:", error);
+        logRed(`Error en getZonesByCompany: ${error.message}`);
         throw error;
     }
 }
@@ -186,7 +188,7 @@ async function loadZones(companyId) {
 
         return zonesByCompany;
     } catch (error) {
-        console.error("Error en getZones:", error);
+        logRed(`Error en getZones: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -203,14 +205,14 @@ export async function getZonesByCompany(companyId) {
 
                 zones = zoneList[companyId];
             } catch (error) {
-                console.error("Error al cargar compañías desde Redis:", error);
+                logRed(`Error al cargar compañías desde Redis: ${error.message}`);
                 throw error;
             }
         }
 
         return zones;
     } catch (error) {
-        console.error("Error en getZonesByCompany:", error);
+        logRed(`Error en getZonesByCompany: ${error.message}`);
         throw error;
     }
 }
@@ -242,7 +244,7 @@ async function loadDrivers(companies) {
                 };
             }
         } catch (error) {
-            console.error(`Error en getDrivers para la compañía ${companyId}:`, error);
+            logRed(`Error en getDrivers para la compañía ${companyId}: ${error.message}`);
             throw error;
         } finally {
             dbConnection.end();
@@ -262,21 +264,19 @@ export async function getDriversByCompany(companyId) {
 
                 drivers = driverList[companyId];
             } catch (error) {
-                console.error("Error al cargar compañías desde Redis:", error);
+                logRed(`Error al cargar compañías desde Redis: ${error.message}`);
                 throw drivers;
             }
         }
 
         return drivers;
     } catch (error) {
-        console.error("Error en getDriversByCompany:", error);
+        logRed(`Error en getDriversByCompany: ${error.message}`);
         throw error;
     }
 }
 
 export async function executeQuery(connection, query, values) {
-    // console.log("Query:", query);
-    // console.log("Values:", values);
     try {
         return new Promise((resolve, reject) => {
             connection.query(query, values, (err, results) => {
@@ -288,7 +288,7 @@ export async function executeQuery(connection, query, values) {
             });
         });
     } catch (error) {
-        console.error("Error en executeQuery:", error);
+        logRed(`Error en executeQuery: ${error.message}`);
         throw error;
     }
 }

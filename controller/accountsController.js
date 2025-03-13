@@ -68,7 +68,7 @@ export async function accountList(company, userId, profile) {
         return accountList;
 
     } catch (error) {
-        console.error("Error en accountList:", error);
+        logRed(`Error en accountList: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();

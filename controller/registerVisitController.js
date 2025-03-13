@@ -27,7 +27,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
 
         await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
     } catch (error) {
-        console.error("Error en uploadImage:", error);
+        logRed(`Error en uploadImage: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -139,7 +139,7 @@ export async function registerVisit(company, userId, shipmentId, recieverDNI, re
 
         return idInsertado;
     } catch (error) {
-        console.error("Error in register visit:", error);
+        logRed(`Error in register visit: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -154,7 +154,7 @@ async function getToken(clientId, accountId, companyId) {
 
         return data.trim();
     } catch (error) {
-        console.error("Error obteniendo token:", error);
+        logRed(`Error obteniendo token: ${error.message}`);
         throw error;
     }
 }
@@ -169,7 +169,7 @@ async function mlShipment(token, shipmentId) {
 
         return data;
     } catch (error) {
-        console.error("Error obteniendo datos de MercadoLibre:", error);
+        logRed(`Error obteniendo datos de MercadoLibre: ${error.message}`);
         throw error;
     }
 }

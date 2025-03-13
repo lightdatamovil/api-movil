@@ -94,7 +94,7 @@ export async function getRoutaByUserId(company, userId) {
             additionalRouteData: additionalRouteData,
         };
     } catch (error) {
-        console.error("Error en getRoutaByUserId:", error);
+        logRed(`Error en getRoutaByUserId: ${error.message}`);
         throw error;
     }
     finally {
@@ -110,7 +110,7 @@ export async function saveRoute(company, userId, operationDate, orders, distance
     try {
         const operationDateParts = operationDate.split('/');
 
-        const formattedOperationDate = `${operationDateParts[2]}-${operationDateParts[1]}-${operationDateParts[0]}`;
+        const formattedOperationDate = `${operationDateParts[2]} - ${operationDateParts[1]} - ${operationDateParts[0]}`;
 
         const date = new Date().toISOString().slice(0, 10);
 
@@ -147,7 +147,7 @@ export async function saveRoute(company, userId, operationDate, orders, distance
 
         return;
     } catch (error) {
-        console.error("Error en saveRoute:", error);
+        logRed(`Error en saveRoute: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -165,11 +165,11 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
 
         if (resultQuery.length > 0) {
 
-            const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude} , destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
+            const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude}, destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
 
             await executeQuery(dbConnection, queryUpdateShipment);
 
-            const queryUpdateAddress = `UPDATE envios_direcciones_destino SET latitud = ${latitude} , longitud = ${longitude}  WHERE didEnvio = ${shipmentId}`;
+            const queryUpdateAddress = `UPDATE envios_direcciones_destino SET latitud = ${latitude}, longitud = ${longitude}  WHERE didEnvio = ${shipmentId}`;
 
             await executeQuery(dbConnection, queryUpdateAddress);
 
@@ -178,7 +178,7 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
             throw new Error("El envío no existe");
         }
     } catch (error) {
-        console.error("Error en geolocalize:", error);
+        logRed(`Error en geolocalize: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();

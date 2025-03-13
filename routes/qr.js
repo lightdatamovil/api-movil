@@ -39,11 +39,7 @@ qr.post('/cross-docking', async (req, res) => {
     const { companyId, dataQr } = req.body;
 
     try {
-        console.log(companyId,"golasads");
-        
         const company = await getCompanyById(companyId);
-  
-        
 
         const response = await crossDocking(dataQr, company);
 
@@ -88,7 +84,7 @@ qr.post('/products-from-shipment', async (req, res) => {
 
         return res.json(response);
     } catch (error) {
-        console.error("Error en la ruta /detalle:", error);
+        logRed(`Error en la ruta /detalle: ${error.message}`);
         return res.status(500).json({ success: false, message: "Error interno del servidor." });
     }
 });

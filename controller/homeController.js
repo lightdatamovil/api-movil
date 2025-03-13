@@ -17,7 +17,7 @@ export async function verifyStartedRoute(company, userId) {
 
         return resultQueryCadetesMovimientos[0].tipo == 0;
     } catch (error) {
-        console.error("Error en verifyStartedRoute:", error);
+        logRed(`Error en verifyStartedRoute: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -59,7 +59,7 @@ export async function startRoute(company, userId) {
             await fsetestadoMasivoDesde(2, didEnvios, "APP Comenzar", dbConnection);
         }
     } catch (error) {
-        console.error("Error en startRoute:", error);
+        logRed(`Error en startRoute: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -70,18 +70,18 @@ async function fsetestadoMasivoDesde(estado, envios, desde, connection) {
     const fecha = new Date().toISOString().replace('T', ' ').substr(0, 19);
     await executeQuery(connection, `
         UPDATE envios_historial
-        SET superado=1
-        WHERE superado=0 AND didEnvio IN (${envios.join(',')})
-    `);
+        SET superado = 1
+        WHERE superado = 0 AND didEnvio IN(${envios.join(',')})
+            `);
     await executeQuery(connection, `
         UPDATE envios
-        SET estado_envio=?
-        WHERE superado=0 AND did IN (${envios.join(',')})
-    `, [estado]);
+        SET estado_envio =?
+            WHERE superado = 0 AND did IN(${envios.join(',')})
+            `, [estado]);
     await executeQuery(connection, `
-        INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
-        SELECT did, ?, 0, ?, 0, ? FROM envios WHERE did IN (${envios.join(',')})
-    `, [estado, fecha, desde]);
+        INSERT INTO envios_historial(didEnvio, estado, quien, fecha, didCadete, desde)
+        SELECT did, ?, 0, ?, 0, ?FROM envios WHERE did IN(${envios.join(',')})
+            `, [estado, fecha, desde]);
 }
 
 export async function endRoute(company, userId) {
@@ -97,7 +97,7 @@ export async function endRoute(company, userId) {
         const sqlUpdateRuteo = "UPDATE ruteo SET hs_finApp = ? WHERE superado = 0 AND elim = 0 AND didChofer = ?";
         await executeQuery(dbConnection, sqlUpdateRuteo, [ahora, userId]);
     } catch (error) {
-        console.error("Error en endRoute:", error);
+        logRed(`Error en endRoute: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();

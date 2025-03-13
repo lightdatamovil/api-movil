@@ -12,19 +12,20 @@ import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
+import { logBlue, logRed } from './src/funciones/logsCustom.js';
 
 const numCPUs = 2;
 const PORT = 13000;
 
 if (cluster.isMaster) {
-    console.log(`Proceso master ${process.pid} ejecutándose...`);
+    logBlue(`Proceso master ${process.pid} ejecutándose...`);
 
     for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
     }
 
     cluster.on('exit', (worker, code, signal) => {
-        console.log(`Worker ${worker.process.pid} murió, reiniciando...`);
+        logBlue(`Worker ${worker.process.pid} murió, reiniciando...`);
         cluster.fork();
     });
 } else {
@@ -63,10 +64,10 @@ if (cluster.isMaster) {
             app.use("/api/register-visit", registerVisitRoute)
 
             app.listen(PORT, () => {
-                console.log(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
+                logBlue(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
             });
         } catch (err) {
-            console.error('Error al iniciar el servidor:', err);
+            logRed('Error al iniciar el servidor:', err);
         }
     })();
 }

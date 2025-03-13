@@ -37,7 +37,7 @@ export async function editUser(company, userId, email, phone) {
 
         return;
     } catch (error) {
-        console.error("Error en editUser:", error);
+        logRed(`Error en editUser: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -50,7 +50,7 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
     dbConnection.connect();
 
     try {
-        const querySelectUsers = `SELECT * FROM sistema_usuarios WHERE superado=0 AND elim=0 AND did = ?`;
+        const querySelectUsers = `SELECT * FROM sistema_usuarios WHERE superado = 0 AND elim = 0 AND did = ? `;
         const resultSelectUsers = await executeQuery(dbConnection, querySelectUsers, [userId]);
 
         if (resultSelectUsers.length === 0) {
@@ -67,9 +67,9 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
             throw new Error("La nueva contraseña no puede ser igual a la anterior");
         }
 
-        const insertQuery = `INSERT INTO sistema_usuarios 
+        const insertQuery = `INSERT INTO sistema_usuarios
             (did, nombre, apellido, email, usuario, pass, bloqueado, imagen, fecha_inicio, empresa, sucursal, creado_por, habilitado, telefono, color_mapa, quien, identificador, direccion, inicio_ruta, lista_de_precios) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const insertValues = [
             userData.did, userData.nombre, userData.apellido, userData.email, userData.usuario, newPassword,
@@ -81,12 +81,12 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
         const resultInsert = await executeQuery(dbConnection, insertQuery, insertValues);
         const insertedId = resultInsert.insertId;
 
-        const updateQuery = `UPDATE sistema_usuarios SET superado=1 WHERE superado=0 AND elim=0 AND did = ? AND id != ?`;
+        const updateQuery = `UPDATE sistema_usuarios SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ? AND id != ? `;
         await executeQuery(dbConnection, updateQuery, [userId, insertedId]);
 
         return;
     } catch (error) {
-        console.error("Error en changePassword:", error);
+        logRed(`Error en changePassword: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();

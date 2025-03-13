@@ -9,7 +9,7 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
 
         return resultQueryEnviosAsignaciones.length > 0 ? true : false;
     } catch (error) {
-        console.error("Error en verifyAssignment:", error);
+        logRed(`Error en verifyAssignment: ${error.message}`);
         throw error;
     }
 };
@@ -20,7 +20,7 @@ function convertirFecha(fecha) {
     if (fechaObj) {
         const [, dia, mes, año] = fechaObj;
 
-        return `${año}-${mes}-${dia} 00:00:00`;
+        return `${año} - ${mes} - ${dia} 00:00:00`;
     } else {
         return "Fecha inválida";
     }
@@ -41,7 +41,7 @@ async function getHistorial(dbConnection, shipmentId) {
 
         return historial;
     } catch (error) {
-        console.error("Error en getHistorial:", error);
+        logRed(`Error en getHistorial: ${error.message}`);
         throw error;
     }
 }
@@ -64,7 +64,7 @@ async function getObservations(dbConnection, shipmentId) {
 
         return observations;
     } catch (error) {
-        console.error("Error en getObservations:", error);
+        logRed(`Error en getObservations: ${error.message}`);
         throw error;
     }
 }
@@ -88,7 +88,7 @@ async function getImages(dbConnection, shipmentId) {
 
         return images;
     } catch (error) {
-        console.error("Error en getImages:", error);
+        logRed(`Error en getImages: ${error.message}`);
         throw error;
     }
 }
@@ -104,7 +104,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
 
         return results[0];
     } catch (error) {
-        console.error("Error en shipmentInformation:", error);
+        logRed(`Error en shipmentInformation: ${error.message}`);
         throw error;
     }
 }
@@ -160,7 +160,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
         return detallesEnvio;
 
     } catch (error) {
-        console.error("Error en shipmentDetails:", error);
+        logRed(`Error en shipmentDetails: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -183,16 +183,16 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 FROM tablas_indices 
                 WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) 
                 ORDER BY id DESC;
-            `;
+        `;
 
         const rowss = await executeQuery(dbConnection, queryIndices, [hoy]);
 
         for (const row of rowss) {
-            lineaEnviosHistorial = `eh.id > ${row.envios_historial}`;
+            lineaEnviosHistorial = `eh.id > ${row.envios_historial} `;
         }
 
         if (!lineaEnviosHistorial) {
-            lineaEnviosHistorial = `eh.autofecha > ${from}`;
+            lineaEnviosHistorial = `eh.autofecha > ${from} `;
         }
 
         const clientes = await getClientsByCompany(company.did);
@@ -207,20 +207,20 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         let estadoAsignacion = "";
 
         if (profile == 2) {
-            leftjoinCliente = `LEFT JOIN sistema_usuarios_accesos as sua ON (sua.superado = 0 AND sua.elim = 0 AND sua.usuario= ${userId})`;
+            leftjoinCliente = `LEFT JOIN sistema_usuarios_accesos as sua ON(sua.superado = 0 AND sua.elim = 0 AND sua.usuario = ${userId})`;
             sqlduenio = "AND e.didCliente = sua.codigo_empleado";
         } else if (profile == 3) {
-            sqlduenio = `AND e.choferAsignado = ${userId}`;
-            sqlchoferruteo = ` AND r.didChofer = ${userId}`;
+            sqlduenio = `AND e.choferAsignado = ${userId} `;
+            sqlchoferruteo = ` AND r.didChofer = ${userId} `;
         }
 
-        const campos = `e.did as didEnvio, e.flex, e.ml_shipment_id, ROUND(e.destination_latitude, 8) as lat, 
-                        ec.valor as monto_total_a_cobrar, ROUND(e.destination_longitude, 8) AS lng, 
-                        e.destination_shipping_zip_code as cp, e.destination_city_name as localidad, 
-                        e.ml_venta_id, e.destination_shipping_address_line as address_line, 
-                        e.estado_envio, e.destination_comments, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
-                        e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, 
-                        e.choferAsignado,ei.valor, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, pe.id as proximaentregaId`;
+        const campos = `e.did as didEnvio, e.flex, e.ml_shipment_id, ROUND(e.destination_latitude, 8) as lat,
+            ec.valor as monto_total_a_cobrar, ROUND(e.destination_longitude, 8) AS lng,
+                e.destination_shipping_zip_code as cp, e.destination_city_name as localidad,
+                e.ml_venta_id, e.destination_shipping_address_line as address_line,
+                e.estado_envio, e.destination_comments, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
+                e.destination_receiver_name, e.destination_receiver_phone, e.didCliente,
+                e.choferAsignado, ei.valor, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, pe.id as proximaentregaId`;
 
         if (company.did == 4) {
             estadoAsignacion = ', e.estadoAsignacion';
@@ -230,59 +230,59 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
         if (dashboardValue == -1) {
             query = `SELECT ${campos} ${estadoAsignacion} FROM envios AS e 
-                    LEFT JOIN envios_historial as eh on (eh.superado=0 and eh.elim=0 and e.did = eh.didEnvio)
-                    LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
-                    LEFT JOIN envios_observaciones as eo on(eo.superado=0 and eo.elim=0 and eo.didEnvio = e.did) 
-                    LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo} )
-                    LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did and rp.autofecha like '${hoy}%' )
-                    LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
-                    LEFT JOIN proximas_entregas as pe on ( pe.elim=0 AND pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}' )
+                    LEFT JOIN envios_historial as eh on(eh.superado = 0 and eh.elim = 0 and e.did = eh.didEnvio)
+                    LEFT JOIN envios_logisticainversa AS ei ON(ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
+                    LEFT JOIN envios_observaciones as eo on(eo.superado = 0 and eo.elim = 0 and eo.didEnvio = e.did) 
+                    LEFT JOIN ruteo as r ON(r.elim = 0 and r.superado = 0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo})
+                    LEFT JOIN ruteo_paradas AS rp ON(rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo = r.did and rp.autofecha like '${hoy}%')
+                    LEFT JOIN envios_cobranzas as ec on(ec.elim = 0 and ec.superado = 0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
+                    LEFT JOIN proximas_entregas as pe on(pe.elim = 0 AND pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                     ${leftjoinCliente}
-                    WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > '${dateWithHour}' ${sqlduenio} and e.didCliente!=0 
+                    WHERE e.elim = 0 AND e.superado = 0 AND eh.autofecha > '${dateWithHour}' ${sqlduenio} and e.didCliente != 0 
                     ORDER BY rp.orden ASC`;
         } else if (dashboardValue == 1) {
-            query = `SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
-                      e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia, 
-                      e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
-                      e.destination_receiver_name, edd.address_line, edd.cp, edd.localidad, 
-                      e.destination_receiver_phone, edd.latitud as lat, edd.longitud as lng, 
-                      e.choferAsignado, ei.valor, edd.destination_comments, rp.orden, edd.provincia ${estadoAsignacion}
+            query = `SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial,
+            e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia,
+            e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
+            e.destination_receiver_name, edd.address_line, edd.cp, edd.localidad,
+            e.destination_receiver_phone, edd.latitud as lat, edd.longitud as lng,
+            e.choferAsignado, ei.valor, edd.destination_comments, rp.orden, edd.provincia ${estadoAsignacion}
                       FROM envios_asignaciones as ea
                       ${leftjoinCliente}
-                      LEFT JOIN envios_historial as eh on (eh.superado=0 and eh.elim=0 and ea.didEnvio = eh.didEnvio)
-                      LEFT JOIN envios as e ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
-                      LEFT JOIN clientes as c on (c.superado=0 and c.elim=0 and c.did=e.didCliente)
-                      LEFT JOIN envios_direcciones_destino as edd on (edd.superado=0 and edd.elim=0 and edd.didEnvio=eh.didEnvio)
-                      LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
-                      LEFT JOIN envios_observaciones as eo on(eo.superado=0 and eo.elim=0 and eo.didEnvio = eh.didEnvio)
-                      LEFT JOIN ruteo as r ON(r.elim=0 and r.superado=0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo})
-                      LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did and rp.autofecha like '${hoy}%')
-                      LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
-                      LEFT JOIN proximas_entregas as pe on (pe.elim=0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
-                      WHERE ea.superado=0 ${sqlduenio}
-                      AND ea.elim=0
+                      LEFT JOIN envios_historial as eh on(eh.superado = 0 and eh.elim = 0 and ea.didEnvio = eh.didEnvio)
+                      LEFT JOIN envios as e ON(e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
+                      LEFT JOIN clientes as c on(c.superado = 0 and c.elim = 0 and c.did = e.didCliente)
+                      LEFT JOIN envios_direcciones_destino as edd on(edd.superado = 0 and edd.elim = 0 and edd.didEnvio = eh.didEnvio)
+                      LEFT JOIN envios_logisticainversa AS ei ON(ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
+                      LEFT JOIN envios_observaciones as eo on(eo.superado = 0 and eo.elim = 0 and eo.didEnvio = eh.didEnvio)
+                      LEFT JOIN ruteo as r ON(r.elim = 0 and r.superado = 0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo})
+                      LEFT JOIN ruteo_paradas AS rp ON(rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo = r.did and rp.autofecha like '${hoy}%')
+                      LEFT JOIN envios_cobranzas as ec on(ec.elim = 0 and ec.superado = 0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
+                      LEFT JOIN proximas_entregas as pe on(pe.elim = 0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
+                      WHERE ea.superado = 0 ${sqlduenio}
+                      AND ea.elim = 0
                       AND ea.autofecha > '${hoy} 00:00:00'
                       GROUP BY ea.didEnvio`;
         } else if (dashboardValue == 2 || dashboardValue == 4) {
             query = `
-                SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, 
-                       e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia, 
-                       e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
-                       e.destination_receiver_name, edd.address_line, edd.cp, edd.localidad, 
-                       e.destination_receiver_phone, edd.latitud as lat, edd.longitud as lng, 
-                       e.choferAsignado, ei.valor, edd.destination_comments, rp.orden, edd.provincia 
+                SELECT eh.didEnvio, e.flex, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial,
+            e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia,
+            e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
+            e.destination_receiver_name, edd.address_line, edd.cp, edd.localidad,
+            e.destination_receiver_phone, edd.latitud as lat, edd.longitud as lng,
+            e.choferAsignado, ei.valor, edd.destination_comments, rp.orden, edd.provincia 
                        ${estadoAsignacion}
                 FROM envios_historial as eh
                 ${leftjoinCliente}
-                LEFT JOIN envios as e ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did) 
-                LEFT JOIN clientes as c ON (c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente) 
-                LEFT JOIN envios_direcciones_destino as edd ON (edd.superado = 0 AND edd.elim = 0 AND edd.didEnvio = eh.didEnvio) 
-                LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did) 
-                LEFT JOIN envios_observaciones as eo ON (eo.superado = 0 AND eo.elim = 0 AND eo.didEnvio = eh.didEnvio) 
-                LEFT JOIN ruteo as r ON (r.elim = 0 AND r.superado = 0 AND r.fechaOperativa = CURDATE() ${sqlchoferruteo})
-                LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did AND rp.autofecha LIKE '${hoy}%')
-                LEFT JOIN envios_cobranzas as ec ON (ec.elim = 0 AND ec.superado = 0 AND ec.didCampoCobranza = 4 AND e.did = ec.didEnvio)
-                LEFT JOIN proximas_entregas as pe on (pe.elim=0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
+                LEFT JOIN envios as e ON(e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did) 
+                LEFT JOIN clientes as c ON(c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente) 
+                LEFT JOIN envios_direcciones_destino as edd ON(edd.superado = 0 AND edd.elim = 0 AND edd.didEnvio = eh.didEnvio) 
+                LEFT JOIN envios_logisticainversa AS ei ON(ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did) 
+                LEFT JOIN envios_observaciones as eo ON(eo.superado = 0 AND eo.elim = 0 AND eo.didEnvio = eh.didEnvio) 
+                LEFT JOIN ruteo as r ON(r.elim = 0 AND r.superado = 0 AND r.fechaOperativa = CURDATE() ${sqlchoferruteo})
+                LEFT JOIN ruteo_paradas AS rp ON(rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo = r.did AND rp.autofecha LIKE '${hoy}%')
+                LEFT JOIN envios_cobranzas as ec ON(ec.elim = 0 AND ec.superado = 0 AND ec.didCampoCobranza = 4 AND e.did = ec.didEnvio)
+                LEFT JOIN proximas_entregas as pe on(pe.elim = 0 and pe.superado = 0 AND pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                 WHERE ${lineaEnviosHistorial}
                 AND eh.superado = 0
                 AND eh.elim = 0
@@ -292,33 +292,33 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 ${sqlduenio}
                 GROUP BY eh.didEnvio
                 ORDER BY rp.orden ASC;
-            `;
+        `;
         } else if (dashboardValue == 0 || dashboardValue == 3) {
-            query = `SELECT eh.didEnvio, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, e.flex, 
-                      e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia, 
-                      e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio, 
-                      e.destination_receiver_name, edd.address_line, edd.cp, edd.localidad, 
-                      e.destination_receiver_phone, edd.latitud as lat, edd.longitud as lng, 
-                      e.choferAsignado, ei.valor, edd.destination_comments, rp.orden, edd.provincia ${estadoAsignacion} 
+            query = `SELECT eh.didEnvio, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial, e.flex,
+            e.didCliente, e.ml_shipment_id, e.ml_venta_id, e.estado_envio, c.nombre_fantasia,
+            e.didCliente, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
+            e.destination_receiver_name, edd.address_line, edd.cp, edd.localidad,
+            e.destination_receiver_phone, edd.latitud as lat, edd.longitud as lng,
+            e.choferAsignado, ei.valor, edd.destination_comments, rp.orden, edd.provincia ${estadoAsignacion} 
                       FROM envios_historial as eh
                       ${leftjoinCliente}
-                      LEFT JOIN envios as e ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did) 
-                      LEFT JOIN clientes as c on (c.superado=0 and c.elim=0 and c.did=e.didCliente) 
-                      LEFT JOIN envios_direcciones_destino as edd on (edd.superado=0 and edd.elim=0 and edd.didEnvio=eh.didEnvio) 
-                      LEFT JOIN envios_logisticainversa AS ei ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did) 
-                      LEFT JOIN envios_observaciones as eo on(eo.superado=0 and eo.elim=0 and eo.didEnvio = eh.didEnvio) 
-                      LEFT JOIN ruteo as r ON( r.elim=0 and r.superado=0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo} )
-                      LEFT JOIN ruteo_paradas AS rp ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo=r.did and rp.autofecha like '${hoy}%')
-                      LEFT JOIN envios_cobranzas as ec on ( ec.elim=0 and ec.superado=0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
-                      LEFT JOIN proximas_entregas as pe on ( pe.elim=0 and pe.didEnvio = e.did AND pe.fecha >= '${hoy}' )
+                      LEFT JOIN envios as e ON(e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did) 
+                      LEFT JOIN clientes as c on(c.superado = 0 and c.elim = 0 and c.did = e.didCliente) 
+                      LEFT JOIN envios_direcciones_destino as edd on(edd.superado = 0 and edd.elim = 0 and edd.didEnvio = eh.didEnvio) 
+                      LEFT JOIN envios_logisticainversa AS ei ON(ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did) 
+                      LEFT JOIN envios_observaciones as eo on(eo.superado = 0 and eo.elim = 0 and eo.didEnvio = eh.didEnvio) 
+                      LEFT JOIN ruteo as r ON(r.elim = 0 and r.superado = 0 and r.fechaOperativa = CURDATE() ${sqlchoferruteo})
+                      LEFT JOIN ruteo_paradas AS rp ON(rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did and rp.didRuteo = r.did and rp.autofecha like '${hoy}%')
+                      LEFT JOIN envios_cobranzas as ec on(ec.elim = 0 and ec.superado = 0 and ec.didCampoCobranza = 4 and e.did = ec.didEnvio)
+                      LEFT JOIN proximas_entregas as pe on(pe.elim = 0 and pe.didEnvio = e.did AND pe.fecha >= '${hoy}')
                       WHERE eh.autofecha > '${hoy} 00:00:00' 
-                      AND eh.superado=0
-                      AND eh.elim=0
+                      AND eh.superado = 0
+                      AND eh.elim = 0
                       AND e.elim = 0
                       AND e.superado = 0
                       ${sqlduenio}
-                      AND e.didCliente!=0 
-                      AND e.didCliente!='null'
+                      AND e.didCliente != 0 
+                      AND e.didCliente != 'null'
                       GROUP BY eh.didEnvio
                       ORDER BY rp.orden ASC`;
         }
@@ -354,7 +354,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 estadoAsignacion: estadoAsignacion * 1,
                 nombreDestinatario: row.destination_receiver_name,
                 direccion1: row.address_line,
-                direccion2: `CP ${row.cp}, ${row.localidad}`,
+                direccion2: `CP ${row.cp}, ${row.localidad} `,
                 provincia: row.provincia || 'Sin provincia',
                 telefono: row.destination_receiver_phone,
                 lat: lat,
@@ -374,7 +374,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
         return lista;
     } catch (error) {
-        console.error("Error en shipmentList", error);
+        logRed(`Error en shipmentList: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -391,7 +391,7 @@ export async function nextDeliver(company, shipmentId, date, userId) {
 
         await executeQuery(dbConnection, query, [shipmentId, date, userId]);
     } catch (error) {
-        console.error("Error en nextDeliver:", error);
+        logRed(`Error en nextDeliver: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();

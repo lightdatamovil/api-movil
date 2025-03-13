@@ -3,12 +3,9 @@ import mysql from 'mysql';
 import axios from 'axios';
 
 export async function crossDocking(dataQr, company) {
-    console.log(company,"goa");
-    
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
-    console.log(dbConfig);
-    
+
     dbConnection.connect();
 
     try {
@@ -66,7 +63,7 @@ export async function crossDocking(dataQr, company) {
             success: true,
         };
     } catch (error) {
-        console.error("Error en crossDocking:", error);
+        logRed(`Error en crossDocking: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -113,7 +110,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
         return shipmentId;
     } catch (error) {
-        console.error("Error en getShipmentIdFromQr:", error);
+        logRed(`Error en getShipmentIdFromQr: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -128,7 +125,12 @@ export async function driverList(company) {
     try {
         var driverList = [];
 
-        const query = "SELECT u.did, concat( u.nombre,' ', u.apellido) as nombre FROM `sistema_usuarios` as u JOIN sistema_usuarios_accesos as a on ( a.elim=0 and a.superado=0 and a.usuario = u.did) where u.elim=0 and u.superado=0 and a.perfil=3 ORDER BY nombre ASC";
+        const query = `
+            SELECT u.did, concat(u.nombre, ' ', u.apellido) as nombre
+            FROM sistema_usuarios as u JOIN sistema_usuarios_accesos as a on(a.elim = 0 and a.superado = 0 and a.usuario = u.did)
+            where u.elim = 0 and u.superado = 0 and a.perfil IN(3, 6)
+            ORDER BY nombre ASC
+            `;
 
         const results = await executeQuery(dbConnection, query, []);
 
@@ -145,7 +147,7 @@ export async function driverList(company) {
 
         return driverList;
     } catch (error) {
-        console.error("Error en driverList:", error);
+        logRed(`Error en driverList: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -169,7 +171,7 @@ export async function enterFlex(company, dataQr, userId) {
             SELECT didCliente, did FROM clientes_cuentas 
             WHERE superado = 0 AND elim = 0 AND tipoCuenta = 1 AND ML_id_vendedor = ?
             ORDER BY didCliente ASC
-        `;
+            `;
 
         const clientResult = await executeQuery(dbConnection, clienteQuery, [mlSellerId]);
 
@@ -183,7 +185,7 @@ export async function enterFlex(company, dataQr, userId) {
         const envioQuery = `
             SELECT did, estado FROM envios 
             WHERE superado = 0 AND elim = 0 AND ml_shipment_id = ? AND ml_vendedor_id = ?
-        `;
+            `;
 
         const envioResult = await executeQuery(dbConnection, envioQuery, [mlShipmentId, mlSellerId]);
 
@@ -200,9 +202,9 @@ export async function enterFlex(company, dataQr, userId) {
             let shipmentId = 0;
 
             const insertEnvioQuery = `
-                INSERT INTO envios (did, ml_shipment_id, ml_vendedor_id, didCliente, quien, lote, fecha_despacho, didCuenta, ml_qr_seguridad, fecha_inicio, fechaunix) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
+                INSERT INTO envios(did, ml_shipment_id, ml_vendedor_id, didCliente, quien, lote, fecha_despacho, didCuenta, ml_qr_seguridad, fecha_inicio, fechaunix) 
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
 
             const insertResult = await executeQuery(dbConnection, insertEnvioQuery, [
                 shipmentId, mlShipmentId, mlSellerId, clientId, userId, lote, fecha_despacho, accountId, ml_qr_seguridad, fecha_inicio, fechaunix
@@ -216,10 +218,10 @@ export async function enterFlex(company, dataQr, userId) {
             pudeguardar = true;
 
             const updateEnvioQuery = `
-                    UPDATE envios SET did = ? 
-                    WHERE superado = 0 AND elim = 0 AND id = ? AND ml_vendedor_id = ? AND ml_shipment_id = ? 
-                    LIMIT 1
-                `;
+                    UPDATE envios SET did = ?
+            WHERE superado = 0 AND elim = 0 AND id = ? AND ml_vendedor_id = ? AND ml_shipment_id = ?
+                LIMIT 1
+            `;
 
             await executeQuery(dbConnection, updateEnvioQuery, [shipmentId, shipmentId, mlSellerId, mlShipmentId]);
 
@@ -228,7 +230,7 @@ export async function enterFlex(company, dataQr, userId) {
             const perfilQuery = `
                     SELECT perfil FROM sistema_usuarios_accesos 
                     WHERE superado = 0 AND elim = 0 AND usuario = ?
-                `;
+            `;
 
             const perfilResult = await executeQuery(dbConnection, perfilQuery, [userId]);
 
@@ -265,7 +267,7 @@ export async function enterFlex(company, dataQr, userId) {
             }
         }
     } catch (error) {
-        console.error("Error en enterFlex:", error);
+        logRed(`Error en enterFlex: ${error.message}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -279,7 +281,7 @@ async function setShipmentState(dbConnection, shipmentId, shipmentState, userId)
             SELECT estado FROM envios_historial 
             WHERE didEnvio = ? AND superado = 0 AND elim = 0 
             LIMIT 1
-        `;
+            `;
 
         const estadoActualResult = await executeQuery(dbConnection, estadoActualQuery, [shipmentId]);
 
@@ -296,9 +298,9 @@ async function setShipmentState(dbConnection, shipmentId, shipmentState, userId)
 
             const updateEnviosQuery = `
                 UPDATE envios 
-                SET estado_envio = ? 
-                WHERE superado = 0 AND did = ?
-            `;
+                SET estado_envio = ?
+            WHERE superado = 0 AND did = ?
+                `;
 
             await executeQuery(dbConnection, updateEnviosQuery, [shipmentState, shipmentId]);
 
@@ -314,16 +316,16 @@ async function setShipmentState(dbConnection, shipmentId, shipmentState, userId)
             const date = new Date().toISOString().slice(0, 19);
 
             const insertHistorialQuery = `
-                INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete) 
-                VALUES (?, ?, ?, ?, ?)
-            `;
+                INSERT INTO envios_historial(didEnvio, estado, quien, fecha, didCadete) 
+                VALUES(?, ?, ?, ?, ?)
+                `;
 
             await executeQuery(dbConnection, insertHistorialQuery, [shipmentId, shipmentState, userId, date, driverId]);
         }
 
         return;
     } catch (error) {
-        console.error("Error en setShipmentState:", error);
+        logRed(`Error en setShipmentState: ${error.message}`);
         throw error;
     }
 }
@@ -369,7 +371,7 @@ async function setDispatchDate(dbConnection, clientId) {
 
         return now.toISOString().split("T")[0];
     } catch (error) {
-        console.error("Error en setDispatchDate:", error);
+        logRed(`Error en setDispatchDate: ${error.message}`);
         throw error;
     }
 }
@@ -380,14 +382,14 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
 
         const query = `
             UPDATE envios 
-            SET quien_retiro = ?, quien_retiro_fecha = ? 
-            WHERE superado = 0 AND elim = 0 AND did = ? 
-        `;
+            SET quien_retiro = ?, quien_retiro_fecha = ?
+            WHERE superado = 0 AND elim = 0 AND did = ?
+                `;
 
         await executeQuery(dbConnection, query, [userId, now, driverId]);
 
     } catch (error) {
-        console.error("Error en updateWhoPickedUp:", error);
+        logRed(`Error en updateWhoPickedUp: ${error.message}`);
         throw error;
     }
 }
@@ -465,7 +467,7 @@ async function getShipmentDetails(shipmentId, token) {
 
         return response.data;
     } catch (error) {
-        console.error("Error obteniendo detalles del envío:", error.response?.data || error.message);
+        logRed(`Error obteniendo detalles del envío: ${error.message}`);
         throw error;
     }
 }
