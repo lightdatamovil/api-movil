@@ -3,10 +3,12 @@ import { getCompanyById } from '../db.js';
 import { editUser, changePassword, changeProfilePicture } from '../controller/usersController.js';
 import { createHash } from 'crypto';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
+import { logRed } from '../src/funciones/logsCustom.js';
 
 const users = Router();
 
 users.post('/edit-user', async (req, res) => {
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, ['email', 'phone'], true);
 
     if (mensajeError) {
@@ -20,14 +22,18 @@ users.post('/edit-user', async (req, res) => {
 
         const result = await editUser(company, userId, email, phone);
 
-        return res.status(200).json({ body: result, message: "Datos insertados correctamente" });
+        res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        logRed(`Error en edit-user: ${error.message}`);
+        res.status(500).json({ message: error.message });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
 users.post('/change-password', async (req, res) => {
-
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, ['oldPassword', 'newPassword'], true);
 
     if (mensajeError) {
@@ -45,13 +51,18 @@ users.post('/change-password', async (req, res) => {
 
         const result = await changePassword(company, userId, oldPasswordHash, newPasswordHash);
 
-        return res.status(200).json({ body: result, message: "Datos insertados correctamente" });
+        res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        logRed(`Error en change-password: ${error.message}`);
+        res.status(500).json({ message: error.message });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
 users.post('/change-profile-picture', async (req, res) => {
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, ['image'], true);
 
     if (mensajeError) {
@@ -65,9 +76,13 @@ users.post('/change-profile-picture', async (req, res) => {
 
         const result = await changeProfilePicture(company, userId, profile, image);
 
-        return res.status(200).json({ body: result, message: "Datos insertados correctamente" });
+        res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
-        return res.status(500).json({ message: error.message });
+        logRed(`Error en change-profile-picture: ${error.message}`);
+        res.status(500).json({ message: error.message });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 

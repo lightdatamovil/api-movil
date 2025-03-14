@@ -3,11 +3,12 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import express from 'express';
 import { getShipmentIdFromQr, crossDocking, driverList, enterFlex, getProductsFromShipment } from "../controller/qrController.js";
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
+import { logRed } from '../src/funciones/logsCustom.js';
 
 const qr = express.Router();
 
 qr.post('/driver-list', verifyToken, async (req, res) => {
-
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, [], true);
 
     if (mensajeError) {
@@ -25,11 +26,16 @@ qr.post('/driver-list', verifyToken, async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
     } catch (error) {
+        logRed(`Error en la ruta /listadochoferes: ${error.message}`);
         res.status(500).json({ message: error.message });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
 qr.post('/cross-docking', async (req, res) => {
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
 
     if (mensajeError) {
@@ -45,11 +51,16 @@ qr.post('/cross-docking', async (req, res) => {
 
         res.status(200).json(response);
     } catch (error) {
+        logRed(`Error en la ruta /cross-docking: ${error.message}`);
         res.status(500).json({ message: error.message });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
 qr.post('/get-shipment-id', async (req, res) => {
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
 
     if (mensajeError) {
@@ -65,12 +76,16 @@ qr.post('/get-shipment-id', async (req, res) => {
 
         res.status(200).json({ success: true, body: response, message: "Datos obtenidos correctamente" });
     } catch (error) {
+        logRed(`Error en la ruta /get-shipment-id: ${error.message}`);
         res.status(500).json({ message: error.message });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
 qr.post('/products-from-shipment', async (req, res) => {
-
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
 
     if (mensajeError) {
@@ -85,12 +100,15 @@ qr.post('/products-from-shipment', async (req, res) => {
         return res.json(response);
     } catch (error) {
         logRed(`Error en la ruta /detalle: ${error.message}`);
-        return res.status(500).json({ success: false, message: "Error interno del servidor." });
+        res.status(500).json({ success: false, message: "Error interno del servidor." });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
 qr.post('/enter-flex', verifyToken, async (req, res) => {
-
+    const startTime = performance.now();
     const mensajeError = verifyParamaters(req.body, ['dataQr'], true);
 
     if (mensajeError) {
@@ -108,7 +126,11 @@ qr.post('/enter-flex', verifyToken, async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
     } catch (error) {
+        logRed(`Error en la ruta /enter-flex: ${error.message}`);
         res.status(500).json({ message: error.message });
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 

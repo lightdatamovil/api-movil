@@ -3,10 +3,12 @@ import { getCompanyById } from '../db.js';
 import { Router } from 'express';
 import { accountList } from '../controller/accountsController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
+import { logRed } from '../src/funciones/logsCustom.js';
 
 const accounts = Router();
 
 accounts.post('/account-list', verifyToken, async (req, res) => {
+	const startTime = performance.now();
 	const mensajeError = verifyParamaters(req.body, ['username', 'password', 'companyId']);
 
 	if (mensajeError) {
@@ -21,7 +23,11 @@ accounts.post('/account-list', verifyToken, async (req, res) => {
 
 		res.status(200).json({ body: result, message: "Lista de cuentas obtenida correctamente" });
 	} catch (error) {
+		logRed(`Error en account-list: ${error.message}`);
 		res.status(500).json({ message: error.message });
+	} finally {
+		const endTime = performance.now();
+		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
 	}
 });
 
