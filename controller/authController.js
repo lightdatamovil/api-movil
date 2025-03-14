@@ -25,7 +25,7 @@ export async function login(username, password, company) {
     dbConnection.connect();
 
     try {
-        const depotQuery = "SELECT latitud,longitud FROM `depositos` where did = 1";
+        const depotQuery = "SELECT latitud, longitud FROM `depositos` where did = 1";
 
         const resultsFromDepotQuery = await executeQuery(dbConnection, depotQuery, []);
 
