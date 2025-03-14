@@ -91,7 +91,7 @@ export async function login(username, password, company) {
         };
 
     } catch (error) {
-        logRed(`Error en login: ${error.message}`);
+        logRed(`Error en login: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -119,7 +119,7 @@ export async function identification(company) {
         };
 
     } catch (error) {
-        logRed(`Error en identification: ${error.message}`);
+        logRed(`Error en identification: ${error.stack}`);
         throw error;
     }
 }
@@ -142,7 +142,7 @@ export async function whatsappMessagesList(company) {
 
         return whatsappMessagesList;
     } catch (error) {
-        logRed(`Error en whatsappMessagesList: ${error.message}`);
+        logRed(`Error en whatsappMessagesList: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

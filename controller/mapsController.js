@@ -95,7 +95,7 @@ export async function getRoutaByUserId(company, userId) {
             additionalRouteData: additionalRouteData,
         };
     } catch (error) {
-        logRed(`Error en getRoutaByUserId: ${error.message}`);
+        logRed(`Error en getRoutaByUserId: ${error.stack}`);
         throw error;
     }
     finally {
@@ -148,7 +148,7 @@ export async function saveRoute(company, userId, operationDate, orders, distance
 
         return;
     } catch (error) {
-        logRed(`Error en saveRoute: ${error.message}`);
+        logRed(`Error en saveRoute: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -179,7 +179,7 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
             throw new Error("El envío no existe");
         }
     } catch (error) {
-        logRed(`Error en geolocalize: ${error.message}`);
+        logRed(`Error en geolocalize: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

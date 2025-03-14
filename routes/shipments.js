@@ -24,8 +24,8 @@ shipments.post('/shipment-list', async (req, res) => {
 
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    logRed(`Error en shipment-list: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    logRed(`Error en shipment-list: ${error.stack}`);
+    res.status(500).json({ message: error.stack });
   } finally {
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -49,8 +49,8 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    logRed(`Error en shipment-details: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    logRed(`Error en shipment-details: ${error.stack}`);
+    res.status(500).json({ message: error.stack });
   } finally {
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -74,8 +74,8 @@ shipments.post("/next-visit", verifyToken, async (req, res) => {
 
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    logRed(`Error en next-visit: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    logRed(`Error en next-visit: ${error.stack}`);
+    res.status(500).json({ message: error.stack });
   } finally {
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);

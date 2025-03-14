@@ -78,7 +78,7 @@ export async function getRoute(company, userId) {
             client: client
         };
     } catch (error) {
-        logRed(`Error en getRoute: ${error.message}`);
+        logRed(`Error en getRoute: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -93,7 +93,7 @@ export async function startRoute(company) {
 
         return true;
     } catch (error) {
-        logRed(`Error en startRoute: ${error.message}`);
+        logRed(`Error en startRoute: ${error.stack}`);
         throw error;
     }
 }
@@ -158,7 +158,7 @@ export async function saveRoute(company, date, userId, additionalRouteData, orde
 
         return;
     } catch (error) {
-        logRed(`Error en saveRoute: ${error.message}`);
+        logRed(`Error en saveRoute: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -209,7 +209,7 @@ export async function getCollectDetails(company) {
 
         return respuesta;
     } catch (error) {
-        logRed(`Error en getCollectDetails: ${error.message}`);
+        logRed(`Error en getCollectDetails: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -240,7 +240,7 @@ export async function shipmentsFromClient(company, date, clientId) {
 
         return shipmentsFromClient;
     } catch (error) {
-        logRed(`Error en shipmentsFromClient: ${error.message}`);
+        logRed(`Error en shipmentsFromClient: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -298,7 +298,7 @@ export async function getSettlementList(company, from, to) {
 
         return settlementList;
     } catch (error) {
-        logRed(`Error en getSettlementList: ${error.message}`);
+        logRed(`Error en getSettlementList: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -337,7 +337,7 @@ export async function getSettlementDetails(company, settlementId) {
 
         return collectDetails;
     } catch (error) {
-        logRed(`Error en getSettlementDetails: ${error.message}`);
+        logRed(`Error en getSettlementDetails: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

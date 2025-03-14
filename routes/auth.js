@@ -27,8 +27,8 @@ auth.post('/company-identification', async (req, res) => {
 
         res.status(200).json({ body: result, message: "Empresa identificada correctamente" });
     } catch (error) {
-        logRed(`Error en company-identification: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en company-identification: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -55,8 +55,8 @@ auth.post('/login', async (req, res) => {
         res.status(200).json({ body: result, message: "Usuario logueado correctamente" });
 
     } catch (error) {
-        logRed(`Error en login: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en login: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);

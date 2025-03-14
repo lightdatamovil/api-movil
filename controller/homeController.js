@@ -18,7 +18,7 @@ export async function verifyStartedRoute(company, userId) {
 
         return resultQueryCadetesMovimientos[0].tipo == 0;
     } catch (error) {
-        logRed(`Error en verifyStartedRoute: ${error.message}`);
+        logRed(`Error en verifyStartedRoute: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -60,7 +60,7 @@ export async function startRoute(company, userId) {
             await fsetestadoMasivoDesde(2, didEnvios, "APP Comenzar", dbConnection);
         }
     } catch (error) {
-        logRed(`Error en startRoute: ${error.message}`);
+        logRed(`Error en startRoute: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -98,7 +98,7 @@ export async function endRoute(company, userId) {
         const sqlUpdateRuteo = "UPDATE ruteo SET hs_finApp = ? WHERE superado = 0 AND elim = 0 AND didChofer = ?";
         await executeQuery(dbConnection, sqlUpdateRuteo, [ahora, userId]);
     } catch (error) {
-        logRed(`Error en endRoute: ${error.message}`);
+        logRed(`Error en endRoute: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -253,7 +253,7 @@ export async function obtenerDatosEmpresa(company, userId, profile) {
         return infoADevolver;
 
     } catch (error) {
-        logRed(`Error en obtenerDatosEmpresa: ${error.message}`);
+        logRed(`Error en obtenerDatosEmpresa: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

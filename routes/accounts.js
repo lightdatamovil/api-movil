@@ -23,8 +23,8 @@ accounts.post('/account-list', verifyToken, async (req, res) => {
 
 		res.status(200).json({ body: result, message: "Lista de cuentas obtenida correctamente" });
 	} catch (error) {
-		logRed(`Error en account-list: ${error.message}`);
-		res.status(500).json({ message: error.message });
+		logRed(`Error en account-list: ${error.stack}`);
+		res.status(500).json({ message: error.stack });
 	} finally {
 		const endTime = performance.now();
 		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);

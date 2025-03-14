@@ -24,8 +24,8 @@ users.post('/edit-user', async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
-        logRed(`Error en edit-user: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en edit-user: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -53,8 +53,8 @@ users.post('/change-password', async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
-        logRed(`Error en change-password: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en change-password: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -78,8 +78,8 @@ users.post('/change-profile-picture', async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
-        logRed(`Error en change-profile-picture: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en change-profile-picture: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);

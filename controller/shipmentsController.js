@@ -1,6 +1,6 @@
 import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../db.js';
 import mysql from 'mysql';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -10,7 +10,7 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
 
         return resultQueryEnviosAsignaciones.length > 0 ? true : false;
     } catch (error) {
-        logRed(`Error en verifyAssignment: ${error.message}`);
+        logRed(`Error en verifyAssignment: ${error.stack}`);
         throw error;
     }
 };
@@ -21,7 +21,7 @@ function convertirFecha(fecha) {
     if (fechaObj) {
         const [, dia, mes, año] = fechaObj;
 
-        return `${año} - ${mes} - ${dia} 00:00:00`;
+        return `${año}-${mes}-${dia} 00:00:00`;
     } else {
         return "Fecha inválida";
     }
@@ -42,7 +42,7 @@ async function getHistorial(dbConnection, shipmentId) {
 
         return historial;
     } catch (error) {
-        logRed(`Error en getHistorial: ${error.message}`);
+        logRed(`Error en getHistorial: ${error.stack}`);
         throw error;
     }
 }
@@ -65,7 +65,7 @@ async function getObservations(dbConnection, shipmentId) {
 
         return observations;
     } catch (error) {
-        logRed(`Error en getObservations: ${error.message}`);
+        logRed(`Error en getObservations: ${error.stack}`);
         throw error;
     }
 }
@@ -89,7 +89,7 @@ async function getImages(dbConnection, shipmentId) {
 
         return images;
     } catch (error) {
-        logRed(`Error en getImages: ${error.message}`);
+        logRed(`Error en getImages: ${error.stack}`);
         throw error;
     }
 }
@@ -105,7 +105,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
 
         return results[0];
     } catch (error) {
-        logRed(`Error en shipmentInformation: ${error.message}`);
+        logRed(`Error en shipmentInformation: ${error.stack}`);
         throw error;
     }
 }
@@ -161,7 +161,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
         return detallesEnvio;
 
     } catch (error) {
-        logRed(`Error en shipmentDetails: ${error.message}`);
+        logRed(`Error en shipmentDetails: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -178,7 +178,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         let lineaEnviosHistorial;
 
         const hoy = new Date().toISOString().slice(0, 10);
-
+        logYellow(`hoy: ${hoy}`);
         const queryIndices = `
                 SELECT envios, envios_historial, fecha 
                 FROM tablas_indices 
@@ -196,9 +196,9 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             lineaEnviosHistorial = `eh.autofecha > ${from} `;
         }
 
-        const clientes = await getClientsByCompany(company.did);
+        const clientes = await getClientsByCompany(dbConnection, company.did);
 
-        const drivers = await getDriversByCompany(company.did);
+        const drivers = await getDriversByCompany(dbConnection, company.did);
 
         const dateWithHour = convertirFecha(from);
 
@@ -375,7 +375,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
         return lista;
     } catch (error) {
-        logRed(`Error en shipmentList: ${error.message}`);
+        logRed(`Error en shipmentList: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -392,7 +392,7 @@ export async function nextDeliver(company, shipmentId, date, userId) {
 
         await executeQuery(dbConnection, query, [shipmentId, date, userId]);
     } catch (error) {
-        logRed(`Error en nextDeliver: ${error.message}`);
+        logRed(`Error en nextDeliver: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

@@ -35,7 +35,7 @@ export async function getSettlementList(company, userId, from, to) {
             did: row.did * 1
         }));
     } catch (error) {
-        logRed(`Error en getSettlementList: ${error.message}`);
+        logRed(`Error en getSettlementList: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -79,7 +79,7 @@ export async function getSettlementDetails(company, settlementId) {
             zona: zones[row.didEnvioZona] || "Zona desconocida"
         }));
     } catch (error) {
-        logRed(`Error en getSettlementDetails: ${error.message}`);
+        logRed(`Error en getSettlementDetails: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -126,7 +126,7 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
             throw new Error("No se encontraron datos para el envío");
         }
     } catch (error) {
-        logRed(`Error en getSettlementShipmentDetails: ${error.message}`);
+        logRed(`Error en getSettlementShipmentDetails: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

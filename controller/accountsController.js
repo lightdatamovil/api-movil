@@ -69,7 +69,7 @@ export async function accountList(company, userId, profile) {
         return accountList;
 
     } catch (error) {
-        logRed(`Error en accountList: ${error.message}`);
+        logRed(`Error en accountList: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

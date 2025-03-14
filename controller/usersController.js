@@ -38,7 +38,7 @@ export async function editUser(company, userId, email, phone) {
 
         return;
     } catch (error) {
-        logRed(`Error en editUser: ${error.message}`);
+        logRed(`Error en editUser: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -87,7 +87,7 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
 
         return;
     } catch (error) {
-        logRed(`Error en changePassword: ${error.message}`);
+        logRed(`Error en changePassword: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

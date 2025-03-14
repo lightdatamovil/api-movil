@@ -64,7 +64,7 @@ export async function crossDocking(dataQr, company) {
             success: true,
         };
     } catch (error) {
-        logRed(`Error en crossDocking: ${error.message}`);
+        logRed(`Error en crossDocking: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -111,7 +111,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
         return shipmentId;
     } catch (error) {
-        logRed(`Error en getShipmentIdFromQr: ${error.message}`);
+        logRed(`Error en getShipmentIdFromQr: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -148,7 +148,7 @@ export async function driverList(company) {
 
         return driverList;
     } catch (error) {
-        logRed(`Error en driverList: ${error.message}`);
+        logRed(`Error en driverList: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -268,7 +268,7 @@ export async function enterFlex(company, dataQr, userId) {
             }
         }
     } catch (error) {
-        logRed(`Error en enterFlex: ${error.message}`);
+        logRed(`Error en enterFlex: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
@@ -326,7 +326,7 @@ async function setShipmentState(dbConnection, shipmentId, shipmentState, userId)
 
         return;
     } catch (error) {
-        logRed(`Error en setShipmentState: ${error.message}`);
+        logRed(`Error en setShipmentState: ${error.stack}`);
         throw error;
     }
 }
@@ -372,7 +372,7 @@ async function setDispatchDate(dbConnection, clientId) {
 
         return now.toISOString().split("T")[0];
     } catch (error) {
-        logRed(`Error en setDispatchDate: ${error.message}`);
+        logRed(`Error en setDispatchDate: ${error.stack}`);
         throw error;
     }
 }
@@ -390,7 +390,7 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
         await executeQuery(dbConnection, query, [userId, now, driverId]);
 
     } catch (error) {
-        logRed(`Error en updateWhoPickedUp: ${error.message}`);
+        logRed(`Error en updateWhoPickedUp: ${error.stack}`);
         throw error;
     }
 }
@@ -468,7 +468,7 @@ async function getShipmentDetails(shipmentId, token) {
 
         return response.data;
     } catch (error) {
-        logRed(`Error obteniendo detalles del envío: ${error.message}`);
+        logRed(`Error obteniendo detalles del envío: ${error.stack}`);
         throw error;
     }
 }

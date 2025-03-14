@@ -24,8 +24,8 @@ home.post('/home', async (req, res) => {
 
 		res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
 	} catch (error) {
-		logRed(`Error en home: ${error.message}`);
-		res.status(500).json({ message: error.message });
+		logRed(`Error en home: ${error.stack}`);
+		res.status(500).json({ message: error.stack });
 	} finally {
 		const endTime = performance.now();
 		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -121,7 +121,7 @@ home.post('/obtener-datos', async (req, res) => {
 		const result = await obtenerDatosEmpresa(company, userId, profile);
 		res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
 	} catch (error) {
-		res.status(500).json({ message: error.message });
+		res.status(500).json({ message: error.stack });
 	}
 });
 export default home;

@@ -23,8 +23,8 @@ collect.post("/get-route", async (req, res) => {
 
         res.status(200).json({ body: route, message: "Ruta obtenida correctamente" });
     } catch (error) {
-        logRed(`Error en get-route: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en get-route: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -50,8 +50,8 @@ collect.post("/start-route", async (req, res) => {
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
         res.status(200).json({ body: startedRoute, message: "Ruta comenzada correctamente" });
     } catch (error) {
-        logRed(`Error en start-route: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en start-route: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -75,8 +75,8 @@ collect.post("/save-route", async (req, res) => {
 
         res.json({ body: savedRoute, message: "Ruta guardada correctamente." });
     } catch (error) {
-        logRed(`Error en save-route: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en save-route: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -102,8 +102,8 @@ collect.post("/get-collect-details", async (req, res) => {
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
         res.status(200).json({ body: collect, message: "Colecta obtenida correctamente" });
     } catch (error) {
-        logRed(`Error en get-collect-details: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en get-collect-details: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -127,8 +127,8 @@ collect.post("/get-client-details", async (req, res) => {
 
         res.status(200).json({ body: result, message: "Envíos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en get-client-details: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en get-client-details: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -154,8 +154,8 @@ collect.post("/get-collect-list", async (req, res) => {
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
         res.status(200).json({ body: collectList, message: "Listado de colectas obtenido correctamente" });
     } catch (error) {
-        logRed(`Error en get-collect-list: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en get-collect-list: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -179,8 +179,8 @@ collect.post("/get-settlement-list", async (req, res) => {
 
         res.status(200).json({ body: settlementList, message: "Listado de liquidaciones obtenido correctamente" });
     } catch (error) {
-        logRed(`Error en get-settlement-list: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en get-settlement-list: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -203,8 +203,8 @@ collect.post("/get-settlement-details", async (req, res) => {
 
         res.json({ body: respuesta, message: "Detalle de colecta obtenido correctamente" });
     } catch (error) {
-        logRed(`Error en get-settlement-details: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en get-settlement-details: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);

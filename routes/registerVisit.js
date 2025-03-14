@@ -23,8 +23,8 @@ registerVisitRoute.post('/register', async (req, res) => {
 
         res.status(200).json({ body: result, message: "Visita registrada correctamente" });
     } catch (error) {
-        logRed(`Error en register: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en register: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -48,8 +48,8 @@ registerVisitRoute.post('/upload-image', async (req, res) => {
 
         res.status(200).json({ body: response, message: "Imagen subida correctamente" });
     } catch (error) {
-        logRed(`Error en upload-image: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en upload-image: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);

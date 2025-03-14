@@ -26,8 +26,8 @@ qr.post('/driver-list', verifyToken, async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en la ruta /listadochoferes: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en la ruta /listadochoferes: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -51,8 +51,8 @@ qr.post('/cross-docking', async (req, res) => {
 
         res.status(200).json(response);
     } catch (error) {
-        logRed(`Error en la ruta /cross-docking: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en la ruta /cross-docking: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -76,8 +76,8 @@ qr.post('/get-shipment-id', async (req, res) => {
 
         res.status(200).json({ success: true, body: response, message: "Datos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en la ruta /get-shipment-id: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en la ruta /get-shipment-id: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -99,7 +99,7 @@ qr.post('/products-from-shipment', async (req, res) => {
 
         return res.json(response);
     } catch (error) {
-        logRed(`Error en la ruta /detalle: ${error.message}`);
+        logRed(`Error en la ruta /detalle: ${error.stack}`);
         res.status(500).json({ success: false, message: "Error interno del servidor." });
     } finally {
         const endTime = performance.now();
@@ -126,8 +126,8 @@ qr.post('/enter-flex', verifyToken, async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en la ruta /enter-flex: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en la ruta /enter-flex: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);

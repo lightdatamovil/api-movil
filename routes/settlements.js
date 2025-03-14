@@ -23,8 +23,8 @@ settlements.post('/settlement-list', async (req, res) => {
 
         res.status(200).json({ body: settlementList, message: "Datos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en settlement-list: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en settlement-list: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -48,8 +48,8 @@ settlements.post('/settlement-details', async (req, res) => {
 
         res.status(200).json({ body: setllementDetails, message: "Datos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en settlement-details: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en settlement-details: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -72,8 +72,8 @@ settlements.post('/settlement-shipment-details', async (req, res) => {
 
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en settlement-shipment-details: ${error.message}`);
-        res.status(500).json({ message: error.message });
+        logRed(`Error en settlement-shipment-details: ${error.stack}`);
+        res.status(500).json({ message: error.stack });
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
