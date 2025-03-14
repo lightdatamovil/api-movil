@@ -105,7 +105,7 @@ export async function endRoute(company, userId) {
     }
 }
 
-export async function obtenerDatosEmpresa(company, userId, profile) {
+export async function getHomeData(company, userId, profile) {
 
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
