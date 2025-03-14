@@ -27,13 +27,14 @@ let driverList = {};
 let zoneList = {};
 let clientList = {};
 export function getDbConfig(companyId) {
+    logYellow(`Obteniendo configuración de base de datos para la empresa ${companyId}`);
     return {
-        host: "localhost",
-        // host: "149.56.182.49",
+        // host: "localhost",
+        host: "149.56.182.49",
         user: "ue" + companyId,
         password: "78451296",
         database: "e" + companyId,
-        // port: 44339
+        port: 44339
     };
 }
 
