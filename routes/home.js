@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { verifyStartedRoute, startRoute, endRoute, obtenerDatosEmpresa } from '../controller/homeController.js';
+import { verifyStartedRoute, startRoute, endRoute, getHomeData } from '../controller/homeController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
@@ -105,23 +105,6 @@ home.post('/verify-started-route', verifyToken, async (req, res) => {
 	} finally {
 		const endTime = performance.now();
 		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
-	}
-});
-home.post('/obtener-datos', async (req, res) => {
-	const mensajeError = verifyParamaters(req.body, ['companyId', 'profile', 'userId']);
-
-	if (mensajeError) {
-		return res.status(400).json({ message: mensajeError });
-	}
-
-	const { companyId, profile, userId } = req.body;
-
-	try {
-		const company = await getCompanyById(companyId);
-		const result = await obtenerDatosEmpresa(company, userId, profile);
-		res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
-	} catch (error) {
-		res.status(500).json({ message: error.stack });
 	}
 });
 export default home;

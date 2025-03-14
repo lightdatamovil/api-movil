@@ -253,7 +253,7 @@ export async function getHomeData(company, userId, profile) {
         return infoADevolver;
 
     } catch (error) {
-        logRed(`Error en obtenerDatosEmpresa: ${error.stack}`);
+        logRed(`Error en getHomeData: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();
