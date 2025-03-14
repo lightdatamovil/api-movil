@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getCompanyById } from '../db.js';
 import { getRoutaByUserId, geolocalize, saveRoute } from '../controller/mapsController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const map = Router();
 

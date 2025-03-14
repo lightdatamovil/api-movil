@@ -3,7 +3,7 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { nextDeliver, shipmentDetails, shipmentList } from '../controller/shipmentsController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const shipments = Router();
 

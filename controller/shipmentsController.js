@@ -1,5 +1,6 @@
 import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../db.js';
 import mysql from 'mysql';
+import { logRed } from '../src/funciones/logsCustom.js';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {

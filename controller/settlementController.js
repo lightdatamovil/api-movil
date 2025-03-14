@@ -1,5 +1,6 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany } from "../db.js";
 import mysql from 'mysql';
+import { logRed } from "../src/funciones/logsCustom.js";
 
 export async function getSettlementList(company, userId, from, to) {
     const dbConfig = getProdDbConfig(company);

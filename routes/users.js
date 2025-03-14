@@ -3,7 +3,7 @@ import { getCompanyById } from '../db.js';
 import { editUser, changePassword, changeProfilePicture } from '../controller/usersController.js';
 import { createHash } from 'crypto';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const users = Router();
 

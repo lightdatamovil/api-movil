@@ -2,7 +2,7 @@ import express from 'express';
 import { getCompanyById } from '../db.js';
 import { getSettlementList, getSettlementDetails, getSettlementShipmentDetails } from '../controller/settlementController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const settlements = express.Router();
 

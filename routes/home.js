@@ -3,7 +3,7 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { verifyStartedRoute, startRoute, endRoute, obtenerDatosEmpresa } from '../controller/homeController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const home = Router();
 
@@ -91,7 +91,7 @@ home.post('/verify-started-route', verifyToken, async (req, res) => {
 	}
 
 	const { companyId, userId } = req.body;
-	const body= req.body
+	const body = req.body
 
 	try {
 		const company = await getCompanyById(companyId);
@@ -108,20 +108,20 @@ home.post('/verify-started-route', verifyToken, async (req, res) => {
 	}
 });
 home.post('/obtener-datos', async (req, res) => {
-    const mensajeError = verifyParamaters(req.body, ['companyId', 'profile', 'userId']);
+	const mensajeError = verifyParamaters(req.body, ['companyId', 'profile', 'userId']);
 
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-    
-    const { companyId, profile, userId } = req.body;
+	if (mensajeError) {
+		return res.status(400).json({ message: mensajeError });
+	}
 
-    try {
-        const company = await getCompanyById(companyId);
-        const result = await obtenerDatosEmpresa(company, userId, profile);
-        res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+	const { companyId, profile, userId } = req.body;
+
+	try {
+		const company = await getCompanyById(companyId);
+		const result = await obtenerDatosEmpresa(company, userId, profile);
+		res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+	} catch (error) {
+		res.status(500).json({ message: error.message });
+	}
 });
 export default home;

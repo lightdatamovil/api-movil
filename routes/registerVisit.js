@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getCompanyById } from '../db.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { registerVisit, uploadImage } from '../controller/registerVisitController.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const registerVisitRoute = Router();
 

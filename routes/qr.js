@@ -3,7 +3,7 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import express from 'express';
 import { getShipmentIdFromQr, crossDocking, driverList, enterFlex, getProductsFromShipment } from "../controller/qrController.js";
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const qr = express.Router();
 

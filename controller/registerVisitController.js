@@ -1,6 +1,7 @@
 import { getProdDbConfig, executeQuery } from "../db.js";
 import mysql from "mysql";
 import axios from "axios";
+import { logRed } from "../src/funciones/logsCustom.js";
 
 export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
     const dbConfig = getProdDbConfig(company);

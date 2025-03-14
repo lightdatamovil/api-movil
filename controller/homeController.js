@@ -106,7 +106,7 @@ export async function endRoute(company, userId) {
 }
 
 export async function obtenerDatosEmpresa(company, userId, profile) {
-   
+
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -115,18 +115,18 @@ export async function obtenerDatosEmpresa(company, userId, profile) {
         const hoy = new Date().toISOString().split('T')[0]; // Obtener la fecha actual en formato YYYY-MM-DD
 
         const [lineas] = await executeQuery(dbConnection, "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC", [hoy]);
-       let lineaEnvios
-       let lineaEnviosHistorial
-       if(lineas != undefined){
+        let lineaEnvios
+        let lineaEnviosHistorial
+        if (lineas != undefined) {
 
 
-        lineaEnvios = lineas[0].envios 
-            lineaEnviosHistorial=lineas[0].envios 
-       }
-       else {
-        lineaEnvios=0
-        lineaEnviosHistorial= 0
-       }
+            lineaEnvios = lineas[0].envios
+            lineaEnviosHistorial = lineas[0].envios
+        }
+        else {
+            lineaEnvios = 0
+            lineaEnviosHistorial = 0
+        }
 
         // Definir estados según el didEmpresa
         const estadosPendientes = {
@@ -168,13 +168,12 @@ export async function obtenerDatosEmpresa(company, userId, profile) {
         // Consultas según el perfil
         switch (profile) {
             case 1:
-             
+
             case 5:
-                logYellow("1")
                 // ASIGNADOS HOY
                 const asignadosHoyResult = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE superado = 0 AND elim = 0 AND autofecha > ?", [`${hoy} 00:00:00`]);
                 infoADevolver.asignadosHoy = asignadosHoyResult[0]?.total || 0;
-logYellow(`${JSON.stringify(asignadosHoyResult)}`)
+
                 // PENDIENTES Y EN CAMINO
                 const pendientesYEnCaminoResult = await executeQuery(dbConnection, `
                     SELECT
@@ -184,8 +183,7 @@ logYellow(`${JSON.stringify(asignadosHoyResult)}`)
                     LEFT JOIN envios AS e ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
                     WHERE eh.id > ? AND eh.superado = 0 AND eh.elim = 0 AND e.elim = 0 AND e.superado = 0 AND e.didCliente != 0
                 `, [lineaEnviosHistorial]);
-                logYellow("2")
-      
+
                 infoADevolver.pendientes = pendientesYEnCaminoResult[0]?.pendientes || 0;
                 infoADevolver.enCamino = pendientesYEnCaminoResult[0]?.enCamino || 0;
 
@@ -197,7 +195,7 @@ logYellow(`${JSON.stringify(asignadosHoyResult)}`)
                     FROM envios_historial
                     WHERE autofecha > ? AND superado = 0 AND elim = 0
                 `, [`${hoy} 00:00:00`]);
-                logYellow("3")
+
                 infoADevolver.cerradosHoy = cerradosYEntregadosHoyResult[0]?.cerradosHoy || 0;
                 infoADevolver.entregadosHoy = cerradosYEntregadosHoyResult[0]?.entregadosHoy || 0;
                 break;

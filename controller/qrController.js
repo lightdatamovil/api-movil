@@ -1,6 +1,7 @@
 import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClientsByCompany, getDriversByCompany } from "../db.js";
 import mysql from 'mysql';
 import axios from 'axios';
+import { logRed } from "../src/funciones/logsCustom.js";
 
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);

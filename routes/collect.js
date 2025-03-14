@@ -2,7 +2,7 @@ import { getCompanyById } from '../db.js';
 import { Router } from 'express';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getRoute, startRoute, getSettlementDetails, getSettlementList } from '../controller/collectController.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const collect = Router();
 

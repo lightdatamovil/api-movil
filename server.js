@@ -12,7 +12,7 @@ import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
-import { logBlue, logRed } from './src/funciones/logsCustom.js';
+import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 
 const numCPUs = 2;
 const PORT = 13000;

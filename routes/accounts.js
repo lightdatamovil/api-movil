@@ -3,7 +3,7 @@ import { getCompanyById } from '../db.js';
 import { Router } from 'express';
 import { accountList } from '../controller/accountsController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const accounts = Router();
 

@@ -2,6 +2,7 @@ import { getProdDbConfig, executeQuery } from "../db.js";
 import mysql from 'mysql';
 import imageType from 'image-type';
 import axios from 'axios';
+import { logRed } from "../src/funciones/logsCustom.js";
 
 export async function editUser(company, userId, email, phone) {
     const dbConfig = getProdDbConfig(company);

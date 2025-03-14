@@ -4,7 +4,7 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { login, identification, whatsappMessagesList } from '../controller/authController.js';
 import { log } from 'console';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const auth = Router();
 
