@@ -118,12 +118,12 @@ export async function getHomeData(company, userId, profile) {
         let lineaEnvios;
         let lineaEnviosHistorial;
         if (lineas == undefined) {
-            lineaEnvios = lineas[0].envios
-            lineaEnviosHistorial = lineas[0].envios
+            lineaEnvios = lineas[0].envios;
+            lineaEnviosHistorial = lineas[0].envios;
         }
         else {
-            lineaEnvios = 0
-            lineaEnviosHistorial = 0
+            lineaEnvios = 0;
+            lineaEnviosHistorial = 0;
         }
 
         // Definir estados según el didEmpresa
