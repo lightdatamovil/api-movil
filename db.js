@@ -1,6 +1,6 @@
 import redis from 'redis';
 import mysql from 'mysql';
-import { logRed } from './src/funciones/logsCustom';
+import { logRed } from './src/funciones/logsCustom.js';
 
 export const redisClient = redis.createClient({
     socket: {

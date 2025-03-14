@@ -1,5 +1,6 @@
 import mysql from 'mysql';
-import { getProdDbConfig, executeQuery } from '../db.js';
+import { getProdDbConfig, executeQuery, redisClient } from '../db.js';
+import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 export async function verifyStartedRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
@@ -104,8 +105,159 @@ export async function endRoute(company, userId) {
     }
 }
 
-export async function getHomeData(company, userId, profile) {
-    // GUILLE
-    return null;
-}
+export async function obtenerDatosEmpresa(company, userId, profile) {
+   
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql.createConnection(dbConfig);
+    dbConnection.connect();
 
+    try {
+        const hoy = new Date().toISOString().split('T')[0]; // Obtener la fecha actual en formato YYYY-MM-DD
+
+        const [lineas] = await executeQuery(dbConnection, "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC", [hoy]);
+       let lineaEnvios
+       let lineaEnviosHistorial
+       if(lineas != undefined){
+
+
+        lineaEnvios = lineas[0].envios 
+            lineaEnviosHistorial=lineas[0].envios 
+       }
+       else {
+        lineaEnvios=0
+        lineaEnviosHistorial= 0
+       }
+
+        // Definir estados según el didEmpresa
+        const estadosPendientes = {
+            20: '(0, 1, 2, 3, 6, 7, 10, 11, 12)',
+            55: '(0, 1, 2, 3, 6, 7, 10, 11, 12)',
+            72: '(0, 1, 2, 3, 6, 7, 10, 11, 12, 16, 18, 16)',
+            default: '(0, 1, 2, 3, 6, 7, 10, 11, 12)'
+        }[company] || '(0, 1, 2, 3, 6, 7, 10, 11, 12)';
+
+        const estadosEnCamino = {
+            20: '(2, 11, 12, 16)',
+            55: '(2, 11, 12)',
+            72: '(2, 11, 12)',
+            default: '(2, 11, 12)'
+        }[company] || '(2, 11, 12)';
+
+        const estadosCerradosHoy = {
+            20: '(5, 8, 9, 14, 17)',
+            55: '(5, 8, 9, 14, 16)',
+            72: '(5, 8, 9, 14)',
+            default: '(5, 8, 9, 14)',
+        }[company] || '(5, 8, 9, 14)';
+
+        const estadosEntregadosHoy = {
+            20: '(5, 9, 17)',
+            55: '(5, 9, 16)',
+            72: '(5, 9)',
+            default: '(5, 9)'
+        }[company] || '(5, 9)';
+
+        const infoADevolver = {
+            asignadosHoy: 0,
+            pendientes: 0,
+            enCamino: 0,
+            cerradosHoy: 0,
+            entregadosHoy: 0
+        };
+
+        // Consultas según el perfil
+        switch (profile) {
+            case 1:
+             
+            case 5:
+                logYellow("1")
+                // ASIGNADOS HOY
+                const asignadosHoyResult = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE superado = 0 AND elim = 0 AND autofecha > ?", [`${hoy} 00:00:00`]);
+                infoADevolver.asignadosHoy = asignadosHoyResult[0]?.total || 0;
+logYellow(`${JSON.stringify(asignadosHoyResult)}`)
+                // PENDIENTES Y EN CAMINO
+                const pendientesYEnCaminoResult = await executeQuery(dbConnection, `
+                    SELECT
+                        SUM(CASE WHEN eh.estado IN ${estadosPendientes} THEN 1 ELSE 0 END) AS pendientes,
+                        SUM(CASE WHEN eh.estado IN ${estadosEnCamino} THEN 1 ELSE 0 END) AS enCamino
+                    FROM envios_historial AS eh
+                    LEFT JOIN envios AS e ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
+                    WHERE eh.id > ? AND eh.superado = 0 AND eh.elim = 0 AND e.elim = 0 AND e.superado = 0 AND e.didCliente != 0
+                `, [lineaEnviosHistorial]);
+                logYellow("2")
+      
+                infoADevolver.pendientes = pendientesYEnCaminoResult[0]?.pendientes || 0;
+                infoADevolver.enCamino = pendientesYEnCaminoResult[0]?.enCamino || 0;
+
+                // CERRADOS Y ENTREGADOS HOY
+                const cerradosYEntregadosHoyResult = await executeQuery(dbConnection, `
+                    SELECT
+                        SUM(CASE WHEN estado IN ${estadosCerradosHoy} THEN 1 ELSE 0 END) AS cerradosHoy,
+                        SUM(CASE WHEN estado IN ${estadosEntregadosHoy} THEN 1 ELSE 0 END) AS entregadosHoy
+                    FROM envios_historial
+                    WHERE autofecha > ? AND superado = 0 AND elim = 0
+                `, [`${hoy} 00:00:00`]);
+                logYellow("3")
+                infoADevolver.cerradosHoy = cerradosYEntregadosHoyResult[0]?.cerradosHoy || 0;
+                infoADevolver.entregadosHoy = cerradosYEntregadosHoyResult[0]?.entregadosHoy || 0;
+                break;
+
+            case 2:
+                // CERRADOS Y ENTREGADOS HOY
+                const cerradosHoyYEntregadosHoyResult = await executeQuery(dbConnection, `
+                    SELECT
+                        SUM(CASE WHEN eh.estado IN ${estadosCerradosHoy} THEN 1 ELSE 0 END) AS cerradosHoy,
+                        SUM(CASE WHEN eh.estado IN ${estadosEntregadosHoy} THEN 1 ELSE 0 END) AS entregadosHoy
+                    FROM envios_historial AS eh
+                    LEFT JOIN envios AS e ON (e.did = eh.didEnvio AND e.superado = 0 AND e.elim = 0)
+                    WHERE eh.autofecha > ? AND eh.superado = 0 AND eh.elim = 0 AND e.didCliente = ?
+                `, [`${hoy} 00:00:00`, userId]);
+
+                infoADevolver.cerradosHoy = cerradosHoyYEntregadosHoyResult[0]?.cerradosHoy || 0;
+                infoADevolver.entregadosHoy = cerradosHoyYEntregadosHoyResult[0]?.entregadosHoy || 0;
+                break;
+
+            case 3:
+                // ASIGNADOS HOY
+                const asignadosHoyCase3Result = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE operador = ? AND superado = 0 AND elim = 0 AND autofecha > ?", [userId, `${hoy} 00:00:00`]);
+                infoADevolver.asignadosHoy = asignadosHoyCase3Result[0]?.total || 0;
+
+                // PENDIENTES Y EN CAMINO
+                const pendientesYEnCaminoCase3Result = await executeQuery(dbConnection, `
+                    SELECT
+                        SUM(CASE WHEN estado IN ${estadosPendientes} THEN 1 ELSE 0 END) AS pendientes,
+                        SUM(CASE WHEN estado IN ${estadosEnCamino} THEN 1 ELSE 0 END) AS enCamino
+                    FROM envios
+                    WHERE id > ? AND superado = 0 AND elim = 0 AND choferAsignado = ?
+                `, [lineaEnvios, userId]);
+
+                infoADevolver.pendientes = pendientesYEnCaminoCase3Result[0]?.pendientes || 0;
+                infoADevolver.enCamino = pendientesYEnCaminoCase3Result[0]?.enCamino || 0;
+
+                // CERRADOS Y ENTREGADOS HOY
+                const [cerradosHoyYEntregadosHoyCase3Result] = await executeQuery(dbConnection, `
+                    SELECT
+                        SUM(CASE WHEN estado IN ${estadosCerradosHoy} THEN 1 ELSE 0 END) AS cerradosHoy,
+                        SUM(CASE WHEN estado IN ${estadosEntregadosHoy} THEN 1 ELSE 0 END) AS entregadosHoy
+                    FROM envios_historial
+                    WHERE autofecha > ? AND superado = 0 AND elim = 0 AND didCadete = ?
+                `, [`${hoy} 00:00:00`, userId]);
+
+                infoADevolver.cerradosHoy = cerradosHoyYEntregadosHoyCase3Result[0]?.cerradosHoy || 0;
+                infoADevolver.entregadosHoy = cerradosHoyYEntregadosHoyCase3Result[0]?.entregadosHoy || 0;
+                break;
+
+            default:
+                throw new Error("Perfil no reconocido");
+        }
+
+        // Cerrar conexión
+        return infoADevolver;
+
+    } catch (error) {
+        logRed(`Error en obtenerDatosEmpresa: ${error.message}`);
+        throw error;
+    } finally {
+        dbConnection.end();
+    }
+}

@@ -1,5 +1,6 @@
 import mysql from 'mysql';
 import { getProdDbConfig, executeQuery } from '../db.js';
+import { logRed } from '../src/funciones/logsCustom.js';
 
 export async function getRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
