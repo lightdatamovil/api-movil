@@ -35,6 +35,7 @@ if (cluster.isMaster) {
     app.use(json());
 
     app.post('/api/testapi', async (req, res) => {
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
         res.status(200).json({ message: 'API funcionando correctamente' });
     });
 
@@ -45,6 +46,7 @@ if (cluster.isMaster) {
 
         const urls = getUrls(company);
 
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
         res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
     });
 

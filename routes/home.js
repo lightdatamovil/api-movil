@@ -3,10 +3,12 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { verifyStartedRoute, getHomeData, startRoute, endRoute } from '../controller/homeController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
+import { logRed } from '../src/funciones/logsCustom.js';
 
 const home = Router();
 
 home.post('/home', async (req, res) => {
+	const startTime = performance.now();
 	const mensajeError = verifyParamaters(req.body, [], true);
 
 	if (mensajeError) {
@@ -20,13 +22,18 @@ home.post('/home', async (req, res) => {
 
 		const result = await getHomeData(company, userId, profile);
 
-		return res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+		res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
 	} catch (error) {
-		return res.status(500).json({ message: error.message });
+		logRed(`Error en home: ${error.message}`);
+		res.status(500).json({ message: error.message });
+	} finally {
+		const endTime = performance.now();
+		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
 	}
 });
 
 home.post('/start-route', verifyToken, async (req, res) => {
+	const startTime = performance.now();
 	const mensajeError = verifyParamaters(req.body, [], true);
 
 	if (mensajeError) {
@@ -42,11 +49,16 @@ home.post('/start-route', verifyToken, async (req, res) => {
 
 		res.status(200).json({ body: result, message: 'La ruta a comenzado exitosamente' });
 	} catch (e) {
+		logRed(`Error en start-route: ${e.message}`);
 		res.status(500).json({ message: e.message });
+	} finally {
+		const endTime = performance.now();
+		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
 	}
 });
 
 home.post('/end-route', verifyToken, async (req, res) => {
+	const startTime = performance.now();
 	const mensajeError = verifyParamaters(req.body, [], true);
 
 	if (mensajeError) {
@@ -62,12 +74,16 @@ home.post('/end-route', verifyToken, async (req, res) => {
 
 		res.status(200).json({ message: 'La ruta a terminado exitosamente' });
 	} catch (e) {
+		logRed(`Error en end-route: ${e.message}`);
 		res.status(500).json({ message: e.message });
+	} finally {
+		const endTime = performance.now();
+		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
 	}
 });
 
 home.post('/verify-started-route', verifyToken, async (req, res) => {
-
+	const startTime = performance.now();
 	const mensajeError = verifyParamaters(req.body, [], true);
 
 	if (mensajeError) {
@@ -83,7 +99,11 @@ home.post('/verify-started-route', verifyToken, async (req, res) => {
 
 		res.status(200).json({ body: result, message: `The route has ${result ? 'started' : 'not started'}` });
 	} catch (e) {
+		logRed(`Error en verify-started-route: ${e.message}`);
 		res.status(500).json({ message: e.message });
+	} finally {
+		const endTime = performance.now();
+		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
 	}
 });
 
