@@ -158,11 +158,11 @@ export async function getHomeData(company, userId, profile) {
         }[company] || '(5, 9)';
 
         const infoADevolver = {
-            asignadosHoy: 0,
+            assignedToday: 0,
             pendientes: 0,
-            enCamino: 0,
-            cerradosHoy: 0,
-            entregadosHoy: 0
+            onTheWay: 0,
+            closedToday: 0,
+            deliveredToday: 0
         };
 
         // Consultas según el perfil
@@ -172,7 +172,7 @@ export async function getHomeData(company, userId, profile) {
             case 5:
                 // ASIGNADOS HOY
                 const asignadosHoyResult = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE superado = 0 AND elim = 0 AND autofecha > ?", [`${hoy} 00:00:00`]);
-                infoADevolver.asignadosHoy = asignadosHoyResult[0]?.total || 0;
+                infoADevolver.assignedToday = asignadosHoyResult[0]?.total || 0;
 
                 // PENDIENTES Y EN CAMINO
                 const pendientesYEnCaminoResult = await executeQuery(dbConnection, `
@@ -184,8 +184,8 @@ export async function getHomeData(company, userId, profile) {
                     WHERE eh.id > ? AND eh.superado = 0 AND eh.elim = 0 AND e.elim = 0 AND e.superado = 0 AND e.didCliente != 0
                 `, [lineaEnviosHistorial]);
 
-                infoADevolver.pendientes = pendientesYEnCaminoResult[0]?.pendientes || 0;
-                infoADevolver.enCamino = pendientesYEnCaminoResult[0]?.enCamino || 0;
+                infoADevolver.pending = pendientesYEnCaminoResult[0]?.pending || 0;
+                infoADevolver.onTheWay = pendientesYEnCaminoResult[0]?.onTheWay || 0;
 
                 // CERRADOS Y ENTREGADOS HOY
                 const cerradosYEntregadosHoyResult = await executeQuery(dbConnection, `
@@ -196,8 +196,8 @@ export async function getHomeData(company, userId, profile) {
                     WHERE autofecha > ? AND superado = 0 AND elim = 0
                 `, [`${hoy} 00:00:00`]);
 
-                infoADevolver.cerradosHoy = cerradosYEntregadosHoyResult[0]?.cerradosHoy || 0;
-                infoADevolver.entregadosHoy = cerradosYEntregadosHoyResult[0]?.entregadosHoy || 0;
+                infoADevolver.closedToday = cerradosYEntregadosHoyResult[0]?.closedToday || 0;
+                infoADevolver.deliveredToday = cerradosYEntregadosHoyResult[0]?.deliveredToday || 0;
                 break;
 
             case 2:
@@ -211,14 +211,14 @@ export async function getHomeData(company, userId, profile) {
                     WHERE eh.autofecha > ? AND eh.superado = 0 AND eh.elim = 0 AND e.didCliente = ?
                 `, [`${hoy} 00:00:00`, userId]);
 
-                infoADevolver.cerradosHoy = cerradosHoyYEntregadosHoyResult[0]?.cerradosHoy || 0;
-                infoADevolver.entregadosHoy = cerradosHoyYEntregadosHoyResult[0]?.entregadosHoy || 0;
+                infoADevolver.closedToday = cerradosHoyYEntregadosHoyResult[0]?.closedToday || 0;
+                infoADevolver.deliveredToday = cerradosHoyYEntregadosHoyResult[0]?.deliveredToday || 0;
                 break;
 
             case 3:
                 // ASIGNADOS HOY
                 const asignadosHoyCase3Result = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE operador = ? AND superado = 0 AND elim = 0 AND autofecha > ?", [userId, `${hoy} 00:00:00`]);
-                infoADevolver.asignadosHoy = asignadosHoyCase3Result[0]?.total || 0;
+                infoADevolver.assignedToday = asignadosHoyCase3Result[0]?.total || 0;
 
                 // PENDIENTES Y EN CAMINO
                 const pendientesYEnCaminoCase3Result = await executeQuery(dbConnection, `
@@ -229,8 +229,8 @@ export async function getHomeData(company, userId, profile) {
                     WHERE id > ? AND superado = 0 AND elim = 0 AND choferAsignado = ?
                 `, [lineaEnvios, userId]);
 
-                infoADevolver.pendientes = pendientesYEnCaminoCase3Result[0]?.pendientes || 0;
-                infoADevolver.enCamino = pendientesYEnCaminoCase3Result[0]?.enCamino || 0;
+                infoADevolver.pending = pendientesYEnCaminoCase3Result[0]?.pending || 0;
+                infoADevolver.onTheWay = pendientesYEnCaminoCase3Result[0]?.onTheWay || 0;
 
                 // CERRADOS Y ENTREGADOS HOY
                 const [cerradosHoyYEntregadosHoyCase3Result] = await executeQuery(dbConnection, `
@@ -241,8 +241,8 @@ export async function getHomeData(company, userId, profile) {
                     WHERE autofecha > ? AND superado = 0 AND elim = 0 AND didCadete = ?
                 `, [`${hoy} 00:00:00`, userId]);
 
-                infoADevolver.cerradosHoy = cerradosHoyYEntregadosHoyCase3Result[0]?.cerradosHoy || 0;
-                infoADevolver.entregadosHoy = cerradosHoyYEntregadosHoyCase3Result[0]?.entregadosHoy || 0;
+                infoADevolver.closedToday = cerradosHoyYEntregadosHoyCase3Result[0]?.closedToday || 0;
+                infoADevolver.deliveredToday = cerradosHoyYEntregadosHoyCase3Result[0]?.deliveredToday || 0;
                 break;
 
             default:
