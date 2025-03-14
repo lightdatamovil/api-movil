@@ -35,12 +35,14 @@ if (cluster.isMaster) {
     app.use(json());
 
     app.post('/api/testapi', async (req, res) => {
+        const startTime = performance.now();
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
         res.status(200).json({ message: 'API funcionando correctamente' });
     });
 
     app.post('/api/get-urls', async (req, res) => {
+        const startTime = performance.now();
         const { companyId } = req.body;
 
         const company = await getCompanyById(companyId);
