@@ -165,17 +165,21 @@ async function loadZones(companyId) {
     dbConnection.connect();
 
     try {
+        // Verifica si la compañía especificada existe en la lista de compañías
+        if (!queryZzoneListones[companyId]) {
+            zoneList[companyId] = {}
+        }
         const queryZones = "SELECT * FROM envios_zonas";
         const resultQueryZones = await executeQuery(dbConnection, queryZones, []);
 
-        const zonesByCompany = {};
+        resultQueryZones.forEach(row => {
+            const keySender = row.did;
 
-        zonesByCompany[companyId] = {};
+            if (!zoneList[companyId][keySender]) {
+                zoneList[companyId][keySender] = {};
+            }
 
-        for (let i = 0; i < resultQueryZones.length; i++) {
-            const row = resultQueryZones[i];
-
-            zonesByCompany[companyId][row.id] = {
+            zoneList[companyId][row.id] = {
                 id: row.id,
                 id_origen: row.id_origen,
                 fecha_sincronizacion: row.fecha_sincronizacion,
@@ -185,9 +189,7 @@ async function loadZones(companyId) {
                 codigos: row.codigos,
                 dataGeo: row.dataGeo,
             };
-        }
-
-        return zonesByCompany;
+        });
     } catch (error) {
         logRed(`Error en getZones: ${error.message}`);
         throw error;
