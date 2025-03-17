@@ -131,7 +131,7 @@ export async function registerVisit(company, userId, shipmentId, recieverDNI, re
         if (observation) {
             const queryInsertObservaciones = "INSERT INTO envios_observaciones (didEnvio, observacion, quien) VALUES (?, ?, ?)";
 
-            const obsResult = await executeQuery(dbConnection, queryInsertObservaciones, [shipmentId, observation, quien]);
+            const obsResult = await executeQuery(dbConnection, queryInsertObservaciones, [shipmentId, observation, userId]);
 
             const queryUpdateEnviosObservaciones = "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
 
