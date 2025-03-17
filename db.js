@@ -348,7 +348,7 @@ export async function getDriversByCompany(dbConnection, companyId) {
     }
 }
 
-export async function executeQuery(connection, query, values, log = false) {
+export async function executeQuery(connection, query, values, log = true) {
     if (log) {
         logYellow(`Ejecutando query: ${query} con valores: ${values}`);
     }
