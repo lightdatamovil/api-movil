@@ -167,7 +167,7 @@ export async function getHomeData(company, userId, profile) {
 
         const infoADevolver = {
             assignedToday: 0,
-            pendientes: 0,
+            pendings: 0,
             onTheWay: 0,
             closedToday: 0,
             deliveredToday: 0
@@ -194,7 +194,7 @@ export async function getHomeData(company, userId, profile) {
 
 
 
-                infoADevolver.pendientes = pendientesYEnCaminoResult[0]?.pending || 0;
+                infoADevolver.pendings = pendientesYEnCaminoResult[0]?.pendientes || 0;
                 infoADevolver.onTheWay = pendientesYEnCaminoResult[0]?.onTheWay || 0;
 
                 // CERRADOS Y ENTREGADOS HOY
@@ -248,7 +248,7 @@ export async function getHomeData(company, userId, profile) {
                 
 
 
-                infoADevolver.pendientes = pendientesYEnCaminoCase3Result[0].pendientes || 0;
+                infoADevolver.pendings = pendientesYEnCaminoCase3Result[0].pendientes || 0;
                 infoADevolver.onTheWay = pendientesYEnCaminoCase3Result[0].enCamino || 0;
 
                 // CERRADOS Y ENTREGADOS HOY
