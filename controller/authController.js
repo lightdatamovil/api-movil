@@ -112,7 +112,7 @@ export async function identification(company) {
             "country": company.pais * 1,
             "name": company.empresa,
             "appPro": company.did == 4,
-            "colectaPro": true,
+            "colectaPro": false,
             "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
             "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
             "image": imageBase64,
