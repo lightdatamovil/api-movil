@@ -6,7 +6,6 @@ import { logRed } from "../src/funciones/logsCustom.js";
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
-
     dbConnection.connect();
 
     try {
@@ -48,16 +47,16 @@ export async function crossDocking(dataQr, company) {
 
         const row = envioData[0];
 
-        const clients = await getClientsByCompany(company.did);
+        const clients = await getClientsByCompany(dbConnection, company.did);
 
-        const zones = await getZonesByCompany(company.did);
+        const zones = await getZonesByCompany(dbConnection, company.did);
 
         return {
             body: {
                 shipmentState: row.shipmentState,
                 date: row.date,
                 client: clients[row.clientId]?.nombre || "Desconocido",
-                zone: zones.find(zone => zone.id === row.zoneId)?.nombre || "Desconocido",
+                zone: zones[row.zoneId]?.nombre || "Desconocido",
                 driver: row.driver ?? "Sin asignar"
             },
             message: "Datos obtenidos correctamente",
