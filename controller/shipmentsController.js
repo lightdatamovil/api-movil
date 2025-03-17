@@ -178,7 +178,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
         let lineaEnviosHistorial;
 
         const hoy = new Date().toISOString().slice(0, 10);
-        logYellow(`hoy: ${hoy}`);
+
         const queryIndices = `
                 SELECT envios, envios_historial, fecha 
                 FROM tablas_indices 

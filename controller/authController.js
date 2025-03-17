@@ -43,9 +43,8 @@ export async function login(username, password, company) {
 
         const userQuery = `SELECT did, bloqueado, nombre, apellido, email, telefono, pass, usuario, perfil, direccion
                        FROM sistema_usuarios 
-                       WHERE usuario = ?`;
-
-        const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username]);
+                       WHERE usuario = ? AND superado = 0 AND elim = 0`;
+        const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username], true);
 
         if (resultsFromUserQuery.length === 0) {
             throw new Error('Usuario no encontrado');
