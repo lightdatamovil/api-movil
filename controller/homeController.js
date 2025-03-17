@@ -52,11 +52,11 @@ export async function startRoute(company, userId) {
 
         const dias = 3;
 
-        const queryEnviosAsignadosHoy = "SELECT didEnvio FROM envios_asignaciones WHERE superado=0 AND elim=0 AND operador=? AND DATE(autofecha) = CURDATE()";
+        const queryEnviosAsignadosHoy = "SELECT didEnvio, estado FROM envios_asignaciones WHERE superado=0 AND elim=0 AND operador=? AND DATE(autofecha) = CURDATE()";
 
         const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
         if (envios.length > 0) {
-            const didEnvios = envios.map(e => e.didEnvio);
+            const didEnvios = envios.map(e => e.estado != 5 && e.estado != 8 && e.estado != 9 ? e.didEnvios : null).filter(e => e != null);
             await fsetestadoMasivoDesde(2, didEnvios, "APP Comenzar", dbConnection);
         }
     } catch (error) {
@@ -69,20 +69,26 @@ export async function startRoute(company, userId) {
 
 async function fsetestadoMasivoDesde(estado, envios, desde, connection) {
     const fecha = new Date().toISOString().replace('T', ' ').substr(0, 19);
-    await executeQuery(connection, `
+    const query1 = `
         UPDATE envios_historial
         SET superado = 1
         WHERE superado = 0 AND didEnvio IN(${envios.join(',')})
-            `);
-    await executeQuery(connection, `
+    `;
+    await executeQuery(connection, query1);
+
+    const query2 = `
         UPDATE envios
         SET estado_envio =?
-            WHERE superado = 0 AND did IN(${envios.join(',')})
-            `, [estado]);
-    await executeQuery(connection, `
-        INSERT INTO envios_historial(didEnvio, estado, quien, fecha, didCadete, desde)
-        SELECT did, ?, 0, ?, 0, ?FROM envios WHERE did IN(${envios.join(',')})
-            `, [estado, fecha, desde]);
+        WHERE superado = 0 AND did IN(${envios.join(',')})
+    `;
+    await executeQuery(connection, query2, [estado]);
+
+    const query3 = `
+        INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
+        SELECT did, ?, 0, ?, 0, ?
+        FROM envios WHERE did IN(${envios.join(',')})
+    `;
+    await executeQuery(connection, query3, [estado, fecha, desde]);
 }
 
 export async function endRoute(company, userId) {
@@ -117,23 +123,23 @@ export async function getHomeData(company, userId, profile) {
         const lineas = await executeQuery(dbConnection, "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC", [hoy]);
         let lineaEnvios;
         let lineaEnviosHistorial;
-    
-        
+
+
         if (lineas == undefined) {
 
-          
-            
+
+
             lineaEnvios = 0;
             lineaEnviosHistorial = 0;
         }
         else {
-        
-      
-          let le = lineas.slice(-1);
-    
-          lineaEnvios = le[0].envios;
+
+
+            let le = lineas.slice(-1);
+
+            lineaEnvios = le[0].envios;
             lineaEnviosHistorial = le[0].envios_historial;
-      
+
         }
 
         // Definir estados según el didEmpresa
@@ -226,15 +232,15 @@ export async function getHomeData(company, userId, profile) {
                 break;
 
             case 3:
-         
-                
+
+
                 // ASIGNADOS HOY
                 const asignadosHoyCase3Result = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE operador = ? AND superado = 0 AND elim = 0 AND autofecha > ?", [userId, `${hoy} 00:00:00`]);
-        
-              
+
+
                 infoADevolver.assignedToday = asignadosHoyCase3Result[0].total || 0;
-          
-                
+
+
 
                 // PENDIENTES Y EN CAMINO
                 const pendientesYEnCaminoCase3Result = await executeQuery(dbConnection, `
@@ -244,8 +250,8 @@ export async function getHomeData(company, userId, profile) {
                     FROM envios
                     WHERE id > ? AND superado = 0 AND elim = 0 AND choferAsignado = ?
                 `, [lineaEnvios, userId]);
- 
-                
+
+
 
 
                 infoADevolver.pendings = pendientesYEnCaminoCase3Result[0].pendientes || 0;
