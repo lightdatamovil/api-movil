@@ -1,8 +1,6 @@
+import mysql from 'mysql';
 
-
-
-const mysql = require('mysql');
-async function crearLog(idEmpresa, operador, endpoint, result, quien, idDispositivo, modelo, marca, versionAndroid, versionApp) {
+export async function crearLog(idEmpresa, operador, endpoint, result, quien, idDispositivo, modelo, marca, versionAndroid, versionApp) {
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql.createConnection(dbConfig);
 
@@ -41,4 +39,3 @@ async function crearLog(idEmpresa, operador, endpoint, result, quien, idDisposit
         });
     });
 }
-module.exports = crearLog;

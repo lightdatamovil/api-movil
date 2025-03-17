@@ -56,7 +56,10 @@ export async function startRoute(company, userId) {
 
         const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
         if (envios.length > 0) {
-            const didEnvios = envios.map(e => e.estado != 5 && e.estado != 8 && e.estado != 9 ? e.didEnvios : null).filter(e => e != null);
+            const didEnvios = envios
+                .filter(e => e.estado !== 5 && e.estado !== 8 && e.estado !== 9 && e.didEnvio != null)
+                .map(e => e.didEnvio);
+
             await fsetestadoMasivoDesde(2, didEnvios, "APP Comenzar", dbConnection);
         }
     } catch (error) {
