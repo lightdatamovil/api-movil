@@ -1,6 +1,6 @@
 import mysql from 'mysql';
 import { getProdDbConfig, executeQuery, redisClient } from '../db.js';
-import { logRed, logYellow } from '../src/funciones/logsCustom.js';
+import { logPurple, logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 export async function verifyStartedRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
@@ -114,16 +114,26 @@ export async function getHomeData(company, userId, profile) {
     try {
         const hoy = new Date().toISOString().split('T')[0]; // Obtener la fecha actual en formato YYYY-MM-DD
 
-        const [lineas] = await executeQuery(dbConnection, "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC", [hoy]);
+        const lineas = await executeQuery(dbConnection, "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC", [hoy]);
         let lineaEnvios;
         let lineaEnviosHistorial;
+    
+        
         if (lineas == undefined) {
-            lineaEnvios = lineas[0].envios;
-            lineaEnviosHistorial = lineas[0].envios;
-        }
-        else {
+
+          
+            
             lineaEnvios = 0;
             lineaEnviosHistorial = 0;
+        }
+        else {
+        
+      
+          let le = lineas.slice(-1);
+    
+          lineaEnvios = le[0].envios;
+            lineaEnviosHistorial = le[0].envios_historial;
+      
         }
 
         // Definir estados según el didEmpresa
@@ -182,7 +192,9 @@ export async function getHomeData(company, userId, profile) {
                     WHERE eh.id > ? AND eh.superado = 0 AND eh.elim = 0 AND e.elim = 0 AND e.superado = 0 AND e.didCliente != 0
                 `, [lineaEnviosHistorial]);
 
-                infoADevolver.pending = pendientesYEnCaminoResult[0]?.pending || 0;
+
+
+                infoADevolver.pendientes = pendientesYEnCaminoResult[0]?.pending || 0;
                 infoADevolver.onTheWay = pendientesYEnCaminoResult[0]?.onTheWay || 0;
 
                 // CERRADOS Y ENTREGADOS HOY
@@ -214,24 +226,33 @@ export async function getHomeData(company, userId, profile) {
                 break;
 
             case 3:
+         
+                
                 // ASIGNADOS HOY
                 const asignadosHoyCase3Result = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE operador = ? AND superado = 0 AND elim = 0 AND autofecha > ?", [userId, `${hoy} 00:00:00`]);
-                infoADevolver.assignedToday = asignadosHoyCase3Result[0]?.total || 0;
+        
+              
+                infoADevolver.assignedToday = asignadosHoyCase3Result[0].total || 0;
+          
+                
 
                 // PENDIENTES Y EN CAMINO
                 const pendientesYEnCaminoCase3Result = await executeQuery(dbConnection, `
                     SELECT
-                        SUM(CASE WHEN estado IN ${estadosPendientes} THEN 1 ELSE 0 END) AS pendientes,
-                        SUM(CASE WHEN estado IN ${estadosEnCamino} THEN 1 ELSE 0 END) AS enCamino
+                        SUM(CASE WHEN estado_envio IN ${estadosPendientes} THEN 1 ELSE 0 END) AS pendientes,
+                        SUM(CASE WHEN estado_envio IN ${estadosEnCamino} THEN 1 ELSE 0 END) AS enCamino
                     FROM envios
                     WHERE id > ? AND superado = 0 AND elim = 0 AND choferAsignado = ?
                 `, [lineaEnvios, userId]);
+ 
+                
 
-                infoADevolver.pending = pendientesYEnCaminoCase3Result[0]?.pending || 0;
-                infoADevolver.onTheWay = pendientesYEnCaminoCase3Result[0]?.onTheWay || 0;
+
+                infoADevolver.pendientes = pendientesYEnCaminoCase3Result[0].pendientes || 0;
+                infoADevolver.onTheWay = pendientesYEnCaminoCase3Result[0].enCamino || 0;
 
                 // CERRADOS Y ENTREGADOS HOY
-                const [cerradosHoyYEntregadosHoyCase3Result] = await executeQuery(dbConnection, `
+                const cerradosHoyYEntregadosHoyCase3Result = await executeQuery(dbConnection, `
                     SELECT
                         SUM(CASE WHEN estado IN ${estadosCerradosHoy} THEN 1 ELSE 0 END) AS cerradosHoy,
                         SUM(CASE WHEN estado IN ${estadosEntregadosHoy} THEN 1 ELSE 0 END) AS entregadosHoy
@@ -239,8 +260,9 @@ export async function getHomeData(company, userId, profile) {
                     WHERE autofecha > ? AND superado = 0 AND elim = 0 AND didCadete = ?
                 `, [`${hoy} 00:00:00`, userId]);
 
-                infoADevolver.closedToday = cerradosHoyYEntregadosHoyCase3Result[0]?.closedToday || 0;
-                infoADevolver.deliveredToday = cerradosHoyYEntregadosHoyCase3Result[0]?.deliveredToday || 0;
+
+                infoADevolver.closedToday = cerradosHoyYEntregadosHoyCase3Result[0]?.cerradosHoy || 0;
+                infoADevolver.deliveredToday = cerradosHoyYEntregadosHoyCase3Result[0]?.entregadosHoy || 0;
                 break;
 
             default:
