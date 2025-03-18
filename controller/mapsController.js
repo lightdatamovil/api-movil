@@ -137,7 +137,7 @@ export async function saveRoute(company, userId, operationDate, orders, distance
         const newId = result.insertId;
 
         const querySetDid = "UPDATE ruteo SET did = ? WHERE superado=0 AND elim=0 AND id = ? LIMIT 1";
-        await executeQuery(dbConnection, querySetDid, [newId]);
+        await executeQuery(dbConnection, querySetDid, [newId, newId]);
 
         for (const order of orders) {
             const { index, shipmentId, arrivalTime } = order;
