@@ -27,7 +27,6 @@ let driverList = {};
 let zoneList = {};
 let clientList = {};
 export function getDbConfig(companyId) {
-    logYellow(`Obteniendo configuración de base de datos para la empresa ${companyId}`);
     return {
         // host: "localhost",
         host: "149.56.182.49",
