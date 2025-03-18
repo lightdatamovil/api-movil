@@ -126,6 +126,7 @@ export async function getHomeData(company, userId, profile) {
         const lineas = await executeQuery(dbConnection, "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC", [hoy]);
         let lineaEnvios;
         let lineaEnviosHistorial;
+console.log(lineas, "lineas");
 
 
         if (lineas == undefined) {
