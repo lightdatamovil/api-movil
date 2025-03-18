@@ -1,7 +1,7 @@
 import mysql from 'mysql';
 
 import { getProdDbConfig, executeQuery } from '../db.js';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 export async function getRoutaByUserId(company, userId) {
     const dbConfig = getProdDbConfig(company);
@@ -107,11 +107,17 @@ export async function saveRoute(company, userId, operationDate, orders, distance
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
+    logYellow(`saveRoute: ${JSON.stringify(additionalRouteData)}`);
+    logYellow(`saveRoute: ${JSON.stringify(orders)}`);
+    logYellow(`saveRoute: ${JSON.stringify(distance)}`);
+    logYellow(`saveRoute: ${JSON.stringify(totalDelay)}`);
+    logYellow(`saveRoute: ${JSON.stringify(operationDate)}`);
+    logYellow(`saveRoute: ${JSON.stringify(userId)}`);
 
     try {
         const operationDateParts = operationDate.split('/');
 
-        const formattedOperationDate = `${operationDateParts[2]} - ${operationDateParts[1]} - ${operationDateParts[0]}`;
+        const formattedOperationDate = `${operationDateParts[2]}-${operationDateParts[1]}-${operationDateParts[0]}`;
 
         const date = new Date().toISOString().slice(0, 10);
 
@@ -127,7 +133,8 @@ export async function saveRoute(company, userId, operationDate, orders, distance
             // TODO: Verificar si es necesario actualizar las paradas
             // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
         }
-
+        logYellow(`fecha: ${date}`);
+        logYellow(`fechaOperativa: ${formattedOperationDate}`);
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
