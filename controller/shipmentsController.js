@@ -229,7 +229,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
         let query = "";
 
-        if (dashboardValue == -1) {
+        if (dashboardValue == 5) {
             query = `SELECT ${campos} ${estadoAsignacion} FROM envios AS e 
                     LEFT JOIN envios_historial as eh on(eh.superado = 0 and eh.elim = 0 and e.did = eh.didEnvio)
                     LEFT JOIN envios_logisticainversa AS ei ON(ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
