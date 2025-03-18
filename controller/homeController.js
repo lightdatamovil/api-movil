@@ -139,6 +139,8 @@ export async function getHomeData(company, userId, profile) {
 
 
             let le = lineas.slice(-1);
+            console.log(le, "le");
+            
 
             lineaEnvios = le[0].envios;
             lineaEnviosHistorial = le[0].envios_historial;
