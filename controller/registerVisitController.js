@@ -1,7 +1,7 @@
 import { getProdDbConfig, executeQuery } from "../db.js";
 import mysql from "mysql";
 import axios from "axios";
-import { logRed } from "../src/funciones/logsCustom.js";
+import { logRed, logYellow } from "../src/funciones/logsCustom.js";
 
 export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
     const dbConfig = getProdDbConfig(company);
@@ -9,8 +9,9 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
     dbConnection.connect()
 
     try {
+
         const companyId = company.did;
-        const reqBody = { image, shipmentId, userId, companyId, shipmentState, lineId };
+        const reqBody = { imagen: image, didenvio: shipmentId, quien: userId, idEmpresa: companyId };
         const server = 1;
         const url = 'https://files.lightdata.app/upload.php';
 
