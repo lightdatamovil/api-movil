@@ -81,7 +81,7 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, date) 
     await executeQuery(connection, query3, [onTheWayState, date, deviceFrom]);
 }
 
-export async function endRoute(company, userId, date, deciveFrom) {
+export async function endRoute(company, userId, date) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();

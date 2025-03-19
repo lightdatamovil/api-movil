@@ -59,18 +59,18 @@ home.post('/start-route', verifyToken, async (req, res) => {
 
 home.post('/end-route', verifyToken, async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, ['date', 'deciveFrom'], true);
+	const mensajeError = verifyParamaters(req.body, ['date'], true);
 
 	if (mensajeError) {
 		return res.status(400).json({ message: mensajeError });
 	}
 
-	const { companyId, userId, date, deciveFrom } = req.body;
+	const { companyId, userId, date } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
 
-		await endRoute(company, userId, date, deciveFrom);
+		await endRoute(company, userId, date);
 
 		res.status(200).json({ message: 'La ruta a terminado exitosamente' });
 	} catch (e) {
