@@ -1,5 +1,5 @@
 import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../db.js';
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
@@ -112,7 +112,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
 
 export async function shipmentDetails(company, shipmentId, userId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -171,7 +171,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
 export async function shipmentList(company, userId, profile, from, dashboardValue) {
 
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -384,7 +384,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
 
 export async function nextDeliver(company, shipmentId, date, userId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {

@@ -1,11 +1,11 @@
 import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClientsByCompany, getDriversByCompany } from "../db.js";
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 import axios from 'axios';
 import { logRed } from "../src/funciones/logsCustom.js";
 
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -77,7 +77,7 @@ export async function crossDocking(dataQr, company) {
 
 export async function getShipmentIdFromQr(dataQr, company) {
     const dbConfig = getDbConfig(company.did);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -124,7 +124,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
 export async function driverList(company) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -161,7 +161,7 @@ export async function driverList(company) {
 
 export async function enterFlex(company, dataQr, userId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {

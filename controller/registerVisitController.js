@@ -1,11 +1,11 @@
 import { getProdDbConfig, executeQuery } from "../db.js";
-import mysql from "mysql";
+import mysql2 from "mysql";
 import axios from "axios";
 import { logRed, logYellow } from "../src/funciones/logsCustom.js";
 
 export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect()
 
     try {
@@ -38,7 +38,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
 
 export async function registerVisit(company, userId, shipmentId, recieverDNI, recieverName, latitude, longitude, shipmentState, observation) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect()
 
     try {

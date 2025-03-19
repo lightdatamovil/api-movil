@@ -1,4 +1,4 @@
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 import { executeQuery, getDbConfig } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -21,7 +21,7 @@ function generateToken(userId, idEmpresa, perfil) {
 
 export async function login(username, password, company) {
     const dbConfig = getDbConfig(company.did);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -126,7 +126,7 @@ export async function identification(company) {
 export async function whatsappMessagesList(company) {
 
     const dbConfig = getDbConfig(company.did);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {

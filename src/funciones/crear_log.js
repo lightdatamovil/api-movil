@@ -1,8 +1,8 @@
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 
 export async function crearLog(idEmpresa, operador, endpoint, result, quien, idDispositivo, modelo, marca, versionAndroid, versionApp) {
     const dbConfig = getDbConfig(company.did);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
 
     return new Promise((resolve, reject) => {
         dbConnection.connect((err) => {
@@ -26,7 +26,7 @@ export async function crearLog(idEmpresa, operador, endpoint, result, quien, idD
                 versionApp
             ];
 
-            const queryString = mysql.format(sql, values);
+            const queryString = mysql2.format(sql, values);
 
             dbConnection.query(sql, values, (err, results) => {
                 dbConnection.end();

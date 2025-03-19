@@ -1,10 +1,10 @@
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 import { getProdDbConfig, executeQuery, redisClient } from '../db.js';
 import { logPurple, logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 export async function verifyStartedRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -27,7 +27,7 @@ export async function verifyStartedRoute(company, userId) {
 
 export async function startRoute(company, userId, date, deviceFrom) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
     const hour = date.split(' ')[1];
     try {
@@ -83,7 +83,7 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, date) 
 
 export async function endRoute(company, userId, date) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     const hour = date.split(' ')[1];
@@ -105,7 +105,7 @@ export async function endRoute(company, userId, date) {
 export async function getHomeData(company, userId, profile) {
 
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {

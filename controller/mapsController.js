@@ -1,11 +1,11 @@
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 
 import { getProdDbConfig, executeQuery } from '../db.js';
 import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 export async function getRoutaByUserId(company, userId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -105,7 +105,7 @@ export async function getRoutaByUserId(company, userId) {
 
 export async function saveRoute(company, userId, operationDate, orders, distance, totalDelay, additionalRouteData) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
     logYellow(`saveRoute: ${JSON.stringify(additionalRouteData)}`);
     logYellow(`saveRoute: ${JSON.stringify(orders)}`);
@@ -166,7 +166,7 @@ export async function saveRoute(company, userId, operationDate, orders, distance
 }
 export async function geolocalize(company, shipmentId, latitude, longitude) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {

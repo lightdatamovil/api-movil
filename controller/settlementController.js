@@ -1,10 +1,10 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany } from "../db.js";
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 import { logRed } from "../src/funciones/logsCustom.js";
 
 export async function getSettlementList(company, userId, from, to) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -45,7 +45,7 @@ export async function getSettlementList(company, userId, from, to) {
 
 export async function getSettlementDetails(company, settlementId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -88,7 +88,7 @@ export async function getSettlementDetails(company, settlementId) {
 
 export async function getSettlementShipmentDetails(company, shipmentId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {

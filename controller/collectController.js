@@ -1,10 +1,10 @@
-import mysql from 'mysql';
+import mysql2 from 'mysql';
 import { getProdDbConfig, executeQuery } from '../db.js';
 import { logRed } from '../src/funciones/logsCustom.js';
 
 export async function getRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -87,7 +87,7 @@ export async function getRoute(company, userId) {
 
 export async function startCollectRoute(company) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
     try {
 
@@ -100,7 +100,7 @@ export async function startCollectRoute(company) {
 
 export async function saveRoute(company, date, userId, additionalRouteData, orders) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -167,7 +167,7 @@ export async function saveRoute(company, date, userId, additionalRouteData, orde
 
 export async function getCollectDetails(company) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -218,7 +218,7 @@ export async function getCollectDetails(company) {
 
 export async function shipmentsFromClient(company, date, clientId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -249,7 +249,7 @@ export async function shipmentsFromClient(company, date, clientId) {
 
 export async function getCollectList(company, userId, from, to) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -274,7 +274,7 @@ export async function getCollectList(company, userId, from, to) {
 
 export async function getSettlementList(company, from, to) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
@@ -307,7 +307,7 @@ export async function getSettlementList(company, from, to) {
 
 export async function getSettlementDetails(company, settlementId) {
     const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql.createConnection(dbConfig);
+    const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
