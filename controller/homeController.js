@@ -121,31 +121,19 @@ export async function getHomeData(company, userId, profile) {
     dbConnection.connect();
 
     try {
-        const hoy = new Date().toISOString().split('T')[0]; // Obtener la fecha actual en formato YYYY-MM-DD
+        const hoy = new Date().toISOString().split('T')[0];
 
-        const lineas = await executeQuery(dbConnection, "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC", [hoy]);
+        const queryLineas = "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC";
+        const lineas = await executeQuery(dbConnection, queryLineas, [hoy], true);
+
         let lineaEnvios;
         let lineaEnviosHistorial;
 
+        let le = lineas.slice(-1);
 
-        if (lineas == undefined) {
+        lineaEnvios = le[0].envios;
+        lineaEnviosHistorial = le[0].envios_historial;
 
-
-
-            lineaEnvios = 0;
-            lineaEnviosHistorial = 0;
-        }
-        else {
-
-
-            let le = lineas.slice(-1);
-
-            lineaEnvios = le[0].envios;
-            lineaEnviosHistorial = le[0].envios_historial;
-
-        }
-
-        // Definir estados según el didEmpresa
         const estadosPendientes = {
             20: '(0, 1, 2, 3, 6, 7, 10, 11, 12)',
             55: '(0, 1, 2, 3, 6, 7, 10, 11, 12)',
