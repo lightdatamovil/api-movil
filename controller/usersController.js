@@ -79,6 +79,8 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
             userData.identificador, userData.direccion, userData.inicio_ruta, userData.lista_de_precios
         ];
 
+        
+
         const resultInsert = await executeQuery(dbConnection, insertQuery, insertValues);
         const insertedId = resultInsert.insertId;
 
