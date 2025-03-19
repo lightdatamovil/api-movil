@@ -40,12 +40,12 @@ home.post('/start-route', verifyToken, async (req, res) => {
 		return res.status(400).json({ message: mensajeError });
 	}
 
-	const { companyId, userId } = req.body;
+	const { companyId, userId, hour } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
 
-		let result = await startRoute(company, userId);
+		let result = await startRoute(company, userId, hour);
 
 		res.status(200).json({ body: result, message: 'La ruta a comenzado exitosamente' });
 	} catch (e) {
@@ -65,12 +65,12 @@ home.post('/end-route', verifyToken, async (req, res) => {
 		return res.status(400).json({ message: mensajeError });
 	}
 
-	const { companyId, userId } = req.body;
+	const { companyId, userId, hour } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
 
-		await endRoute(company, userId);
+		await endRoute(company, userId, hour);
 
 		res.status(200).json({ message: 'La ruta a terminado exitosamente' });
 	} catch (e) {

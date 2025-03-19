@@ -85,7 +85,7 @@ export async function getRoute(company, userId) {
     }
 }
 
-export async function startRoute(company) {
+export async function startCollectRoute(company) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
@@ -93,7 +93,7 @@ export async function startRoute(company) {
 
         return true;
     } catch (error) {
-        logRed(`Error en startRoute: ${error.stack}`);
+        logRed(`Error en startCollectRoute: ${error.stack}`);
         throw error;
     }
 }

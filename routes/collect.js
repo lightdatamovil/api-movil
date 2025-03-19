@@ -1,7 +1,7 @@
 import { getCompanyById } from '../db.js';
 import { Router } from 'express';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getRoute, startRoute, getSettlementDetails, getSettlementList } from '../controller/collectController.js';
+import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getRoute, startCollectRoute, getSettlementDetails, getSettlementList } from '../controller/collectController.js';
 import { logPurple, logRed } from '../src/funciones/logsCustom.js';
 
 const collect = Router();
@@ -44,7 +44,7 @@ collect.post("/start-route", async (req, res) => {
     try {
         const company = await getCompanyById(companyId);
 
-        const startedRoute = await startRoute(company, userId);
+        const startedRoute = await startCollectRoute(company, userId);
 
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
