@@ -50,7 +50,7 @@ export async function startRoute(company, userId) {
         if (rows.length > 0 && rows[0].tiempo) {
             const [hora, minutos] = ahora.split(':').map(Number);
             const totalSegundos = (hora * 3600) + (minutos * 60) + rows[0].tiempo;
-            const nuevaHora = new Date(totalSegundos * 1000).toISOString().substr(11, 5);
+            const nuevaHora = new Date((totalSegundos - 10800) * 1000).toISOString().substr(11, 5);
 
             const sqlUpdateRuteo = "UPDATE ruteo SET hs_inicioApp = ?, hs_finApp = ? WHERE superado=0 AND elim=0 AND didChofer = ?";
             await executeQuery(dbConnection, sqlUpdateRuteo, [horaFormateada, nuevaHora, userId]);
