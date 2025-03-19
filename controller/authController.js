@@ -3,7 +3,7 @@ import { executeQuery, getDbConfig } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
-import { logRed } from '../src/funciones/logsCustom.js';
+import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 function generateToken(userId, idEmpresa, perfil) {
     const payload = {
