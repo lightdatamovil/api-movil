@@ -31,7 +31,16 @@ export async function startRoute(company, userId) {
     dbConnection.connect();
 
     try {
-        const ahora = new Date().toLocaleTimeString('es-ES', { hour12: false }).slice(0, 5);
+        const ahora = new Date();
+        ahora.setHours(ahora.getHours() - 3);
+        
+        const horaFormateada = ahora.toLocaleTimeString('es-ES', { hour12: false }).slice(0, 5);
+        
+        console.log(horaFormateada);
+        
+
+
+
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo) VALUES (?, ?)";
         await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0]);
 
@@ -41,13 +50,14 @@ export async function startRoute(company, userId) {
         if (rows.length > 0 && rows[0].tiempo) {
             const [hora, minutos] = ahora.split(':').map(Number);
             const totalSegundos = (hora * 3600) + (minutos * 60) + rows[0].tiempo;
-            const nuevaHora = new Date(totalSegundos * 1000).toISOString().substr(11, 5);
+            const nuevaHora = new Date((totalSegundos - 10800) * 1000).toISOString().substr(11, 5);
+console.log(nuevaHora, horaFormateada,"nueva hora ,hora formateada");
 
             const sqlUpdateRuteo = "UPDATE ruteo SET hs_inicioApp = ?, hs_finApp = ? WHERE superado=0 AND elim=0 AND didChofer = ?";
-            await executeQuery(dbConnection, sqlUpdateRuteo, [ahora, nuevaHora, userId]);
+            await executeQuery(dbConnection, sqlUpdateRuteo, [horaFormateada, nuevaHora, userId]);
         } else {
             const sqlUpdateRuteo = "UPDATE ruteo SET hs_inicioApp = ? WHERE superado=0 AND elim=0 AND didChofer = ?";
-            await executeQuery(dbConnection, sqlUpdateRuteo, [ahora, userId]);
+            await executeQuery(dbConnection, sqlUpdateRuteo, [horaFormateada, userId]);
         }
 
         const dias = 3;
