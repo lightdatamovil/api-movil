@@ -25,11 +25,11 @@ export async function verifyStartedRoute(company, userId) {
     }
 }
 
-export async function startRoute(company, userId, hour) {
+export async function startRoute(company, userId, date, deviceFrom) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
-
+    const hour = date.split(' ')[1];
     try {
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo) VALUES (?, ?)";
         await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0]);
@@ -43,11 +43,11 @@ export async function startRoute(company, userId, hour) {
 
         const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
         if (envios.length > 0) {
-            const didEnvios = envios
+            const shipmentIds = envios
                 .filter(e => e.estado !== 5 && e.estado !== 8 && e.estado !== 9 && e.didEnvio != null)
                 .map(e => e.didEnvio);
 
-            await fsetestadoMasivoDesde(2, didEnvios, "APP Comenzar", dbConnection);
+            await fsetestadoMasivoDesde(dbConnection, shipmentIds, deviceFrom, date);
         }
     } catch (error) {
         logRed(`Error en startRoute: ${error.stack}`);
@@ -57,34 +57,36 @@ export async function startRoute(company, userId, hour) {
     }
 }
 
-async function fsetestadoMasivoDesde(estado, envios, desde, connection) {
-    const fecha = new Date().toISOString().replace('T', ' ').substr(0, 19);
+async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, date) {
+    const onTheWayState = 2;
     const query1 = `
         UPDATE envios_historial
         SET superado = 1
-        WHERE superado = 0 AND didEnvio IN(${envios.join(',')})
+        WHERE superado = 0 AND didEnvio IN(${shipmentIds.join(',')})
     `;
     await executeQuery(connection, query1);
 
     const query2 = `
         UPDATE envios
         SET estado_envio =?
-        WHERE superado = 0 AND did IN(${envios.join(',')})
+        WHERE superado = 0 AND did IN(${shipmentIds.join(',')})
     `;
-    await executeQuery(connection, query2, [estado]);
+    await executeQuery(connection, query2, [onTheWayState]);
 
     const query3 = `
         INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
         SELECT did, ?, 0, ?, 0, ?
-        FROM envios WHERE did IN(${envios.join(',')})
+        FROM envios WHERE did IN(${shipmentIds.join(',')})
     `;
-    await executeQuery(connection, query3, [estado, fecha, desde]);
+    await executeQuery(connection, query3, [onTheWayState, date, deviceFrom]);
 }
 
-export async function endRoute(company, userId, hour) {
+export async function endRoute(company, userId, date, deciveFrom) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql.createConnection(dbConfig);
     dbConnection.connect();
+
+    const hour = date.split(' ')[1];
 
     try {
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo) VALUES (?, ?)";
