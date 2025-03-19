@@ -31,7 +31,15 @@ export async function startRoute(company, userId) {
     dbConnection.connect();
 
     try {
-        const ahora = new Date().toLocaleTimeString('es-ES', { hour12: false }).slice(0, 5);
+        const ahora3 = new Date();
+        ahora3.setHours(ahora.getHours() - 3);
+        
+        const ahora = ahora.toLocaleTimeString('es-ES', { hour12: false }).slice(0, 5);
+      
+
+
+console.log(horaFormateada);
+
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo) VALUES (?, ?)";
         await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0]);
 
