@@ -29,17 +29,10 @@ export async function login(username, password, company) {
 
         const resultsFromDepotQuery = await executeQuery(dbConnection, depotQuery, []);
 
-        let depotLatitude = 0;
-        let depotLongitude = 0;
-        let userHomeLatitude = 0;
-        let userHomeLongitude = 0;
+        let depotLatitude = resultsFromDepotQuery[0].latitud;
+        let depotLongitude  = resultsFromDepotQuery[0].longitud;
         let userAddress = new Object();
 
-        if (resultsFromDepotQuery.length > 0) {
-            const row = resultsFromDepotQuery[0];
-            depotLatitude = row.latitud;
-            depotLongitude = row.longitud;
-        }
 
         const userQuery = `SELECT did, bloqueado, nombre, apellido, email, telefono, pass, usuario, perfil, direccion
                        FROM sistema_usuarios 
@@ -64,6 +57,8 @@ export async function login(username, password, company) {
 
         const token = generateToken(user.did, company.did, user.perfil);
 
+        let userHomeLatitude 
+        let userHomeLongitude 
         if (user.direccion != "") {
             userAddress = JSON.parse(user.direccion);
 
