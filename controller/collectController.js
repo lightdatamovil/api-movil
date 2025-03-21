@@ -2,19 +2,17 @@ import mysql2 from 'mysql';
 import { getProdDbConfig, executeQuery } from '../db.js';
 import { logRed } from '../src/funciones/logsCustom.js';
 
-export async function getRoute(company, userId) {
+export async function getRoute(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
-        const date = new Date();
-        const dia = date.toISOString().split('T')[0];
 
         let hasRoute, routeId, additionalRouteData, client = null;
 
         const routeQuery = "SELECT id, did, dataRuta FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND fecha = ? AND didChofer = ?";
-        const routeResult = await executeQuery(dbConnection, routeQuery, [dia, userId]);
+        const routeResult = await executeQuery(dbConnection, routeQuery, [dateYYYYMMDD, userId]);
 
         if (routeResult.length > 0) {
             const dataRoute = JSON.parse(routeResult[0].dataRuta);
@@ -55,7 +53,7 @@ export async function getRoute(company, userId) {
                 LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND cd.cliente = c.did
                 WHERE ca.fecha LIKE ? AND ca.superado = 0 AND ca.elim = 0 AND ca.didChofer = ? GROUP BY ca.didCliente;
             `;
-            const assignmentResult = await executeQuery(dbConnection, assignmentQuery, [date, userId]);
+            const assignmentResult = await executeQuery(dbConnection, assignmentQuery, [dateYYYYMMDD, userId]);
 
             client = assignmentResult.map(row => ({
                 orden: null,
@@ -98,16 +96,12 @@ export async function startCollectRoute(company) {
     }
 }
 
-export async function saveRoute(company, date, userId, additionalRouteData, orders) {
+export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
-        const fechaOpeFormatted = date.split('/').reverse().join('-');
-
-        const fecha = new Date().toISOString().split('T')[0];
-
         let didAsuperar = 0;
 
         const rows = await executeQuery(
@@ -137,7 +131,7 @@ export async function saveRoute(company, date, userId, additionalRouteData, orde
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO colecta_ruta (desde, fecha, fechaOperativa, didChofer, quien, dataRuta) VALUES (?, ?, ?, ?, ?, ?)",
-            [2, fecha, fechaOpeFormatted, userId, userId, JSON.stringify(additionalRouteData)]
+            [2, dateYYYYMMDD, dateYYYYMMDD, userId, userId, JSON.stringify(additionalRouteData)]
         );
 
         const newId = result.insertId;
@@ -150,7 +144,7 @@ export async function saveRoute(company, date, userId, additionalRouteData, orde
             executeQuery(
                 dbConnection,
                 "INSERT INTO colecta_ruta_paradas (didRuta, didCliente, orden, demora, fecha_colectado, quien) VALUES (?, ?, ?, ?, ?, ?)",
-                [newId, cliente, orden, ordenLlegada, fechaOpeFormatted, userId]
+                [newId, cliente, orden, ordenLlegada, dateYYYYMMDD, userId]
             )
         );
 
@@ -165,7 +159,7 @@ export async function saveRoute(company, date, userId, additionalRouteData, orde
     }
 }
 
-export async function getCollectDetails(company) {
+export async function getCollectDetails(company, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -187,7 +181,7 @@ export async function getCollectDetails(company) {
             `SELECT didCliente, didEnvio 
              FROM colecta_asignacion 
              WHERE superado = 0 AND elim = 0 AND didChofer = ? AND fecha = ? `,
-            [userId, date]
+            [userId, dateYYYYMMDD]
         );
 
         let collectDetails = {};
@@ -216,7 +210,7 @@ export async function getCollectDetails(company) {
     }
 }
 
-export async function shipmentsFromClient(company, date, clientId) {
+export async function shipmentsFromClient(company, dateYYYYMMDD, clientId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -229,7 +223,7 @@ export async function shipmentsFromClient(company, date, clientId) {
             WHERE ca.superado = 0 AND ca.elim = 0 AND ca.fecha = ? AND ca.didCliente = ?
         `;
 
-        const result = await executeQuery(dbConnection, sql, [date, clientId]);
+        const result = await executeQuery(dbConnection, sql, [dateYYYYMMDD, clientId]);
 
         let shipmentsFromClient = result.map(row => ({
             didEnvio: Number(row.didEnvio),

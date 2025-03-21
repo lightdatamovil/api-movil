@@ -9,18 +9,18 @@ const home = Router();
 
 home.post('/home', async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, [], true);
+	const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
 
 	if (mensajeError) {
 		return res.status(400).json({ message: mensajeError });
 	}
 
-	const { companyId, userId, profile } = req.body;
+	const { companyId, userId, profile, dateYYYYMMDD } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
 
-		const result = await getHomeData(company, userId, profile);
+		const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
 
 		res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
 	} catch (error) {
@@ -34,18 +34,18 @@ home.post('/home', async (req, res) => {
 
 home.post('/start-route', verifyToken, async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, ['date', 'deviceFrom'], true);
+	const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD', 'deviceFrom'], true);
 
 	if (mensajeError) {
 		return res.status(400).json({ message: mensajeError });
 	}
 
-	const { companyId, userId, date, deviceFrom } = req.body;
+	const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
 
-		let result = await startRoute(company, userId, date, deviceFrom);
+		let result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
 
 		res.status(200).json({ body: result, message: 'La ruta a comenzado exitosamente' });
 	} catch (e) {
@@ -59,18 +59,18 @@ home.post('/start-route', verifyToken, async (req, res) => {
 
 home.post('/end-route', verifyToken, async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, ['date'], true);
+	const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
 
 	if (mensajeError) {
 		return res.status(400).json({ message: mensajeError });
 	}
 
-	const { companyId, userId, date } = req.body;
+	const { companyId, userId, dateYYYYMMDD } = req.body;
 
 	try {
 		const company = await getCompanyById(companyId);
 
-		await endRoute(company, userId, date);
+		await endRoute(company, userId, dateYYYYMMDD);
 
 		res.status(200).json({ message: 'La ruta a terminado exitosamente' });
 	} catch (e) {

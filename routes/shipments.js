@@ -59,18 +59,18 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
 shipments.post("/next-visit", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const mensajeError = verifyParamaters(req.body, ['shipmentId', 'date'], true);
+  const mensajeError = verifyParamaters(req.body, ['shipmentId', 'dateYYYYMMDD'], true);
 
   if (mensajeError) {
     return res.status(400).json({ message: mensajeError });
   }
 
-  const { companyId, userId, shipmentId, date } = req.body;
+  const { companyId, userId, shipmentId, dateYYYYMMDD } = req.body;
 
   try {
     const company = await getCompanyById(companyId);
 
-    const result = await nextDeliver(company, shipmentId, date, userId);
+    const result = await nextDeliver(company, shipmentId, dateYYYYMMDD, userId);
 
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {

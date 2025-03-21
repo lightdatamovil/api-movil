@@ -63,18 +63,18 @@ users.post('/change-password', async (req, res) => {
 
 users.post('/change-profile-picture', async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['image'], true);
+    const mensajeError = verifyParamaters(req.body, ['image', 'dateYYYYMMDD'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, userId, profile, image } = req.body;
+    const { companyId, userId, profile, image, dateYYYYMMDD } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const result = await changeProfilePicture(company, userId, profile, image);
+        const result = await changeProfilePicture(company, userId, profile, image, dateYYYYMMDD);
 
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {

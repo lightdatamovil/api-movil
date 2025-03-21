@@ -382,7 +382,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
     }
 }
 
-export async function nextDeliver(company, shipmentId, date, userId) {
+export async function nextDeliver(company, shipmentId, dateYYYYMMDD, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -390,7 +390,7 @@ export async function nextDeliver(company, shipmentId, date, userId) {
     try {
         const query = "INSERT INTO proximas_entregas (didEnvio, fecha, quien) VALUES (?, ?, ?)";
 
-        await executeQuery(dbConnection, query, [shipmentId, date, userId]);
+        await executeQuery(dbConnection, query, [shipmentId, dateYYYYMMDD, userId]);
     } catch (error) {
         logRed(`Error en nextDeliver: ${error.stack}`);
         throw error;

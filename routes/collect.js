@@ -8,18 +8,18 @@ const collect = Router();
 
 collect.post("/get-route", async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, [], true);
+    const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, userId } = req.body;
+    const { companyId, userId, dateYYYYMMDD } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const route = await getRoute(company, userId);
+        const route = await getRoute(company, userId, dateYYYYMMDD);
 
         res.status(200).json({ body: route, message: "Ruta obtenida correctamente" });
     } catch (error) {
@@ -60,18 +60,18 @@ collect.post("/start-route", async (req, res) => {
 
 collect.post("/save-route", async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['operationDate', 'additionalRouteData', 'orders'], true);
+    const mensajeError = verifyParamaters(req.body, ['operationDate', 'additionalRouteData', 'orders', 'dateYYYYMMDD'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, userId, operationDate, additionalRouteData, orders } = req.body;
+    const { companyId, userId, dateYYYYMMDD, additionalRouteData, orders } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const savedRoute = await saveRoute(company, operationDate, userId, additionalRouteData, orders);
+        const savedRoute = await saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders);
 
         res.json({ body: savedRoute, message: "Ruta guardada correctamente." });
     } catch (error) {
@@ -85,18 +85,18 @@ collect.post("/save-route", async (req, res) => {
 
 collect.post("/get-collect-details", async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['date'], true);
+    const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, userId, profile, date } = req.body;
+    const { companyId, userId, profile, dateYYYYMMDD } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const collect = await getCollectDetails(company, userId, profile, date);
+        const collect = await getCollectDetails(company, userId, profile, dateYYYYMMDD);
 
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -112,18 +112,18 @@ collect.post("/get-collect-details", async (req, res) => {
 
 collect.post("/get-client-details", async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['date', 'clientId'], true);
+    const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD', 'clientId'], true);
 
     if (mensajeError) {
         return res.status(400).json({ message: mensajeError });
     }
 
-    const { companyId, date, clientId } = req.body;
+    const { companyId, dateYYYYMMDD, clientId } = req.body;
 
     try {
         const company = await getCompanyById(companyId);
 
-        const result = await shipmentsFromClient(company, date, clientId);
+        const result = await shipmentsFromClient(company, dateYYYYMMDD, clientId);
 
         res.status(200).json({ body: result, message: "Envíos obtenidos correctamente" });
     } catch (error) {

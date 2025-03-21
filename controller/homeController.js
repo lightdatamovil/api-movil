@@ -25,11 +25,12 @@ export async function verifyStartedRoute(company, userId) {
     }
 }
 
-export async function startRoute(company, userId, date, deviceFrom) {
+export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
-    const hour = date.split(' ')[1];
+
+    const hour = dateYYYYMMDDHHSS.split(' ')[1];
     try {
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo) VALUES (?, ?)";
         await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0]);
@@ -47,7 +48,7 @@ export async function startRoute(company, userId, date, deviceFrom) {
                 .filter(e => e.estado !== 5 && e.estado !== 8 && e.estado !== 9 && e.didEnvio != null)
                 .map(e => e.didEnvio);
 
-            await fsetestadoMasivoDesde(dbConnection, shipmentIds, deviceFrom, date);
+            await fsetestadoMasivoDesde(dbConnection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS);
         }
     } catch (error) {
         logRed(`Error en startRoute: ${error.stack}`);
@@ -57,7 +58,7 @@ export async function startRoute(company, userId, date, deviceFrom) {
     }
 }
 
-async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, date) {
+async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS) {
     const onTheWayState = 2;
     const query1 = `
         UPDATE envios_historial
@@ -78,15 +79,15 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, date) 
         SELECT did, ?, 0, ?, 0, ?
         FROM envios WHERE did IN(${shipmentIds.join(',')})
     `;
-    await executeQuery(connection, query3, [onTheWayState, date, deviceFrom]);
+    await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, deviceFrom]);
 }
 
-export async function endRoute(company, userId, date) {
+export async function endRoute(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
-    const hour = date.split(' ')[1];
+    const hour = dateYYYYMMDD.split(' ')[1];
 
     try {
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo) VALUES (?, ?)";
@@ -102,22 +103,19 @@ export async function endRoute(company, userId, date) {
     }
 }
 
-export async function getHomeData(company, userId, profile) {
+export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
 
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
-        const hoy = new Date().toISOString().split('T')[0];
 
         const queryLineas = "SELECT envios, envios_historial FROM tablas_indices WHERE fecha = DATE_SUB(?, INTERVAL 7 DAY) ORDER BY id DESC";
-        const lineas = await executeQuery(dbConnection, queryLineas, [hoy], true);
+        const lineas = await executeQuery(dbConnection, queryLineas, [dateYYYYMMDD], true);
 
         let lineaEnvios;
         let lineaEnviosHistorial;
-        console.log(lineas, "lineas"
-        );
 
         let le = lineas.slice(-1);
 
@@ -166,7 +164,7 @@ export async function getHomeData(company, userId, profile) {
 
             case 5:
                 // ASIGNADOS HOY
-                const asignadosHoyResult = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE superado = 0 AND elim = 0 AND autofecha > ?", [`${hoy} 00:00:00`]);
+                const asignadosHoyResult = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE superado = 0 AND elim = 0 AND autofecha > ?", [`${dateYYYYMMDD} 00:00:00`]);
                 infoADevolver.assignedToday = asignadosHoyResult[0]?.total || 0;
 
                 // PENDIENTES Y EN CAMINO
@@ -191,7 +189,7 @@ export async function getHomeData(company, userId, profile) {
                         SUM(CASE WHEN estado IN ${estadosEntregadosHoy} THEN 1 ELSE 0 END) AS entregadosHoy
                     FROM envios_historial
                     WHERE autofecha > ? AND superado = 0 AND elim = 0
-                `, [`${hoy} 00:00:00`]);
+                `, [`${dateYYYYMMDD} 00:00:00`]);
 
                 infoADevolver.closedToday = cerradosYEntregadosHoyResult[0]?.closedToday || 0;
                 infoADevolver.deliveredToday = cerradosYEntregadosHoyResult[0]?.deliveredToday || 0;
@@ -206,22 +204,17 @@ export async function getHomeData(company, userId, profile) {
                     FROM envios_historial AS eh
                     LEFT JOIN envios AS e ON (e.did = eh.didEnvio AND e.superado = 0 AND e.elim = 0)
                     WHERE eh.autofecha > ? AND eh.superado = 0 AND eh.elim = 0 AND e.didCliente = ?
-                `, [`${hoy} 00:00:00`, userId]);
+                `, [`${dateYYYYMMDD} 00:00:00`, userId]);
 
                 infoADevolver.closedToday = cerradosHoyYEntregadosHoyResult[0]?.closedToday || 0;
                 infoADevolver.deliveredToday = cerradosHoyYEntregadosHoyResult[0]?.deliveredToday || 0;
                 break;
 
             case 3:
-
-
                 // ASIGNADOS HOY
-                const asignadosHoyCase3Result = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE operador = ? AND superado = 0 AND elim = 0 AND autofecha > ?", [userId, `${hoy} 00:00:00`]);
-
+                const asignadosHoyCase3Result = await executeQuery(dbConnection, "SELECT COUNT(id) AS total FROM envios_asignaciones WHERE operador = ? AND superado = 0 AND elim = 0 AND autofecha > ?", [userId, `${dateYYYYMMDD} 00:00:00`]);
 
                 infoADevolver.assignedToday = asignadosHoyCase3Result[0].total || 0;
-
-
 
                 // PENDIENTES Y EN CAMINO
                 const pendientesYEnCaminoCase3Result = await executeQuery(dbConnection, `
@@ -245,7 +238,7 @@ export async function getHomeData(company, userId, profile) {
                         SUM(CASE WHEN estado IN ${estadosEntregadosHoy} THEN 1 ELSE 0 END) AS entregadosHoy
                     FROM envios_historial
                     WHERE autofecha > ? AND superado = 0 AND elim = 0 AND didCadete = ?
-                `, [`${hoy} 00:00:00`, userId]);
+                `, [`${dateYYYYMMDD} 00:00:00`, userId]);
 
 
                 infoADevolver.closedToday = cerradosHoyYEntregadosHoyCase3Result[0]?.cerradosHoy || 0;

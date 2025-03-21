@@ -79,7 +79,7 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
             userData.identificador, userData.direccion, userData.inicio_ruta, userData.lista_de_precios
         ];
 
-        
+
 
         const resultInsert = await executeQuery(dbConnection, insertQuery, insertValues);
         const insertedId = resultInsert.insertId;
@@ -96,7 +96,7 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
     }
 }
 
-export async function changeProfilePicture(company, userId, profile, image) {
+export async function changeProfilePicture(company, userId, profile, image, dateYYYYMMDD) {
     if (image && image !== "") {
         const imageB64 = image.split(",");
 
@@ -111,7 +111,7 @@ export async function changeProfilePicture(company, userId, profile, image) {
                 didUser: userId,
                 perfil: profile,
                 imagen: image,
-                token: new Date().toISOString().split('T')[0].replace(/-/g, '') // "Ymd" format
+                token: dateYYYYMMDD
             };
 
             const config = {

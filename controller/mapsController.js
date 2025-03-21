@@ -3,7 +3,7 @@ import mysql2 from 'mysql';
 import { getProdDbConfig, executeQuery } from '../db.js';
 import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
-export async function getRoutaByUserId(company, userId) {
+export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -13,10 +13,8 @@ export async function getRoutaByUserId(company, userId) {
 
         let additionalRouteData;
 
-        const today = new Date().toISOString().split('T')[0];
-
         const rutaQuery = "SELECT id FROM `ruteo` WHERE superado=0 AND elim=0 AND fechaOperativa = ? AND didChofer = ?";
-        const rutaResult = await executeQuery(dbConnection, rutaQuery, [today, userId]);
+        const rutaResult = await executeQuery(dbConnection, rutaQuery, [dateYYYYMMDD, userId]);
 
         if (rutaResult.length > 0) {
             const getRouteShipmentsQuery = `
@@ -103,24 +101,12 @@ export async function getRoutaByUserId(company, userId) {
     }
 }
 
-export async function saveRoute(company, userId, operationDate, orders, distance, totalDelay, additionalRouteData) {
+export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
-    logYellow(`saveRoute: ${JSON.stringify(additionalRouteData)}`);
-    logYellow(`saveRoute: ${JSON.stringify(orders)}`);
-    logYellow(`saveRoute: ${JSON.stringify(distance)}`);
-    logYellow(`saveRoute: ${JSON.stringify(totalDelay)}`);
-    logYellow(`saveRoute: ${JSON.stringify(operationDate)}`);
-    logYellow(`saveRoute: ${JSON.stringify(userId)}`);
 
     try {
-        const operationDateParts = operationDate.split('/');
-
-        const formattedOperationDate = `${operationDateParts[2]}-${operationDateParts[1]}-${operationDateParts[0]}`;
-
-        const date = new Date().toISOString().slice(0, 10);
-
         let routeId = 0;
 
         const rows = await executeQuery(dbConnection, "SELECT did FROM `ruteo` WHERE superado = 0 AND elim = 0 AND didChofer = ?", [userId]);
@@ -133,12 +119,11 @@ export async function saveRoute(company, userId, operationDate, orders, distance
             // TODO: Verificar si es necesario actualizar las paradas
             // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
         }
-        logYellow(`fecha: ${date}`);
-        logYellow(`fechaOperativa: ${formattedOperationDate}`);
+
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [2, date, formattedOperationDate, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)]
+            [2, dateYYYYMMDD, dateYYYYMMDD, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)]
         );
 
         const newId = result.insertId;
