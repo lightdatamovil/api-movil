@@ -214,9 +214,6 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             estadoAsignacion = ', e.estadoAsignacion';
         }
 
-        // Campos para dashboardValue = 5:
-        // Los campos de destinatario se sacan de la tabla envios y los de dirección de edd,
-        // incluyendo destination_comments, que ahora se obtiene desde edd.
         const campos = `
             e.did as didEnvio, e.flex, e.ml_shipment_id, 
             ec.valor as monto_total_a_cobrar, e.ml_venta_id, e.estado_envio, edd.destination_comments, 
@@ -225,23 +222,23 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             e.choferAsignado, ei.valor, rp.orden, DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial,
             pe.id as proximaentregaId,
             edd.address_line, edd.cp, edd.localidad,
-            edd.latitud as lat, edd.longitud as lng
+            edd.latitud as lat, edd.longitud as lng,
+            e.estadoAsignacion
         `;
 
-        // JOINs comunes para todas las ramas, incluyendo la dirección (de edd)
         const commonJoins = `
             LEFT JOIN envios_direcciones_destino AS edd
                 ON (edd.superado = 0 AND edd.elim = 0 AND edd.didEnvio = e.did)
-            LEFT JOIN ruteo AS r 
+            LEFT JOIN ruteo AS r
                 ON (r.elim = 0 AND r.superado = 0 AND r.fechaOperativa = CURDATE() ${sqlchoferruteo})
-            LEFT JOIN ruteo_paradas AS rp 
-                ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did 
+            LEFT JOIN ruteo_paradas AS rp
+                ON (rp.superado = 0 AND rp.elim = 0 AND rp.didPaquete = e.did
                     AND rp.didRuteo = r.did AND rp.autofecha LIKE '${hoy}%')
-            LEFT JOIN envios_cobranzas AS ec 
-                ON (ec.elim = 0 AND ec.superado = 0 AND ec.didCampoCobranza = 4 
+            LEFT JOIN envios_cobranzas AS ec
+                ON (ec.elim = 0 AND ec.superado = 0 AND ec.didCampoCobranza = 4
                     AND e.did = ec.didEnvio)
-            LEFT JOIN proximas_entregas AS pe 
-                ON (pe.elim = 0 AND pe.superado = 0 AND pe.didEnvio = e.did 
+            LEFT JOIN proximas_entregas AS pe
+                ON (pe.elim = 0 AND pe.superado = 0 AND pe.didEnvio = e.did
                     AND pe.fecha >= '${hoy}')
             ${leftjoinCliente}
         `;
@@ -259,19 +256,20 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 selectColumns = `${campos} ${estadoAsignacion}`;
                 fromClause = "FROM envios AS e";
                 joinClause = `
-                    LEFT JOIN envios_historial AS eh 
+                    LEFT JOIN envios_historial AS eh
                         ON (eh.superado = 0 AND eh.elim = 0 AND e.did = eh.didEnvio)
-                    LEFT JOIN envios_logisticainversa AS ei 
+                    LEFT JOIN envios_logisticainversa AS ei
                         ON (ei.superado = 0 AND ei.elim = 0 AND ei.didEnvio = e.did)
-                    LEFT JOIN envios_observaciones AS eo 
+                    LEFT JOIN envios_observaciones AS eo
                         ON (eo.superado = 0 AND eo.elim = 0 AND eo.didEnvio = e.did)
                     ${commonJoins}
                 `;
                 whereClause = `
-                    WHERE e.elim = 0 AND e.superado = 0 
-                    AND eh.autofecha > '${dateWithHour}' ${sqlduenio} 
+                    WHERE e.elim = 0 AND e.superado = 0
+                    AND eh.autofecha > '${dateWithHour}' ${sqlduenio}
                     AND e.didCliente != 0
                 `;
+                groupClause = "GROUP BY e.did";
                 break;
 
             case 1:
@@ -286,11 +284,11 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 fromClause = "FROM envios_asignaciones AS ea";
                 joinClause = `
                     ${leftjoinCliente}
-                    LEFT JOIN envios_historial AS eh 
+                    LEFT JOIN envios_historial AS eh
                         ON (eh.superado = 0 AND eh.elim = 0 AND ea.didEnvio = eh.didEnvio)
-                    LEFT JOIN envios AS e 
+                    LEFT JOIN envios AS e
                         ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
-                    LEFT JOIN clientes AS c 
+                    LEFT JOIN clientes AS c
                         ON (c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente)
                     ${commonJoins}
                 `;
@@ -315,9 +313,9 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 fromClause = "FROM envios_historial AS eh";
                 joinClause = `
                     ${leftjoinCliente}
-                    LEFT JOIN envios AS e 
+                    LEFT JOIN envios AS e
                         ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
-                    LEFT JOIN clientes AS c 
+                    LEFT JOIN clientes AS c
                         ON (c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente)
                     ${commonJoins}
                 `;
@@ -343,9 +341,9 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 fromClause = "FROM envios_historial AS eh";
                 joinClause = `
                     ${leftjoinCliente}
-                    LEFT JOIN envios AS e 
+                    LEFT JOIN envios AS e
                         ON (e.superado = 0 AND e.elim = 0 AND eh.didEnvio = e.did)
-                    LEFT JOIN clientes AS c 
+                    LEFT JOIN clientes AS c
                         ON (c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente)
                     ${commonJoins}
                 `;
@@ -353,7 +351,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                     WHERE eh.autofecha > '${hoy} 00:00:00'
                       AND eh.superado = 0 AND eh.elim = 0
                       AND e.elim = 0 AND e.superado = 0
-                      ${sqlduenio} 
+                      ${sqlduenio}
                       AND e.didCliente != 0 AND e.didCliente != 'null'
                 `;
                 groupClause = "GROUP BY eh.didEnvio";
