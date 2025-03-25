@@ -358,6 +358,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                 break;
         }
 
+
         // Construir la consulta final
         const finalQuery = `
             SELECT ${selectColumns}
@@ -367,6 +368,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
             ${groupClause ? groupClause : ""}
             ${orderClause};
         `;
+
 
         const rows = await executeQuery(dbConnection, finalQuery, []);
         const lista = [];
