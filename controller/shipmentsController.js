@@ -324,7 +324,7 @@ export async function shipmentList(company, userId, profile, from, dashboardValu
                       ORDER BY rp.orden ASC`;
         }
 
-        const rows = await executeQuery(dbConnection, query, []);
+        const rows = await executeQuery(dbConnection, query, [],true);
 
         const lista = [];
 
