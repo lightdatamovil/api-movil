@@ -29,12 +29,10 @@ export async function login(username, password, company) {
 
         const resultsFromDepotQuery = await executeQuery(dbConnection, depotQuery, []);
 
-        let depotLatitude = 0;
-        let depotLongitude = 0;
-        let userHomeLatitude = 0;
-        let userHomeLongitude = 0;
+        let depotLatitude 
+        let depotLongitude 
         let userAddress = new Object();
-
+        
         if (resultsFromDepotQuery.length > 0) {
             const row = resultsFromDepotQuery[0];
             depotLatitude = row.latitud;
@@ -63,6 +61,8 @@ export async function login(username, password, company) {
         }
 
         const token = generateToken(user.did, company.did, user.perfil);
+        let userHomeLatitude 
+        let userHomeLongitude 
 
         if (user.direccion != "") {
             userAddress = JSON.parse(user.direccion);
