@@ -278,7 +278,8 @@ export async function shipmentList(company, userId, profile, from, shipmentState
         AND eh.fecha BETWEEN '${dateWithHour}' AND '${hoy} 23:59:59'
         ${sqlduenio}
         AND eh.estado IN ${estadosQuery}
-    GROUP BY eh.didEnvio`;
+    GROUP BY eh.didEnvio
+    order by rb.orden asc`;
 
         const rows = await executeQuery(dbConnection, query, []);
         const lista = [];
