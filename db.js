@@ -350,29 +350,28 @@ export async function getDriversByCompany(dbConnection, companyId) {
 export async function executeQuery(connection, query, values, log) {
     // Utilizamos connection.format para obtener la query completa con valores
     const formattedQuery = connection.format(query, values);
-  
+
     if (log) {
-      logYellow(`Ejecutando query: ${formattedQuery}`);
+        logYellow(`Ejecutando query: ${formattedQuery}`);
     }
     try {
-      return new Promise((resolve, reject) => {
-        connection.query(query, values, (err, results) => {
-          if (err) {
-            if (log) {
-              logRed(`Error en executeQuery: ${err.message} en query: ${formattedQuery}`);
-            }
-            reject(err);
-          } else {
-            if (log) {
-              logYellow(`Query ejecutado con éxito: ${formattedQuery} - Resultados: ${JSON.stringify(results)}`);
-            }
-            resolve(results);
-          }
+        return new Promise((resolve, reject) => {
+            connection.query(query, values, (err, results) => {
+                if (err) {
+                    if (log) {
+                        logRed(`Error en executeQuery: ${err.message} en query: ${formattedQuery}`);
+                    }
+                    reject(err);
+                } else {
+                    if (log) {
+                        logYellow(`Query ejecutado con éxito: ${formattedQuery} - Resultados: ${JSON.stringify(results)}`);
+                    }
+                    resolve(results);
+                }
+            });
         });
-      });
     } catch (error) {
-      logRed(`Error en executeQuery: ${error.stack}`);
-      throw error;
+        logRed(`Error en executeQuery: ${error.stack}`);
+        throw error;
     }
-  }
-  s
+}
