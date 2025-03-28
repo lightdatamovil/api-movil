@@ -210,7 +210,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.elim = 0
                     AND e.didCliente = sua.codigo_empleado
                 `;
-                    const closedDeliveredResult = await executeQuery(dbConnection, queryClosedDelivered, [estadosCerradosHoy, estadosEntregadosHoy, didUsuario]);
+                    const closedDeliveredResult = await executeQuery(dbConnection, queryClosedDelivered, [estadosCerradosHoy, estadosEntregadosHoy, userId]);
                     infoADevolver.closedToday = closedDeliveredResult[0]?.closedToday || 0;
                     infoADevolver.deliveredToday = closedDeliveredResult[0]?.deliveredToday || 0;
                 }
@@ -227,7 +227,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND elim = 0 
                     AND autofecha > ?
                 `;
-                    const assignedTodayCase3Result = await executeQuery(dbConnection, queryAssignedTodayCase3, [didUsuario, `${today} 00:00:00`]);
+                    const assignedTodayCase3Result = await executeQuery(dbConnection, queryAssignedTodayCase3, [userId, `${today} 00:00:00`]);
                     infoADevolver.assignedToday = assignedTodayCase3Result[0]?.total || 0;
                 }
 
@@ -246,7 +246,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     const pendingsOnTheWayCase3Result = await executeQuery(dbConnection, queryPendingsOnTheWayCase3, [
                         estadosPendientes,
                         estadosEnCamino,
-                        didUsuario,
+                        userId,
                         today,
                         today
                     ]);
@@ -269,7 +269,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     const closedDeliveredCase3Result = await executeQuery(dbConnection, queryClosedDeliveredCase3, [
                         estadosCerradosHoy,
                         estadosEntregadosHoy,
-                        didUsuario
+                        userId
                     ]);
                     infoADevolver.closedToday = closedDeliveredCase3Result[0]?.closedToday || 0;
                     infoADevolver.deliveredToday = closedDeliveredCase3Result[0]?.deliveredToday || 0;
