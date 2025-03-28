@@ -298,7 +298,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 flex: row.flex * 1,
                 shipmentid: row.ml_shipment_id,
                 ml_venta_id: row.ml_venta_id,
-                estado: row.estado_envio * 1,
+                estado: row.estado *  1 ,
                 nombreCliente: nombre,
                 didCliente: row.didCliente * 1,
                 fechaEmpresa: row.fecha_inicio,
