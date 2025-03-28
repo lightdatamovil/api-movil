@@ -157,7 +157,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND elim = 0 
                     AND autofecha > ?
                 `;
-                    const assignedTodayResult = await executeQuery(dbConnection, queryAssignedToday, [`${today} 00:00:00`]);
+                    const assignedTodayResult = await executeQuery(dbConnection, queryAssignedToday, [`${dateYYYYMMDD} 00:00:00`]);
                     infoADevolver.assignedToday = assignedTodayResult[0]?.total || 0;
                 }
 
@@ -170,7 +170,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND superado = 0 
                     AND DATE(fecha) BETWEEN DATE_SUB(?, INTERVAL 7 DAY) AND ?
                 `;
-                    const pendingsResult = await executeQuery(dbConnection, queryPendings, [estadosPendientes, `${today} 00:00:00`, today]);
+                    const pendingsResult = await executeQuery(dbConnection, queryPendings, [estadosPendientes, `${dateYYYYMMDD} 00:00:00`, dateYYYYMMDD]);
                     infoADevolver.pendings = pendingsResult[0]?.pendings || 0;
                 }
 
@@ -227,7 +227,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND elim = 0 
                     AND autofecha > ?
                 `;
-                    const assignedTodayCase3Result = await executeQuery(dbConnection, queryAssignedTodayCase3, [userId, `${today} 00:00:00`]);
+                    const assignedTodayCase3Result = await executeQuery(dbConnection, queryAssignedTodayCase3, [userId, `${dateYYYYMMDD} 00:00:00`]);
                     infoADevolver.assignedToday = assignedTodayCase3Result[0]?.total || 0;
                 }
 
@@ -247,8 +247,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                         estadosPendientes,
                         estadosEnCamino,
                         userId,
-                        today,
-                        today
+                        dateYYYYMMDD,
+                        dateYYYYMMDD
                     ]);
                     infoADevolver.pendings = pendingsOnTheWayCase3Result[0]?.pendings || 0;
                     infoADevolver.onTheWay = pendingsOnTheWayCase3Result[0]?.onTheWay || 0;
@@ -286,7 +286,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND elim = 0 
                     AND autofecha > ?
                 `;
-                    const assignedTodayCase5Result = await executeQuery(dbConnection, queryAssignedTodayCase5, [`${today} 00:00:00`]);
+                    const assignedTodayCase5Result = await executeQuery(dbConnection, queryAssignedTodayCase5, [`${dateYYYYMMDD} 00:00:00`]);
                     infoADevolver.assignedToday = assignedTodayCase5Result[0]?.total || 0;
                 }
 
