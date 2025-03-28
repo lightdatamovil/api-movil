@@ -2,6 +2,7 @@ import mysql2 from 'mysql';
 import { getProdDbConfig, executeQuery, redisClient } from '../db.js';
 import { logPurple, logRed, logYellow } from '../src/funciones/logsCustom.js';
 
+
 export async function verifyStartedRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
@@ -110,32 +111,32 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
 
     try {
         const estadosPendientes = {
-            20: '(0, 1, 2, 3, 6, 7, 10, 11, 12)',
-            55: '(0, 1, 2, 3, 6, 7, 10, 11, 12)',
-            72: '(0, 1, 2, 3, 6, 7, 10, 11, 12, 16, 18, 16)',
-            default: '(0, 1, 2, 3, 6, 7, 10, 11, 12)'
-        }[company] || '(0, 1, 2, 3, 6, 7, 10, 11, 12)';
+            20: (0, 1, 2, 3, 6, 7, 10, 11, 12,13),
+            55: (0, 1, 2, 3, 6, 7, 10, 11, 12,13),
+            72: (0, 1, 2, 3, 6, 7, 10, 11, 12,13, 16, 18, 16),
+            default: (0, 1, 2, 3, 6, 7, 10, 11, 12)
+        }[company] || (0, 1, 2, 3, 6, 7, 10, 11, 12,13);
 
         const estadosEnCamino = {
-            20: '(2, 11, 12, 16)',
-            55: '(2, 11, 12)',
-            72: '(2, 11, 12)',
-            default: '(2, 11, 12)'
-        }[company] || '(2, 11, 12)';
+            20: (2, 11, 12, 16),
+            55: (2, 11, 12),
+            72: (2, 11, 12),
+            default: (2, 11, 12)
+        }[company] || (2, 11, 12);
 
         const estadosCerradosHoy = {
-            20: '(5, 8, 9, 14, 17)',
-            55: '(5, 8, 9, 14, 16)',
-            72: '(5, 8, 9, 14)',
-            default: '(5, 8, 9, 14)',
-        }[company] || '(5, 8, 9, 14)';
+            20: (5, 8, 9, 14, 17),
+            55: (5, 8, 9, 14, 16),
+            72: (5, 8, 9, 14),
+            default: (5, 8, 9, 14),
+        }[company] || (5, 8, 9, 14);
 
         const estadosEntregadosHoy = {
-            20: '(5, 9, 17)',
-            55: '(5, 9, 16)',
-            72: '(5, 9)',
-            default: '(5, 9)'
-        }[company] || '(5, 9)';
+            20: (5, 9, 17),
+            55: (5, 9, 16),
+            72: (5, 9),
+            default: (5, 9)
+        }[company] || (5, 9);
 
         const infoADevolver = {
             assignedToday: 0,
@@ -148,6 +149,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
         // Consultas según el perfil
         switch (profile) {
             case 1:
+                logPurple("1")
                 // ASIGNADOS HOY
                 {
                     const queryAssignedToday = `
@@ -157,7 +159,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND elim = 0 
                     AND autofecha > ?
                 `;
-                    const assignedTodayResult = await executeQuery(dbConnection, queryAssignedToday, [`${dateYYYYMMDD} 00:00:00`]);
+                    const assignedTodayResult = await executeQuery(dbConnection, queryAssignedToday, [`${dateYYYYMMDD} 00:00:00`],true);
                     infoADevolver.assignedToday = assignedTodayResult[0]?.total || 0;
                 }
 
@@ -170,7 +172,9 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND superado = 0 
                     AND DATE(fecha) BETWEEN DATE_SUB(?, INTERVAL 7 DAY) AND ?
                 `;
-                    const pendingsResult = await executeQuery(dbConnection, queryPendings, [estadosPendientes, `${dateYYYYMMDD} 00:00:00`, dateYYYYMMDD]);
+                    const pendingsResult = await executeQuery(dbConnection, queryPendings, [estadosPendientes, dateYYYYMMDD,dateYYYYMMDD],true);
+                    
+                    logPurple(JSON.stringify(pendingsResult, null, 2))
                     infoADevolver.pendings = pendingsResult[0]?.pendings || 0;
                 }
 
@@ -186,7 +190,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND superado = 0 
                     AND DATE(fecha) = CURDATE()
                 `;
-                    const historialResult = await executeQuery(dbConnection, queryHistorial, [estadosEnCamino, estadosCerradosHoy, estadosEntregadosHoy]);
+                    const historialResult = await executeQuery(dbConnection, queryHistorial, [estadosEnCamino, estadosCerradosHoy, estadosEntregadosHoy],true);
                     infoADevolver.onTheWay = historialResult[0]?.onTheWay || 0;
                     infoADevolver.closedToday = historialResult[0]?.closedToday || 0;
                     infoADevolver.deliveredToday = historialResult[0]?.deliveredToday || 0;
@@ -194,6 +198,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                 break;
 
             case 2:
+                logPurple("2")
                 // Cerrados y Entregados HOY
                 {
                     const queryClosedDelivered = `
@@ -217,6 +222,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                 break;
 
             case 3:
+                logPurple("3")
                 // ASIGNADOS HOY para operador
                 {
                     const queryAssignedTodayCase3 = `
@@ -227,7 +233,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND elim = 0 
                     AND autofecha > ?
                 `;
-                    const assignedTodayCase3Result = await executeQuery(dbConnection, queryAssignedTodayCase3, [userId, `${dateYYYYMMDD} 00:00:00`]);
+                    const assignedTodayCase3Result = await executeQuery(dbConnection, queryAssignedTodayCase3, [userId, `${dateYYYYMMDD} 00:00:00`],true);
                     infoADevolver.assignedToday = assignedTodayCase3Result[0]?.total || 0;
                 }
 
@@ -248,8 +254,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                         estadosEnCamino,
                         userId,
                         dateYYYYMMDD,
-                        dateYYYYMMDD
-                    ]);
+                        dateYYYYMMDD,
+                    ],true);
                     infoADevolver.pendings = pendingsOnTheWayCase3Result[0]?.pendings || 0;
                     infoADevolver.onTheWay = pendingsOnTheWayCase3Result[0]?.onTheWay || 0;
                 }
@@ -270,13 +276,14 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                         estadosCerradosHoy,
                         estadosEntregadosHoy,
                         userId
-                    ]);
+                    ],true);
                     infoADevolver.closedToday = closedDeliveredCase3Result[0]?.closedToday || 0;
                     infoADevolver.deliveredToday = closedDeliveredCase3Result[0]?.deliveredToday || 0;
                 }
                 break;
 
             case 5:
+                logPurple("5")
                 // ASIGNADOS HOY
                 {
                     const queryAssignedTodayCase5 = `
