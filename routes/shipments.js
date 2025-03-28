@@ -9,18 +9,18 @@ const shipments = Router();
 
 shipments.post('/shipment-list', async (req, res) => {
   const startTime = performance.now();
-  const mensajeError = verifyParamaters(req.body, ['from', 'dashboardValue'], true);
+  const mensajeError = verifyParamaters(req.body, ['from', 'shipmentStates'], true);
 
   if (mensajeError) {
     return res.status(400).json({ message: mensajeError });
   }
 
-  const { companyId, userId, profile, from, dashboardValue } = req.body;
+  const { companyId, userId, profile, from, shipmentStates } = req.body;
 
   try {
     const company = await getCompanyById(companyId);
 
-    const result = await shipmentList(company, userId, profile, from, dashboardValue);
+    const result = await shipmentList(company, userId, profile, from, shipmentStates);
 
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
