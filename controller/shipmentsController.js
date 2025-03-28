@@ -279,7 +279,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
         ${sqlduenio}
         AND eh.estado IN ${estadosQuery}
     GROUP BY eh.didEnvio
-    order by rb.orden asc`;
+    order by rp.orden asc`;
 
         const rows = await executeQuery(dbConnection, query, []);
         const lista = [];
