@@ -354,6 +354,7 @@ export async function executeQuery(connection, query, values, log) {
     try {
         return new Promise((resolve, reject) => {
             connection.query(query, values, (err, results) => {
+                logYellow(`Ejecutando query: ${formattedQuery}`);
                 if (err) {
                     if (log) {
                         logRed(`Error en executeQuery: ${err.message} en query: ${formattedQuery}`);

@@ -163,6 +163,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
     dbConnection.connect();
 
     try {
+        const hoy = new Date().toISOString().split('T')[0];
         // Obtener clientes y choferes
         const clientes = await getClientsByCompany(dbConnection, company.did);
         const drivers = await getDriversByCompany(dbConnection, company.did);
@@ -185,11 +186,14 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             estadoAsignacion = ', e.estadoAsignacion';
         }
 
+        const b = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : '';
+        const a = isAssignedToday ? '' : 'LEFT';
+        const c = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${hoy} 23:59:59'`;
+
         if (shipmentStates.length == 0) {
             return [];
         }
 
-        const hoy = new Date().toISOString().split('T')[0];
         const estadosQuery = `(${shipmentStates.join(',')})`;
 
         const query = `SELECT
@@ -231,10 +235,11 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                     AND ei.elim = 0
                     AND ei.didEnvio = eh.didEnvio
                 )
-              ${isAssignedToday ? '' : 'LEFT'} JOIN envios_asignaciones as ea ON(
+                ${a} JOIN envios_asignaciones as ea ON(
                     ea.superado = 0
                     AND ea.elim = 0
-                    AND ea.didEnvio = eh.didEnvio ${isAssignedToday ? "AND ea.autofecha > '2025-03-31 00:00:00'" : ''}
+                    AND ea.didEnvio = eh.didEnvio
+                    ${b}
                 )
                 LEFT JOIN ruteo as r ON(
                     r.elim = 0
@@ -262,11 +267,11 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             WHERE
                 eh.superado = 0
                 AND eh.elim = 0
-                AND eh.fecha BETWEEN '${from} 00:00:00'
-                AND '${hoy} 23:59:59' ${sqlduenio}
+                ${c}
+                ${sqlduenio}
                 AND eh.estado IN ${estadosQuery}
-            GROUP BY
-                eh.didEnvio
+            GROUP BY eh.didEnvio
+    ORDER BY rp.orden ASC
     `;
 
         const rows = await executeQuery(dbConnection, query, [], true);
@@ -281,7 +286,6 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             const nombreChofer = drivers[row.choferAsignado] ? drivers[row.choferAsignado].nombre : 'Chofer no encontrado';
             const isOnTheWay = (row.estado_envio == 2 || row.estado_envio == 11 || row.estado_envio == 12) ||
                 (company.did == 20 && row.estado_envio == 16);
-
             lista.push({
                 didEnvio: row.didEnvio * 1,
                 flex: row.flex * 1,
