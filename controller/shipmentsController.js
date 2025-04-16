@@ -1,6 +1,6 @@
 import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../db.js';
 import mysql2 from 'mysql';
-import { logRed, logYellow } from '../src/funciones/logsCustom.js';
+import { logCyan, logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -15,17 +15,6 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
     }
 };
 
-function convertirFecha(fecha) {
-    const fechaObj = fecha.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-
-    if (fechaObj) {
-        const [, dia, mes, año] = fechaObj;
-
-        return `${año}-${mes}-${dia} 00:00:00`;
-    } else {
-        return "Fecha inválida";
-    }
-}
 
 async function getHistorial(dbConnection, shipmentId) {
     let historial = [];
@@ -168,15 +157,16 @@ export async function shipmentDetails(company, shipmentId, userId) {
     }
 }
 
-export async function shipmentList(company, userId, profile, from, shipmentStates) {
+export async function shipmentList(company, userId, profile, from, shipmentStates, isAssignedToday) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
-    try {        // Obtener clientes y choferes
+    try {
+        const hoy = new Date().toISOString().split('T')[0];
+        // Obtener clientes y choferes
         const clientes = await getClientsByCompany(dbConnection, company.did);
         const drivers = await getDriversByCompany(dbConnection, company.did);
-        const dateWithHour = convertirFecha(from);
 
         // Variables para personalizar la consulta según el perfil
         let sqlchoferruteo = "";
@@ -196,90 +186,94 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             estadoAsignacion = ', e.estadoAsignacion';
         }
 
+        const b = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : '';
+        const a = isAssignedToday ? '' : 'LEFT';
+        const c = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${hoy} 23:59:59'`;
+
         if (shipmentStates.length == 0) {
             return [];
         }
 
-        const hoy = new Date().toISOString().split('T')[0];
         const estadosQuery = `(${shipmentStates.join(',')})`;
 
         const query = `SELECT
-        e.did as didEnvio,
-            e.flex,
-            e.ml_shipment_id,
-            e.ml_venta_id,
-            eh.estado,
-            e.didCliente,
-            DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
-            DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial,
-            ${estadoAsignacion}
-        e.destination_receiver_name,
-            e.destination_shipping_address_line as address_line,
-            edd.address_line as address_lineEDD,
-            e.destination_shipping_zip_code as cp,
-            edd.cp as cpEDD,
-            e.destination_city_name as localidad,
-            edd.localidad as localidadEDD,
-            edd.provincia,
-            e.destination_receiver_phone,
-            ROUND(e.destination_latitude, 8) as lat,
-            ROUND(e.destination_longitude, 8) AS lng,
+                e.did as didEnvio,
+                e.flex,
+                e.ml_shipment_id,
+                e.ml_venta_id,
+                eh.estado,
+                e.didCliente,
+                DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
+                DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial,
+                ${estadoAsignacion} e.destination_receiver_name,
+                e.destination_shipping_address_line as address_line,
+                edd.address_line as address_lineEDD,
+                e.destination_shipping_zip_code as cp,
+                edd.cp as cpEDD,
+                e.destination_city_name as localidad,
+                edd.localidad as localidadEDD,
+                edd.provincia,
+                e.destination_receiver_phone,
+                ROUND(e.destination_latitude, 8) as lat,
+                ROUND(e.destination_longitude, 8) AS lng,
                 ei.valor,
                 e.destination_comments,
                 edd.destination_comments AS destination_commentsEDD,
-                    rp.orden,
-                    ec.didCampoCobranza,
-                    e.choferAsignado,
-                    ec.valor
-        FROM
-        envios_historial as eh
-        LEFT JOIN envios AS e ON(
-            e.superado = 0
-            AND e.elim = 0
-            AND e.did = eh.didEnvio
-        )
-        LEFT JOIN envios_logisticainversa AS ei ON(
-            ei.superado = 0
-            AND ei.elim = 0
-            AND ei.didEnvio = eh.didEnvio
-        )
-        LEFT JOIN envios_asignaciones as ea ON(
-            ea.superado = 0
-            AND ea.elim = 0
-            AND ea.didEnvio = eh.didEnvio
-        )
-        LEFT JOIN ruteo as r ON(
-            r.elim = 0
-            and r.superado = 0
-            and r.fechaOperativa = CURDATE() ${sqlchoferruteo}
-        )
-        LEFT JOIN ruteo_paradas AS rp ON(
-            rp.superado = 0
-            AND rp.elim = 0
-            AND rp.didPaquete = eh.didEnvio
-            and rp.didRuteo = r.did
-            and rp.autofecha like '${hoy}%'
-        )
-        LEFT JOIN envios_cobranzas as ec on(
-            ec.elim = 0
-            and ec.superado = 0
-            and ec.didEnvio = eh.didEnvio
-            and ec.didCampoCobranza = 4
-        )
-        LEFT JOIN envios_direcciones_destino as edd on(
-            edd.superado = 0
-            and edd.elim = 0
-            and edd.didEnvio = eh.didEnvio
-        )
-        ${leftjoinCliente}
-        WHERE
-        eh.superado = 0
-        AND eh.elim = 0
-        AND eh.fecha BETWEEN '${dateWithHour}' AND '${hoy} 23:59:59'
-        ${sqlduenio}
-        AND eh.estado IN ${estadosQuery}
-    GROUP BY eh.didEnvio
-    order by rp.orden asc`;
+                rp.orden,
+                ec.didCampoCobranza,
+                e.choferAsignado,
+                ec.valor
+            FROM
+                envios_historial as eh
+                LEFT JOIN envios AS e ON(
+                    e.superado = 0
+                    AND e.elim = 0
+                    AND e.did = eh.didEnvio
+                )
+                LEFT JOIN envios_logisticainversa AS ei ON(
+                    ei.superado = 0
+                    AND ei.elim = 0
+                    AND ei.didEnvio = eh.didEnvio
+                )
+                ${a} JOIN envios_asignaciones as ea ON(
+                    ea.superado = 0
+                    AND ea.elim = 0
+                    AND ea.didEnvio = eh.didEnvio
+                    ${b}
+                )
+                LEFT JOIN ruteo as r ON(
+                    r.elim = 0
+                    and r.superado = 0
+                    and r.fechaOperativa = CURDATE() ${sqlchoferruteo}
+                )
+                LEFT JOIN ruteo_paradas AS rp ON(
+                    rp.superado = 0
+                    AND rp.elim = 0
+                    AND rp.didPaquete = eh.didEnvio
+                    and rp.didRuteo = r.did
+                    and rp.autofecha like '${hoy}%'
+                )
+                LEFT JOIN envios_cobranzas as ec on(
+                    ec.elim = 0
+                    and ec.superado = 0
+                    and ec.didEnvio = eh.didEnvio
+                    and ec.didCampoCobranza = 4
+                )
+                LEFT JOIN envios_direcciones_destino as edd on(
+                    edd.superado = 0
+                    and edd.elim = 0
+                    and edd.didEnvio = eh.didEnvio
+                ) ${leftjoinCliente}
+            WHERE
+                eh.superado = 0
+                AND eh.elim = 0
+                AND e.elim = 0
+                ${c}
+                ${sqlduenio}
+                AND eh.estado IN ${estadosQuery}
+            GROUP BY eh.didEnvio
+    ORDER BY rp.orden ASC
+    `;
 
         const rows = await executeQuery(dbConnection, query, []);
         const lista = [];
@@ -293,13 +287,12 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             const nombreChofer = drivers[row.choferAsignado] ? drivers[row.choferAsignado].nombre : 'Chofer no encontrado';
             const isOnTheWay = (row.estado_envio == 2 || row.estado_envio == 11 || row.estado_envio == 12) ||
                 (company.did == 20 && row.estado_envio == 16);
-
             lista.push({
                 didEnvio: row.didEnvio * 1,
                 flex: row.flex * 1,
                 shipmentid: row.ml_shipment_id,
                 ml_venta_id: row.ml_venta_id,
-                estado: row.estado *  1 ,
+                estado: row.estado * 1,
                 nombreCliente: nombre,
                 didCliente: row.didCliente * 1,
                 fechaEmpresa: row.fecha_inicio,
@@ -324,7 +317,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
         }
         return lista;
     } catch (error) {
-        logRed(`Error en shipmentList: ${error.stack}`);
+        logRed(`Error en shipmentList: ${error.stack} `);
         throw error;
     } finally {
         dbConnection.end();
@@ -341,7 +334,7 @@ export async function nextDeliver(company, shipmentId, dateYYYYMMDD, userId) {
 
         await executeQuery(dbConnection, query, [shipmentId, dateYYYYMMDD, userId]);
     } catch (error) {
-        logRed(`Error en nextDeliver: ${error.stack}`);
+        logRed(`Error en nextDeliver: ${error.stack} `);
         throw error;
     } finally {
         dbConnection.end();

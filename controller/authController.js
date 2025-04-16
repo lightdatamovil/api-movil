@@ -29,10 +29,10 @@ export async function login(username, password, company) {
 
         const resultsFromDepotQuery = await executeQuery(dbConnection, depotQuery, []);
 
-        let depotLatitude 
-        let depotLongitude 
+        let depotLatitude
+        let depotLongitude
         let userAddress = new Object();
-        
+
         if (resultsFromDepotQuery.length > 0) {
             const row = resultsFromDepotQuery[0];
             depotLatitude = row.latitud;
@@ -42,7 +42,7 @@ export async function login(username, password, company) {
         const userQuery = `SELECT did, bloqueado, nombre, apellido, email, telefono, pass, usuario, perfil, direccion
                        FROM sistema_usuarios 
                        WHERE usuario = ? AND superado = 0 AND elim = 0`;
-        const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username], true);
+        const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username]);
 
         if (resultsFromUserQuery.length === 0) {
             throw new Error('Usuario no encontrado');
@@ -61,8 +61,8 @@ export async function login(username, password, company) {
         }
 
         const token = generateToken(user.did, company.did, user.perfil);
-        let userHomeLatitude 
-        let userHomeLongitude 
+        let userHomeLatitude
+        let userHomeLongitude
 
         if (user.direccion != "") {
             userAddress = JSON.parse(user.direccion);

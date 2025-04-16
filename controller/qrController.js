@@ -44,7 +44,7 @@ export async function crossDocking(dataQr, company) {
             LEFT JOIN sistema_usuarios AS su ON su.did = e.choferAsignado
             ${queryWhereId} LIMIT 1
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, [], true);
+        const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
         if (envioData.length === 0) {
             return { message: "No se encontró el envío", success: false };
