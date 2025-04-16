@@ -1,6 +1,6 @@
 import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../db.js';
 import mysql2 from 'mysql';
-import { logRed, logYellow } from '../src/funciones/logsCustom.js';
+import { logCyan, logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -267,6 +267,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             WHERE
                 eh.superado = 0
                 AND eh.elim = 0
+                AND e.elim = 0
                 ${c}
                 ${sqlduenio}
                 AND eh.estado IN ${estadosQuery}
@@ -274,7 +275,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
     ORDER BY rp.orden ASC
     `;
 
-        const rows = await executeQuery(dbConnection, query, [], true);
+        const rows = await executeQuery(dbConnection, query, []);
         const lista = [];
         for (const row of rows) {
             const lat = row.lat !== '0' ? row.lat : '0';

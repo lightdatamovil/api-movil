@@ -9,7 +9,7 @@ const shipments = Router();
 
 shipments.post('/shipment-list', async (req, res) => {
   const startTime = performance.now();
-  const mensajeError = verifyParamaters(req.body, ['from', 'shipmentStates'], true);
+  const mensajeError = verifyParamaters(req.body, ['from', 'shipmentStates', 'isAssignedToday'], true);
 
   if (mensajeError) {
     return res.status(400).json({ message: mensajeError });
