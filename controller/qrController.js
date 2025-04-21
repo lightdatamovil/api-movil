@@ -75,11 +75,10 @@ export async function crossDocking(dataQr, company) {
     }
 }
 
-export async function getShipmentIdFromQr(dataQr, company) {
+export async function getShipmentIdFromQrLocal(dataQr, company) {
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
-
     try {
         let shipmentId;
 
@@ -89,22 +88,21 @@ export async function getShipmentIdFromQr(dataQr, company) {
             shipmentId = dataQr.did;
 
             if (company.did != dataQr.empresa) {
-                const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ${shipmentId} AND didEmpresa = ${company.did}`;
-
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, []);
+                const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     return { message: "El envío no pertenece a la empresa", success: false };
                 }
 
-                shipmentId = resultQueryEnviosExteriores[0];
+                shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
             const sellerId = dataQr.sender_id;
-            const mlShipmentId = dataQr.sender_id;
+            const mlShipmentId = dataQr.id;
             const queryEnvios = `SELECT did FROM envios WHERE shipmentid = ${mlShipmentId} AND seller_id = ${sellerId}`;
 
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [], true);
 
             if (resultQueryEnvios.length == 0) {
                 throw new Error("No se encontró el envío");
@@ -487,4 +485,71 @@ async function getItemData(iditem, token) {
     const url = `https://api.mercadolibre.com/items/${iditem}?access_token=${token}`;
     const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
     return response.data;
+}
+
+export async function getSkuAndNumberOfItems(company, dataQr) {
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
+    const didEnvio = await getShipmentIdFromQrProd(dataQr, company);
+
+    const queryDidOrden = `SELECT did FROM ordenes WHERE superado = 0 AND elim = 0 AND didEnvio = ?`;
+    const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio], true);
+
+    if (resultDidOrden.length === 0) {
+        return { message: "No se encontró la orden", success: false };
+    }
+
+    const didOrden = resultDidOrden[0].did;
+
+    const querySku = `SELECT seller_sku, cantidad FROM ordenes_items WHERE superado = 0 AND elim = 0 AND didOrden = ?`;
+    const resultSku = await executeQuery(dbConnection, querySku, [didOrden], true);
+
+    return resultSku;
+
+}
+export async function getShipmentIdFromQrProd(dataQr, company) {
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+    try {
+        let shipmentId;
+
+        const isLocal = dataQr.hasOwnProperty("local");
+
+        if (isLocal) {
+            shipmentId = dataQr.did;
+
+            if (company.did != dataQr.empresa) {
+                const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
+
+                if (resultQueryEnviosExteriores.length == 0) {
+                    return { message: "El envío no pertenece a la empresa", success: false };
+                }
+
+                shipmentId = resultQueryEnviosExteriores[0].didLocal;
+            }
+        } else {
+            const sellerId = dataQr.sender_id;
+            const mlShipmentId = dataQr.id;
+            const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
+
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [], true);
+
+            if (resultQueryEnvios.length == 0) {
+                throw new Error("No se encontró el envío");
+            }
+
+            shipmentId = resultQueryEnvios[0].did;
+        }
+
+        return shipmentId;
+    } catch (error) {
+        logRed(`Error en getShipmentIdFromQr: ${error.stack}`);
+        throw error;
+    } finally {
+        dbConnection.end();
+    }
 }
