@@ -97,26 +97,36 @@ export async function login(username, password, company) {
     }
 }
 
+import https from 'https';
+import axios from 'axios';
+
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
 
     try {
-        console.log('URL de imagen:', imageUrl);
+        const agent = new https.Agent({
+            rejectUnauthorized: false, // ⚠️ Permite certificados inválidos
+        });
 
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const response = await axios.get(imageUrl, {
+            responseType: 'arraybuffer',
+            httpsAgent: agent,
+        });
+
         const imageBuffer = Buffer.from(response.data, 'binary');
         const imageBase64 = imageBuffer.toString('base64');
+
         return {
-            "id": company.did * 1,
-            "plan": company.plan * 1,
-            "url": company.url,
-            "country": company.pais * 1,
-            "name": company.empresa,
-            "appPro": company.did == 4,
-            "colectaPro": false,
-            "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
-            "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
-            "image": imageBase64,
+            id: company.did * 1,
+            plan: company.plan * 1,
+            url: company.url,
+            country: company.pais * 1,
+            name: company.empresa,
+            appPro: company.did == 4,
+            colectaPro: false,
+            obligatoryImageOnRegisterVisit: company.did == 108,
+            obligatoryDniAndNameOnRegisterVisit: company.did == 97,
+            image: imageBase64,
         };
 
     } catch (error) {
@@ -124,6 +134,7 @@ export async function identification(company) {
         throw error;
     }
 }
+
 
 export async function whatsappMessagesList(company) {
 
