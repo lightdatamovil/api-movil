@@ -5,9 +5,6 @@ import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { logRed, logYellow } from '../src/funciones/logsCustom.js';
 
-import https from 'https';
-import fetch from 'node-fetch';
-
 function generateToken(userId, idEmpresa, perfil) {
     const payload = {
         userId: userId,
@@ -100,37 +97,35 @@ export async function login(username, password, company) {
     }
 }
 
-
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
-
-    const agent = new https.Agent({
-        secureProtocol: 'TLSv1_2_method',
-        // rejectUnauthorized: false, // solo para pruebas
-    });
+    
+    // Logo predeterminado en base64 (logo blanco de 100x100 píxeles)
+    const defaultLogoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8v+d+AAAAWElEQVRIDbXBAQEAAAABIP6PzgpV+QUwbGR2rqlzdkcNoiCqk73A0B9H5KLVmr4YdTiO8gaCGg8VmYWqJf2zxeI1icT24tFS0hDJ01gg7LMEx6qI3SCqA6Uq8gRJbAqioBgCRH0CpvI0dpjlGr6hQJYtsDRS0BQ==';
+    
+    let imageBase64 = defaultLogoBase64; // Empieza con el logo predeterminado.
 
     try {
-        const response = await fetch(imageUrl, { agent });
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-        const imageBuffer = await response.buffer();
-        const imageBase64 = imageBuffer.toString('base64');
-
-        return {
-            "id": company.did * 1,
-            "plan": company.plan * 1,
-            "url": company.url,
-            "country": company.pais * 1,
-            "name": company.empresa,
-            "appPro": company.did == 4,
-            "colectaPro": false,
-            "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
-            "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
-            "image": imageBase64,
-        };
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const imageBuffer = Buffer.from(response.data, 'binary');
+        imageBase64 = imageBuffer.toString('base64'); // Actualiza la imagen si se obtiene correctamente.
     } catch (error) {
-        logRed(`Error en identification (fetch): ${error.stack}`);
-        throw error;
+        logRed(`Error en identification: ${error.stack}`);
+        // Si falla, mantiene el logo predeterminado.
     }
+
+    return {
+        "id": company.did * 1,
+        "plan": company.plan * 1,
+        "url": company.url,
+        "country": company.pais * 1,
+        "name": company.empresa,
+        "appPro": company.did == 4,
+        "colectaPro": false,
+        "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
+        "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
+        "image": imageBase64,  // Devuelve la imagen, que será la predeterminada si hubo error.
+    };
 }
 
 
