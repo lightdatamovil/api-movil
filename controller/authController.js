@@ -4,8 +4,9 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { logRed, logYellow } from '../src/funciones/logsCustom.js';
-import https from 'https';
 
+import https from 'https';
+import fetch from 'node-fetch';
 
 function generateToken(userId, idEmpresa, perfil) {
     const payload = {
@@ -99,22 +100,19 @@ export async function login(username, password, company) {
     }
 }
 
+
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
 
+    const agent = new https.Agent({
+        secureProtocol: 'TLSv1_2_method',
+        // rejectUnauthorized: false, // solo para pruebas
+    });
+
     try {
-        const agent = new https.Agent({
-            secureProtocol: 'TLSv1_2_method'
-            // Si necesitás ignorar certificados autofirmados (no recomendado en prod):
-            // rejectUnauthorized: false
-        });
-
-        const response = await axios.get(imageUrl, {
-            responseType: 'arraybuffer',
-            httpsAgent: agent
-        });
-
-        const imageBuffer = Buffer.from(response.data, 'binary');
+        const response = await fetch(imageUrl, { agent });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const imageBuffer = await response.buffer();
         const imageBase64 = imageBuffer.toString('base64');
 
         return {
@@ -129,9 +127,8 @@ export async function identification(company) {
             "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
             "image": imageBase64,
         };
-
     } catch (error) {
-        logRed(`Error en identification: ${error.stack}`);
+        logRed(`Error en identification (fetch): ${error.stack}`);
         throw error;
     }
 }
