@@ -102,25 +102,23 @@ import https from 'https';
 
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
+    console.log("🌐 URL de imagen:", imageUrl);
 
     try {
-        const agent = new https.Agent({
-            rejectUnauthorized: false, // ⚠️ Permite certificados inválidos
-        });
+        const agent = new https.Agent({ rejectUnauthorized: false }); // Permite SSL inválido
 
         const response = await axios.get(imageUrl, {
             responseType: 'arraybuffer',
             httpsAgent: agent,
         });
 
-        const imageBuffer = Buffer.from(response.data, 'binary');
-        const imageBase64 = imageBuffer.toString('base64');
+        const imageBase64 = Buffer.from(response.data, 'binary').toString('base64');
 
         return {
-            id: company.did * 1,
-            plan: company.plan * 1,
+            id: Number(company.did),
+            plan: Number(company.plan),
             url: company.url,
-            country: company.pais * 1,
+            country: Number(company.pais),
             name: company.empresa,
             appPro: company.did == 4,
             colectaPro: false,
@@ -130,7 +128,7 @@ export async function identification(company) {
         };
 
     } catch (error) {
-        logRed(`Error en identification: ${error.stack}`);
+        logRed(`❌ Error en identification: ${error.stack}`);
         throw error;
     }
 }
