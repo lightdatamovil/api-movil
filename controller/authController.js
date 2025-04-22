@@ -101,6 +101,8 @@ export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
 
     try {
+        console.log('URL de imagen:', imageUrl);
+
         const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         const imageBuffer = Buffer.from(response.data, 'binary');
         const imageBase64 = imageBuffer.toString('base64');
