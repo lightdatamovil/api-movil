@@ -98,7 +98,7 @@ export async function login(username, password, company) {
 }
 
 import https from 'https';
-import axios from 'axios';
+
 
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
