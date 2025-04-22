@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { logRed, logYellow } from '../src/funciones/logsCustom.js';
+import https from 'https';
+
 
 function generateToken(userId, idEmpresa, perfil) {
     const payload = {
@@ -97,38 +99,39 @@ export async function login(username, password, company) {
     }
 }
 
-import https from 'https';
-
-
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
-    console.log("🌐 URL de imagen:", imageUrl);
 
     try {
-        const agent = new https.Agent({ rejectUnauthorized: false }); // Permite SSL inválido
+        const agent = new https.Agent({
+            secureProtocol: 'TLSv1_2_method'
+            // Si necesitás ignorar certificados autofirmados (no recomendado en prod):
+            // rejectUnauthorized: false
+        });
 
         const response = await axios.get(imageUrl, {
             responseType: 'arraybuffer',
-            httpsAgent: agent,
+            httpsAgent: agent
         });
 
-        const imageBase64 = Buffer.from(response.data, 'binary').toString('base64');
+        const imageBuffer = Buffer.from(response.data, 'binary');
+        const imageBase64 = imageBuffer.toString('base64');
 
         return {
-            id: Number(company.did),
-            plan: Number(company.plan),
-            url: company.url,
-            country: Number(company.pais),
-            name: company.empresa,
-            appPro: company.did == 4,
-            colectaPro: false,
-            obligatoryImageOnRegisterVisit: company.did == 108,
-            obligatoryDniAndNameOnRegisterVisit: company.did == 97,
-            image: imageBase64,
+            "id": company.did * 1,
+            "plan": company.plan * 1,
+            "url": company.url,
+            "country": company.pais * 1,
+            "name": company.empresa,
+            "appPro": company.did == 4,
+            "colectaPro": false,
+            "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
+            "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
+            "image": imageBase64,
         };
 
     } catch (error) {
-        logRed(`❌ Error en identification: ${error.stack}`);
+        logRed(`Error en identification: ${error.stack}`);
         throw error;
     }
 }
