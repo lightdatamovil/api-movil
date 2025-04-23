@@ -3,7 +3,7 @@ import { executeQuery, getDbConfig } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
-import { logRed, logYellow } from '../src/funciones/logsCustom.js';
+import { logCyan, logRed, logYellow } from '../src/funciones/logsCustom.js';
 
 function generateToken(userId, idEmpresa, perfil) {
     const payload = {
@@ -99,11 +99,17 @@ export async function login(username, password, company) {
 
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
-
     try {
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        const imageBuffer = Buffer.from(response.data, 'binary');
-        const imageBase64 = imageBuffer.toString('base64');
+        let imageBase64;
+        try {
+            const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+
+            const imageBuffer = Buffer.from(response.data, 'binary');
+
+            imageBase64 = imageBuffer.toString('base64');
+        } catch (error) {
+            imageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8v+d+AAAAWElEQVRIDbXBAQEAAAABIP6PzgpV+QUwbGR2rqlzdkcNoiCqk73A0B9H5KLVmr4YdTiO8gaCGg8VmYWqJf2zxeI1icT24tFS0hDJ01gg7LMEx6qI3SCqA6Uq8gRJbAqioBgCRH0CpvI0dpjlGr6hQJYtsDRS0BQ==';
+        }
         return {
             "id": company.did * 1,
             "plan": company.plan * 1,
