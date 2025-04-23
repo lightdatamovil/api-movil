@@ -3,19 +3,13 @@ import { executeQuery, getDbConfig } from '../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
-import { logCyan, logRed, logYellow } from '../src/funciones/logsCustom.js';
+import { logRed } from '../src/funciones/logsCustom.js';
+const CustomException = require('../clases/custom_exeption.js'); // <-- usando require
+
 
 function generateToken(userId, idEmpresa, perfil) {
-    const payload = {
-        userId: userId,
-        perfil: perfil,
-        idEmpresa: idEmpresa
-    };
-
-    const options = {
-        expiresIn: '2558h'
-    };
-
+    const payload = { userId, perfil, idEmpresa };
+    const options = { expiresIn: '2558h' };
     return jwt.sign(payload, 'ruteate', options);
 }
 
@@ -26,13 +20,9 @@ export async function login(username, password, company) {
 
     try {
         const depotQuery = "SELECT latitud, longitud FROM `depositos` where did = 1";
-
         const resultsFromDepotQuery = await executeQuery(dbConnection, depotQuery, []);
 
-        let depotLatitude
-        let depotLongitude
-        let userAddress = new Object();
-
+        let depotLatitude, depotLongitude, userAddress = {};
         if (resultsFromDepotQuery.length > 0) {
             const row = resultsFromDepotQuery[0];
             depotLatitude = row.latitud;
@@ -40,53 +30,58 @@ export async function login(username, password, company) {
         }
 
         const userQuery = `SELECT did, bloqueado, nombre, apellido, email, telefono, pass, usuario, perfil, direccion
-                       FROM sistema_usuarios 
-                       WHERE usuario = ? AND superado = 0 AND elim = 0`;
+                           FROM sistema_usuarios 
+                           WHERE usuario = ? AND superado = 0 AND elim = 0`;
         const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [username]);
 
         if (resultsFromUserQuery.length === 0) {
-            throw new Error('Usuario no encontrado');
+            throw new CustomException({
+                title: 'Usuario inválido',
+                message: 'Usuario no encontrado en el sistema'
+            });
         }
 
         const user = resultsFromUserQuery[0];
 
         if (user.bloqueado === 1) {
-            throw new Error('Usuario bloqueado');
+            throw new CustomException({
+                title: 'Acceso denegado',
+                message: 'El usuario se encuentra bloqueado'
+            });
         }
 
         const hashPassword = crypto.createHash('sha256').update(password).digest('hex');
-
         if (user.pass !== hashPassword) {
-            throw new Error('Contraseña incorrecta');
+            throw new CustomException({
+                title: 'Contraseña incorrecta',
+                message: 'La contraseña ingresada no coincide'
+            });
         }
 
         const token = generateToken(user.did, company.did, user.perfil);
-        let userHomeLatitude
-        let userHomeLongitude
 
+        let userHomeLatitude, userHomeLongitude;
         if (user.direccion != "") {
             userAddress = JSON.parse(user.direccion);
-
             userHomeLatitude = userAddress.lat;
             userHomeLongitude = userAddress.lng;
         }
 
-        let userLocations = [];
-        userLocations.push({ "id": 2, "name": "Casa", "latitude": userHomeLatitude, "longitude": userHomeLongitude });
-        userLocations.push({ "id": 3, "name": "Deposito", "latitude": depotLatitude, "longitude": depotLongitude });
-
-        var image = "";
+        const userLocations = [
+            { id: 2, name: "Casa", latitude: userHomeLatitude, longitude: userHomeLongitude },
+            { id: 3, name: "Deposito", latitude: depotLatitude, longitude: depotLongitude }
+        ];
 
         return {
-            "id": user.did,
-            "username": user.usuario,
-            "profile": user.perfil,
-            "email": user.email,
-            "profilePicture": image,
-            "hasShipmentProductsQr": company.did == 200,
-            "phone": user.telefono,
-            "token": token,
-            "locations": userLocations,
+            id: user.did,
+            username: user.usuario,
+            profile: user.perfil,
+            email: user.email,
+            profilePicture: "",
+            hasShipmentProductsQr: company.did == 200,
+            phone: user.telefono,
+            token,
+            locations: userLocations,
         };
 
     } catch (error) {
@@ -99,56 +94,54 @@ export async function login(username, password, company) {
 
 export async function identification(company) {
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
+
     try {
         let imageBase64;
         try {
             const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-
             const imageBuffer = Buffer.from(response.data, 'binary');
-
             imageBase64 = imageBuffer.toString('base64');
         } catch (error) {
             imageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8v+d+AAAAWElEQVRIDbXBAQEAAAABIP6PzgpV+QUwbGR2rqlzdkcNoiCqk73A0B9H5KLVmr4YdTiO8gaCGg8VmYWqJf2zxeI1icT24tFS0hDJ01gg7LMEx6qI3SCqA6Uq8gRJbAqioBgCRH0CpvI0dpjlGr6hQJYtsDRS0BQ==';
         }
+
         return {
-            "id": company.did * 1,
-            "plan": company.plan * 1,
-            "url": company.url,
-            "country": company.pais * 1,
-            "name": company.empresa,
-            "appPro": company.did == 4,
-            "colectaPro": false,
-            "obligatoryImageOnRegisterVisit": company.did * 1 == 108,
-            "obligatoryDniAndNameOnRegisterVisit": company.did * 1 == 97,
-            "image": imageBase64,
+            id: company.did * 1,
+            plan: company.plan * 1,
+            url: company.url,
+            country: company.pais * 1,
+            name: company.empresa,
+            appPro: company.did == 4,
+            colectaPro: false,
+            obligatoryImageOnRegisterVisit: company.did == 108,
+            obligatoryDniAndNameOnRegisterVisit: company.did == 97,
+            image: imageBase64,
         };
 
     } catch (error) {
         logRed(`Error en identification: ${error.stack}`);
-        throw error;
+        throw new CustomException({
+            title: 'Error en identificación',
+            message: 'No se pudo obtener la información de la empresa'
+        });
     }
 }
 
 export async function whatsappMessagesList(company) {
-
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
-
-        const whatsappMessagesList = [];
-
         const queryTexts = "SELECT texto FROM `mensajeria_app` ORDER BY tipo ASC;";
-
         const results = await executeQuery(dbConnection, queryTexts, []);
-
-        results.forEach(row => whatsappMessagesList.push(row.texto));
-
-        return whatsappMessagesList;
+        return results.map(row => row.texto);
     } catch (error) {
         logRed(`Error en whatsappMessagesList: ${error.stack}`);
-        throw error;
+        throw new CustomException({
+            title: 'Error en mensajes',
+            message: 'No se pudieron obtener los mensajes de WhatsApp'
+        });
     } finally {
         dbConnection.end();
     }
