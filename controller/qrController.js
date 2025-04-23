@@ -102,7 +102,7 @@ export async function getShipmentIdFromQrLocal(dataQr, company) {
             const mlShipmentId = dataQr.id;
             const queryEnvios = `SELECT did FROM envios WHERE shipmentid = ${mlShipmentId} AND seller_id = ${sellerId}`;
 
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [], true);
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
             if (resultQueryEnvios.length == 0) {
                 throw new Error("No se encontró el envío");
@@ -495,7 +495,7 @@ export async function getSkuAndNumberOfItems(company, dataQr) {
     const didEnvio = await getShipmentIdFromQrProd(dataQr, company);
 
     const queryDidOrden = `SELECT did FROM ordenes WHERE superado = 0 AND elim = 0 AND didEnvio = ?`;
-    const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio], true);
+    const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio]);
 
     if (resultDidOrden.length === 0) {
         return { message: "No se encontró la orden", success: false };
@@ -504,7 +504,7 @@ export async function getSkuAndNumberOfItems(company, dataQr) {
     const didOrden = resultDidOrden[0].did;
 
     const querySku = `SELECT seller_sku, cantidad FROM ordenes_items WHERE superado = 0 AND elim = 0 AND didOrden = ?`;
-    const resultSku = await executeQuery(dbConnection, querySku, [didOrden], true);
+    const resultSku = await executeQuery(dbConnection, querySku, [didOrden]);
 
     return resultSku;
 
@@ -536,7 +536,7 @@ export async function getShipmentIdFromQrProd(dataQr, company) {
             const mlShipmentId = dataQr.id;
             const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
 
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [], true);
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
             if (resultQueryEnvios.length == 0) {
                 throw new Error("No se encontró el envío");

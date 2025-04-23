@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import { logRed } from '../src/funciones/logsCustom.js';
-const CustomException = require('../clases/custom_exeption.js'); // <-- usando require
+import CustomException from '../clases/custom_exception.js';
 
 
 function generateToken(userId, idEmpresa, perfil) {

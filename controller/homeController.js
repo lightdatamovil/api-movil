@@ -146,7 +146,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
             deliveredToday: 0
         };
         async function fetchCount(query) {
-            const rows = await executeQuery(dbConnection, query, [], true);
+            const rows = await executeQuery(dbConnection, query, []);
             return rows && rows.length ? parseInt(rows[0].total, 10) : 0;
         }
 
@@ -179,7 +179,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
                     AND eh.estado IN (${estadosPendientes})
                 `;
-                    const rowsPendientes = await executeQuery(dbConnection, queryPendientes, [], true);
+                    const rowsPendientes = await executeQuery(dbConnection, queryPendientes, []);
                     infoADevolver.pendings = rowsPendientes.length;
 
                     // En Camino, Cerrados y Entregados HOY (fecha actual)
@@ -193,7 +193,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND superado = 0 
                     AND DATE(fecha) = CURDATE()
                 `;
-                    const rowsHistorial = await executeQuery(dbConnection, queryHistorial, [], true);
+                    const rowsHistorial = await executeQuery(dbConnection, queryHistorial, []);
                     if (rowsHistorial && rowsHistorial.length > 0) {
                         infoADevolver.onTheWay = parseInt(rowsHistorial[0].enCamino, 10) || 0;
                         infoADevolver.closedToday = parseInt(rowsHistorial[0].cerradosHoy, 10) || 0;
@@ -219,7 +219,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.elim = 0
                     AND e.didCliente = sua.codigo_empleado
                 `;
-                    const rowsCE = await executeQuery(dbConnection, queryCerradosYEntregados, [], true);
+                    const rowsCE = await executeQuery(dbConnection, queryCerradosYEntregados, []);
                     if (rowsCE && rowsCE.length > 0) {
                         infoADevolver.closedToday = parseInt(rowsCE[0].cerradosHoy, 10) || 0;
                         infoADevolver.deliveredToday = parseInt(rowsCE[0].entregadosHoy, 10) || 0;
@@ -256,7 +256,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
                     AND eh.estado IN (${estadosPendientes})
                 `;
-                    const rowsPendientesOperador = await executeQuery(dbConnection, queryPendientes, [], true);
+                    const rowsPendientesOperador = await executeQuery(dbConnection, queryPendientes, []);
                     infoADevolver.pendings = rowsPendientesOperador.length;
 
                     // En Camino, Cerrados y Entregados HOY para operador
@@ -271,7 +271,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND didCadete = ${userId}
                     AND DATE(fecha) = CURDATE()
                 `;
-                    const rowsHistorialOperador = await executeQuery(dbConnection, queryHistorial, [], true);
+                    const rowsHistorialOperador = await executeQuery(dbConnection, queryHistorial, []);
                     if (rowsHistorialOperador && rowsHistorialOperador.length > 0) {
                         infoADevolver.onTheWay = parseInt(rowsHistorialOperador[0].onTheWay, 10) || 0;
                         infoADevolver.closedToday = parseInt(rowsHistorialOperador[0].closedToday, 10) || 0;
