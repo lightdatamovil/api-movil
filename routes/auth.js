@@ -31,10 +31,11 @@ auth.post('/company-identification', async (req, res) => {
         logGreen(`Empresa identificada correctamente`);
         res.status(200).json({ body: result, message: "Empresa identificada correctamente" });
     } catch (error) {
-        logRed(`Error en company-identification: ${JSON.stringify(error)} `);
         if (error instanceof CustomException) {
+            logRed(`Error 400 en login: ${error} `);
             res.status(400).json(error);
         } else {
+            logRed(`Error 500 en login: ${error} `);
             res.status(500).json({ title: 'Error interno del servidor', message: 'Unhandled Error', stack: error.stack });
         }
     } finally {
@@ -44,8 +45,8 @@ auth.post('/company-identification', async (req, res) => {
 });
 
 auth.post('/login', async (req, res) => {
-
     const startTime = performance.now();
+
     try {
         const mensajeError = verifyParamaters(req.body, ['username', 'password', 'companyId']);
 
@@ -57,17 +58,19 @@ auth.post('/login', async (req, res) => {
         }
 
         const { username, password, companyId } = req.body;
+
         const company = await getCompanyById(companyId);
+
         const result = await login(username, password, company);
 
+        logGreen(`Usuario logueado correctamente`);
         res.status(200).json({ body: result, message: "Usuario logueado correctamente" });
     } catch (error) {
-        logRed(`Error en login: ${error.stack} `);
         if (error instanceof CustomException) {
-            logRed(`Error 400 en login: ${error.message} `);
+            logRed(`Error 400 en login: ${error} `);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
-            logRed(`Error 500  en login: ${error.message} `);
+            logRed(`Error 500  en login: ${error} `);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
