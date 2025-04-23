@@ -14,7 +14,7 @@ import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 import { getUrlsDev } from './src/funciones/urlsdev.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
-import cors from 'cors';    
+import cors from 'cors';
 
 const numCPUs = 2;
 const PORT = 13000;
@@ -43,21 +43,23 @@ if (cluster.isMaster) {
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
         res.status(200).json({ message: 'API funcionando correctamente' });
     });
+
     app.get('/ping', (req, res) => {
         const currentDate = new Date();
         currentDate.setHours(currentDate.getHours()); // Resta 3 horas
-      
+
         // Formatear la hora en el formato HH:MM:SS
         const hours = currentDate.getHours().toString().padStart(2, '0');
         const minutes = currentDate.getMinutes().toString().padStart(2, '0');
         const seconds = currentDate.getSeconds().toString().padStart(2, '0');
-      
+
         const formattedTime = `${hours}:${minutes}:${seconds}`;
-      
+
         res.status(200).json({
-          hora: formattedTime
+            hora: formattedTime
         });
-      });
+    });
+
     app.post('/api/get-urls', async (req, res) => {
         const startTime = performance.now();
         const { companyId } = req.body;
@@ -70,6 +72,7 @@ if (cluster.isMaster) {
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
         res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
     });
+
     app.post('/api/get-urls-dev', async (req, res) => {
         const startTime = performance.now();
         const { companyId } = req.body;
