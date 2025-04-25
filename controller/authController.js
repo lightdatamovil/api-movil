@@ -86,7 +86,14 @@ export async function login(username, password, company) {
 
     } catch (error) {
         logRed(`Error en login: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'No pudimos iniciar sesión',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -120,9 +127,13 @@ export async function identification(company) {
 
     } catch (error) {
         logRed(`Error en identification: ${error.stack}`);
+        if (error instanceof CustomException) {
+            throw error;
+        }
         throw new CustomException({
             title: 'Error en identificación',
-            message: 'No se pudo obtener la información de la empresa'
+            message: error.message,
+            stack: error.stack
         });
     }
 }
@@ -138,9 +149,13 @@ export async function whatsappMessagesList(company) {
         return results.map(row => row.texto);
     } catch (error) {
         logRed(`Error en whatsappMessagesList: ${error.stack}`);
+        if (error instanceof CustomException) {
+            throw error;
+        }
         throw new CustomException({
-            title: 'Error en mensajes',
-            message: 'No se pudieron obtener los mensajes de WhatsApp'
+            title: 'Error en la lista de mensajes de WhatsApp',
+            message: error.message,
+            stack: error.stack
         });
     } finally {
         dbConnection.end();

@@ -3,82 +3,107 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { nextDeliver, shipmentDetails, shipmentList } from '../controller/shipmentsController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
 const shipments = Router();
 
-shipments.post('/shipment-list', async (req, res) => {
+shipments.post('/shipment-list', verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const mensajeError = verifyParamaters(req.body, ['from', 'shipmentStates', 'isAssignedToday'], true);
-
-  if (mensajeError) {
-    return res.status(400).json({ message: mensajeError });
-  }
-
-  const { companyId, userId, profile, from, shipmentStates, isAssignedToday } = req.body;
-
   try {
-    const company = await getCompanyById(companyId);
+    const mensajeError = verifyParamaters(
+      req.body,
+      ['companyId', 'userId', 'profile', 'from', 'shipmentStates', 'isAssignedToday'],
+      true
+    );
+    if (mensajeError) {
+      logRed(`Error en shipment-list: ${mensajeError}`);
+      throw new CustomException({ title: 'Error en shipment-list', message: mensajeError });
+    }
 
+    const { companyId, userId, profile, from, shipmentStates, isAssignedToday } = req.body;
+    const company = await getCompanyById(companyId);
     const result = await shipmentList(company, userId, profile, from, shipmentStates, isAssignedToday);
 
+    logGreen(`Listado de envíos obtenido correctamente`);
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    logRed(`Error en shipment-list: ${error.stack}`);
-    res.status(500).json({ message: error.stack });
+    if (error instanceof CustomException) {
+      logRed(`Error 400 en shipment-list: ${error}`);
+      res.status(400).json({ title: error.title, message: error.message });
+    } else {
+      logRed(`Error 500 en shipment-list: ${error}`);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
   } finally {
     const endTime = performance.now();
-    logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+    logPurple(`Tiempo de ejecución shipment-list: ${endTime - startTime} ms`);
   }
 });
 
-shipments.post("/shipment-details", verifyToken, async (req, res) => {
+shipments.post('/shipment-details', verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const mensajeError = verifyParamaters(req.body, ['shipmentId'], true);
-
-  if (mensajeError) {
-    return res.status(400).json({ message: mensajeError });
-  }
-
-  const { companyId, userId, shipmentId } = req.body;
-
   try {
-    const company = await getCompanyById(companyId);
+    const mensajeError = verifyParamaters(
+      req.body,
+      ['companyId', 'userId', 'shipmentId'],
+      true
+    );
+    if (mensajeError) {
+      logRed(`Error en shipment-details: ${mensajeError}`);
+      throw new CustomException({ title: 'Error en shipment-details', message: mensajeError });
+    }
 
+    const { companyId, userId, shipmentId } = req.body;
+    const company = await getCompanyById(companyId);
     const result = await shipmentDetails(company, shipmentId, userId);
 
+    logGreen(`Detalle de envío obtenido correctamente`);
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    logRed(`Error en shipment-details: ${error.stack}`);
-    res.status(500).json({ message: error.stack });
+    if (error instanceof CustomException) {
+      logRed(`Error 400 en shipment-details: ${error}`);
+      res.status(400).json({ title: error.title, message: error.message });
+    } else {
+      logRed(`Error 500 en shipment-details: ${error}`);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
   } finally {
     const endTime = performance.now();
-    logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+    logPurple(`Tiempo de ejecución shipment-details: ${endTime - startTime} ms`);
   }
 });
 
-shipments.post("/next-visit", verifyToken, async (req, res) => {
+shipments.post('/next-visit', verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const mensajeError = verifyParamaters(req.body, ['shipmentId', 'dateYYYYMMDD'], true);
-
-  if (mensajeError) {
-    return res.status(400).json({ message: mensajeError });
-  }
-
-  const { companyId, userId, shipmentId, dateYYYYMMDD } = req.body;
-
   try {
-    const company = await getCompanyById(companyId);
+    const mensajeError = verifyParamaters(
+      req.body,
+      ['companyId', 'userId', 'shipmentId', 'dateYYYYMMDD'],
+      true
+    );
+    if (mensajeError) {
+      logRed(`Error en next-visit: ${mensajeError}`);
+      throw new CustomException({ title: 'Error en next-visit', message: mensajeError });
+    }
 
+    const { companyId, userId, shipmentId, dateYYYYMMDD } = req.body;
+    const company = await getCompanyById(companyId);
     const result = await nextDeliver(company, shipmentId, dateYYYYMMDD, userId);
 
+    logGreen(`Próxima visita obtenida correctamente`);
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    logRed(`Error en next-visit: ${error.stack}`);
-    res.status(500).json({ message: error.stack });
+    if (error instanceof CustomException) {
+      logRed(`Error 400 en next-visit: ${error}`);
+      res.status(400).json({ title: error.title, message: error.message });
+    } else {
+      logRed(`Error 500 en next-visit: ${error}`);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
   } finally {
     const endTime = performance.now();
-    logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+    logPurple(`Tiempo de ejecución next-visit: ${endTime - startTime} ms`);
   }
 });
 

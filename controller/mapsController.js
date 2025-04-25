@@ -2,6 +2,7 @@ import mysql2 from 'mysql';
 
 import { getProdDbConfig, executeQuery } from '../db.js';
 import { logRed, logYellow } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
 export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
@@ -94,7 +95,15 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
         };
     } catch (error) {
         logRed(`Error en getRoutaByUserId: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo ruta del usuario',
+            message: error.message,
+            stack: error.stack
+        });
     }
     finally {
         dbConnection.end();
@@ -144,7 +153,14 @@ export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance,
         return;
     } catch (error) {
         logRed(`Error en saveRoute: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error guardando ruta',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -171,11 +187,23 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
 
             return;
         } else {
-            throw new Error("El envío no existe");
+            logRed(`El envío no existe`);
+            throw new CustomException({
+                title: 'Error geolocalizando',
+                message: 'El envío no existe',
+            });
         }
     } catch (error) {
         logRed(`Error en geolocalize: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error geolocalizando',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

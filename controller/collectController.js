@@ -1,6 +1,7 @@
 import mysql2 from 'mysql';
 import { getProdDbConfig, executeQuery } from '../db.js';
 import { logRed } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
 export async function getRoute(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
@@ -8,7 +9,6 @@ export async function getRoute(company, userId, dateYYYYMMDD) {
     dbConnection.connect();
 
     try {
-
         let hasRoute, routeId, additionalRouteData, client = null;
 
         const routeQuery = "SELECT id, did, dataRuta FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND fecha = ? AND didChofer = ?";
@@ -77,7 +77,14 @@ export async function getRoute(company, userId, dateYYYYMMDD) {
         };
     } catch (error) {
         logRed(`Error en getRoute: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en obtener ruta.',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -92,7 +99,14 @@ export async function startCollectRoute(company) {
         return true;
     } catch (error) {
         logRed(`Error en startCollectRoute: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en iniciar la recolección de ruta.',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -111,7 +125,10 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
         );
 
         if (rows.length == 0) {
-            throw new Error("No se encontró una ruta para superar.");
+            throw new CustomException({
+                title: 'Error en guardar ruta.',
+                message: 'No se encontró una ruta para superar.',
+            });
         }
 
         didAsuperar = rows[0].did;
@@ -137,7 +154,10 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
         const newId = result.insertId;
 
         if (orders.length === 0) {
-            throw new Error("No se encontraron paradas para la ruta.");
+            throw new CustomException({
+                title: 'Error en guardar ruta.',
+                message: 'No se encontraron paradas para la ruta.',
+            });
         }
 
         const insertParadas = orders.map(({ orden, cliente, ordenLlegada }) =>
@@ -153,7 +173,14 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
         return;
     } catch (error) {
         logRed(`Error en saveRoute: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en guardar ruta.',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -204,7 +231,14 @@ export async function getCollectDetails(company, dateYYYYMMDD) {
         return respuesta;
     } catch (error) {
         logRed(`Error en getCollectDetails: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en obtener detalles de colecta.',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -235,7 +269,14 @@ export async function shipmentsFromClient(company, dateYYYYMMDD, clientId) {
         return shipmentsFromClient;
     } catch (error) {
         logRed(`Error en shipmentsFromClient: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en obtener envios de cliente.',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -260,7 +301,14 @@ export async function getCollectList(company, userId, from, to) {
 
         return collectList
     } catch (error) {
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en obtener listado de colectas.',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -293,7 +341,14 @@ export async function getSettlementList(company, from, to) {
         return settlementList;
     } catch (error) {
         logRed(`Error en getSettlementList: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en obtener liquidaciones.',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -310,7 +365,10 @@ export async function getSettlementDetails(company, settlementId) {
         const idlineas = result[0]?.idlineas;
 
         if (!idlineas) {
-            throw new Error("No se encontraron detalles de la liquidación.");
+            throw new CustomException({
+                title: 'No se encontraron detalles de la liquidación.',
+                message: 'No se encontro la idlineas de la liquidación',
+            });
         }
 
         const sqlDetalle = `
@@ -332,7 +390,14 @@ export async function getSettlementDetails(company, settlementId) {
         return collectDetails;
     } catch (error) {
         logRed(`Error en getSettlementDetails: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en obtener detalles de liquidación.',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

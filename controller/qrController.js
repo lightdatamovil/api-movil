@@ -2,6 +2,7 @@ import { executeQuery, getProdDbConfig, getDbConfig, getZonesByCompany, getClien
 import mysql2 from 'mysql';
 import axios from 'axios';
 import { logRed } from "../src/funciones/logsCustom.js";
+import CustomException from "../clases/custom_exception.js";
 
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
@@ -105,7 +106,10 @@ export async function getShipmentIdFromQrLocal(dataQr, company) {
             const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
             if (resultQueryEnvios.length == 0) {
-                throw new Error("No se encontró el envío");
+                throw new CustomException({
+                    title: 'Error obteniendo el ID del envío',
+                    message: 'No se encontró el envío',
+                });
             }
 
             shipmentId = resultQueryEnvios[0];
@@ -182,7 +186,10 @@ export async function enterFlex(company, dataQr, userId) {
             clientId = clientResult[0].didCliente;
             accountId = clientResult[0].did;
         } else {
-            throw new Error("No se encontró el cliente asociado al vendedor");
+            throw new CustomException({
+                title: 'Error ingresando al Flex',
+                message: 'No se encontró el cliente asociado al vendedor',
+            });
         }
 
         const envioQuery = `
@@ -214,7 +221,10 @@ export async function enterFlex(company, dataQr, userId) {
             ]);
 
             if (!insertResult.insertId) {
-                throw new Error("Existió un error al querer guardar los datos.");
+                throw new CustomException({
+                    title: 'Error ingresando al Flex',
+                    message: 'No se pudo guardar el envío en la base de datos',
+                });
             }
 
             shipmentId = insertResult.insertId;
@@ -266,12 +276,23 @@ export async function enterFlex(company, dataQr, userId) {
 
                 return;
             } else {
-                throw new Error("El envío ya está cargado");
+                throw new CustomException({
+                    title: 'Error ingresando al Flex',
+                    message: 'El envío ya está cargado',
+                    stack: error.stack
+                });
             }
         }
     } catch (error) {
         logRed(`Error en enterFlex: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error ingresando al Flex',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -329,7 +350,14 @@ async function setShipmentState(dbConnection, shipmentId, shipmentState, userId)
         return;
     } catch (error) {
         logRed(`Error en setShipmentState: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error poniendo estado al envío',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -375,7 +403,14 @@ async function setDispatchDate(dbConnection, clientId) {
         return now.toISOString().split("T")[0];
     } catch (error) {
         logRed(`Error en setDispatchDate: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error poniendo fecha de despacho',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -393,7 +428,14 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
 
     } catch (error) {
         logRed(`Error en updateWhoPickedUp: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error actualizando quien retiró',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -443,10 +485,21 @@ export async function getProductsFromShipment(dataQr) {
 
             return Aitems;
         } else {
-            throw new Error("No se encontró el receptor del envío");
+            throw new CustomException({
+                title: 'Error obteniendo productos del envío',
+                message: 'No se encontró el receptor del envío',
+            });
         }
     } catch (error) {
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo productos del envío',
+            message: error.message,
+            stack: error.stack
+        });
     }
 
 }
@@ -471,7 +524,14 @@ async function getShipmentDetails(shipmentId, token) {
         return response.data;
     } catch (error) {
         logRed(`Error obteniendo detalles del envío: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo detalles del envío',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -539,7 +599,10 @@ export async function getShipmentIdFromQrProd(dataQr, company) {
             const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
             if (resultQueryEnvios.length == 0) {
-                throw new Error("No se encontró el envío");
+                throw new CustomException({
+                    title: 'Error obteniendo el ID del envío',
+                    message: 'No se encontró el envío',
+                });
             }
 
             shipmentId = resultQueryEnvios[0].did;
@@ -548,7 +611,15 @@ export async function getShipmentIdFromQrProd(dataQr, company) {
         return shipmentId;
     } catch (error) {
         logRed(`Error en getShipmentIdFromQr: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo el ID del envío',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

@@ -1,82 +1,113 @@
-import express from 'express';
+import { Router } from 'express';
+import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { getSettlementList, getSettlementDetails, getSettlementShipmentDetails } from '../controller/settlementController.js';
+import {
+    getSettlementList,
+    getSettlementDetails,
+    getSettlementShipmentDetails
+} from '../controller/settlementController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
-const settlements = express.Router();
+const settlements = Router();
 
-settlements.post('/settlement-list', async (req, res) => {
+settlements.post('/settlement-list', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['from', 'to'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, userId, from, to } = req.body;
-
     try {
+        const mensajeError = verifyParamaters(
+            req.body,
+            ['companyId', 'userId', 'from', 'to'],
+            true
+        );
+        if (mensajeError) {
+            logRed(`Error en settlement-list: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en settlement-list', message: mensajeError });
+        }
+
+        const { companyId, userId, from, to } = req.body;
         const company = await getCompanyById(companyId);
+        const list = await getSettlementList(company, userId, from, to);
 
-        const settlementList = await getSettlementList(company, userId, from, to);
-
-        res.status(200).json({ body: settlementList, message: "Datos obtenidos correctamente" });
+        logGreen(`Listado de liquidaciones obtenido correctamente`);
+        res.status(200).json({ body: list, message: 'Listado de liquidaciones obtenido correctamente' });
     } catch (error) {
-        logRed(`Error en settlement-list: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en settlement-list: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en settlement-list: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+        logPurple(`Tiempo de ejecución settlement-list: ${endTime - startTime} ms`);
     }
 });
 
-settlements.post('/settlement-details', async (req, res) => {
+settlements.post('/settlement-details', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['settlementId'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, settlementId } = req.body;
-
     try {
+        const mensajeError = verifyParamaters(
+            req.body,
+            ['companyId', 'settlementId'],
+            true
+        );
+        if (mensajeError) {
+            logRed(`Error en settlement-details: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en settlement-details', message: mensajeError });
+        }
+
+        const { companyId, settlementId } = req.body;
         const company = await getCompanyById(companyId);
+        const details = await getSettlementDetails(company, settlementId);
 
-        const setllementDetails = await getSettlementDetails(company, settlementId);
-
-        res.status(200).json({ body: setllementDetails, message: "Datos obtenidos correctamente" });
+        logGreen(`Detalle de liquidación obtenido correctamente`);
+        res.status(200).json({ body: details, message: 'Detalle de liquidación obtenido correctamente' });
     } catch (error) {
-        logRed(`Error en settlement-details: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en settlement-details: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en settlement-details: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+        logPurple(`Tiempo de ejecución settlement-details: ${endTime - startTime} ms`);
     }
 });
 
-settlements.post('/settlement-shipment-details', async (req, res) => {
+settlements.post('/settlement-shipment-details', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, [], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-    const { companyId, userId } = req.body;
-
     try {
+        const mensajeError = verifyParamaters(
+            req.body,
+            ['companyId', 'userId'],
+            true
+        );
+        if (mensajeError) {
+            logRed(`Error en settlement-shipment-details: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en settlement-shipment-details', message: mensajeError });
+        }
+
+        const { companyId, userId } = req.body;
         const company = await getCompanyById(companyId);
+        const shipments = await getSettlementShipmentDetails(company, userId);
 
-        const result = await getSettlementShipmentDetails(company, userId);
-
-        res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+        logGreen(`Detalle de envíos de liquidación obtenido correctamente`);
+        res.status(200).json({ body: shipments, message: 'Detalle de envíos de liquidación obtenido correctamente' });
     } catch (error) {
-        logRed(`Error en settlement-shipment-details: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en settlement-shipment-details: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en settlement-shipment-details: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+        logPurple(`Tiempo de ejecución settlement-shipment-details: ${endTime - startTime} ms`);
     }
 });
 

@@ -1,6 +1,7 @@
 import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../db.js';
 import mysql2 from 'mysql';
 import { logCyan, logRed, logYellow } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
@@ -11,7 +12,15 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
         return resultQueryEnviosAsignaciones.length > 0 ? true : false;
     } catch (error) {
         logRed(`Error en verifyAssignment: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error verificando asignación',
+            message: error.message,
+            stack: error.stack
+        });
     }
 };
 
@@ -32,7 +41,15 @@ async function getHistorial(dbConnection, shipmentId) {
         return historial;
     } catch (error) {
         logRed(`Error en getHistorial: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo historial',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -55,7 +72,15 @@ async function getObservations(dbConnection, shipmentId) {
         return observations;
     } catch (error) {
         logRed(`Error en getObservations: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo observaciones',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -79,7 +104,15 @@ async function getImages(dbConnection, shipmentId) {
         return images;
     } catch (error) {
         logRed(`Error en getImages: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo imagenes',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -89,13 +122,24 @@ async function shipmentInformation(dbConnection, shipmentId) {
 
         const results = await executeQuery(dbConnection, query, []);
         if (results.length === 0) {
-            throw new Error("No se encontró el envío con el id: " + shipmentId);
+            throw new CustomException({
+                title: 'Error obteniendo información del envío',
+                message: 'No se encontró el envío con el id: ' + shipmentId,
+            });
         }
 
         return results[0];
     } catch (error) {
         logRed(`Error en shipmentInformation: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo información del envío',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -151,7 +195,15 @@ export async function shipmentDetails(company, shipmentId, userId) {
 
     } catch (error) {
         logRed(`Error en shipmentDetails: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo detalles del envío',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -318,7 +370,15 @@ export async function shipmentList(company, userId, profile, from, shipmentState
         return lista;
     } catch (error) {
         logRed(`Error en shipmentList: ${error.stack} `);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo lista de envíos',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -335,7 +395,15 @@ export async function nextDeliver(company, shipmentId, dateYYYYMMDD, userId) {
         await executeQuery(dbConnection, query, [shipmentId, dateYYYYMMDD, userId]);
     } catch (error) {
         logRed(`Error en nextDeliver: ${error.stack} `);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en próxima entrega',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

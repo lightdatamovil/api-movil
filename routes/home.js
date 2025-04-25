@@ -3,29 +3,34 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { verifyStartedRoute, startRoute, endRoute, getHomeData } from '../controller/homeController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
 const home = Router();
 
-home.post('/home', async (req, res) => {
+home.post('/home', verifyToken, async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
-
-	if (mensajeError) {
-		return res.status(400).json({ message: mensajeError });
-	}
-
-	const { companyId, userId, profile, dateYYYYMMDD } = req.body;
-
 	try {
-		const company = await getCompanyById(companyId);
+		const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'profile', 'dateYYYYMMDD'], true);
+		if (mensajeError) {
+			logRed(`Error en home: ${mensajeError}`);
+			throw new CustomException({ title: 'Error en home', message: mensajeError });
+		}
 
+		const { companyId, userId, profile, dateYYYYMMDD } = req.body;
+		const company = await getCompanyById(companyId);
 		const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
 
+		logGreen(`Datos obtenidos correctamente`);
 		res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
 	} catch (error) {
-		logRed(`Error en home: ${error.stack}`);
-		res.status(500).json({ message: error.stack });
+		if (error instanceof CustomException) {
+			logRed(`Error 400 en home: ${error}`);
+			res.status(400).json({ title: error.title, message: error.message });
+		} else {
+			logRed(`Error 500 en home: ${error}`);
+			res.status(500).json({ message: 'Error interno del servidor' });
+		}
 	} finally {
 		const endTime = performance.now();
 		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -34,23 +39,27 @@ home.post('/home', async (req, res) => {
 
 home.post('/start-route', verifyToken, async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD', 'deviceFrom'], true);
-
-	if (mensajeError) {
-		return res.status(400).json({ message: mensajeError });
-	}
-
-	const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
-
 	try {
+		const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'dateYYYYMMDD', 'deviceFrom'], true);
+		if (mensajeError) {
+			logRed(`Error en start-route: ${mensajeError}`);
+			throw new CustomException({ title: 'Error en start-route', message: mensajeError });
+		}
+
+		const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
 		const company = await getCompanyById(companyId);
+		const result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
 
-		let result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
-
-		res.status(200).json({ body: result, message: 'La ruta a comenzado exitosamente' });
-	} catch (e) {
-		logRed(`Error en start-route: ${e.message}`);
-		res.status(500).json({ message: e.message });
+		logGreen(`Ruta comenzada exitosamente`);
+		res.status(200).json({ body: result, message: "La ruta ha comenzado exitosamente" });
+	} catch (error) {
+		if (error instanceof CustomException) {
+			logRed(`Error 400 en start-route: ${error}`);
+			res.status(400).json({ title: error.title, message: error.message });
+		} else {
+			logRed(`Error 500 en start-route: ${error}`);
+			res.status(500).json({ message: 'Error interno del servidor' });
+		}
 	} finally {
 		const endTime = performance.now();
 		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -59,23 +68,27 @@ home.post('/start-route', verifyToken, async (req, res) => {
 
 home.post('/end-route', verifyToken, async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
-
-	if (mensajeError) {
-		return res.status(400).json({ message: mensajeError });
-	}
-
-	const { companyId, userId, dateYYYYMMDD } = req.body;
-
 	try {
-		const company = await getCompanyById(companyId);
+		const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'dateYYYYMMDD'], true);
+		if (mensajeError) {
+			logRed(`Error en end-route: ${mensajeError}`);
+			throw new CustomException({ title: 'Error en end-route', message: mensajeError });
+		}
 
+		const { companyId, userId, dateYYYYMMDD } = req.body;
+		const company = await getCompanyById(companyId);
 		await endRoute(company, userId, dateYYYYMMDD);
 
-		res.status(200).json({ message: 'La ruta a terminado exitosamente' });
-	} catch (e) {
-		logRed(`Error en end-route: ${e.message}`);
-		res.status(500).json({ message: e.message });
+		logGreen(`Ruta terminada exitosamente`);
+		res.status(200).json({ message: "La ruta ha terminado exitosamente" });
+	} catch (error) {
+		if (error instanceof CustomException) {
+			logRed(`Error 400 en end-route: ${error}`);
+			res.status(400).json({ title: error.title, message: error.message });
+		} else {
+			logRed(`Error 500 en end-route: ${error}`);
+			res.status(500).json({ message: 'Error interno del servidor' });
+		}
 	} finally {
 		const endTime = performance.now();
 		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
@@ -84,27 +97,34 @@ home.post('/end-route', verifyToken, async (req, res) => {
 
 home.post('/verify-started-route', verifyToken, async (req, res) => {
 	const startTime = performance.now();
-	const mensajeError = verifyParamaters(req.body, [], true);
-
-	if (mensajeError) {
-		return res.status(400).json({ message: mensajeError });
-	}
-
-	const { companyId, userId } = req.body;
-	const body = req.body
-
 	try {
+		const mensajeError = verifyParamaters(req.body, ['companyId', 'userId'], true);
+		if (mensajeError) {
+			logRed(`Error en verify-started-route: ${mensajeError}`);
+			throw new CustomException({ title: 'Error en verify-started-route', message: mensajeError });
+		}
+
+		const { companyId, userId } = req.body;
 		const company = await getCompanyById(companyId);
+		const result = await verifyStartedRoute(company, userId);
 
-		let result = await verifyStartedRoute(company, userId);
-
-		res.status(200).json({ body: result, message: `The route has ${result ? 'started' : 'not started'}` });
-	} catch (e) {
-		logRed(`Error en verify-started-route: ${e.message}`);
-		res.status(500).json({ message: e.message });
+		logGreen(`Verificación de ruta iniciada: ${result}`);
+		res.status(200).json({
+			body: result,
+			message: `La ruta ${result ? 'ha comenzado' : 'no ha comenzado'}`
+		});
+	} catch (error) {
+		if (error instanceof CustomException) {
+			logRed(`Error 400 en verify-started-route: ${error}`);
+			res.status(400).json({ title: error.title, message: error.message });
+		} else {
+			logRed(`Error 500 en verify-started-route: ${error}`);
+			res.status(500).json({ message: 'Error interno del servidor' });
+		}
 	} finally {
 		const endTime = performance.now();
 		logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
 	}
 });
+
 export default home;

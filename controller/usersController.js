@@ -3,6 +3,7 @@ import mysql2 from 'mysql';
 import imageType from 'image-type';
 import axios from 'axios';
 import { logRed } from "../src/funciones/logsCustom.js";
+import CustomException from "../clases/custom_exception.js";
 
 export async function editUser(company, userId, email, phone) {
     const dbConfig = getProdDbConfig(company);
@@ -14,7 +15,10 @@ export async function editUser(company, userId, email, phone) {
         const resultSelectUsers = await executeQuery(dbConnection, querySelectUsers, [userId]);
 
         if (resultSelectUsers.length === 0) {
-            throw new Error("Usuario no encontrado");
+            throw new CustomException({
+                title: 'Error editando usuario',
+                message: 'Usuario no encontrado',
+            });
         }
 
         const userData = resultSelectUsers[0];
@@ -39,7 +43,15 @@ export async function editUser(company, userId, email, phone) {
         return;
     } catch (error) {
         logRed(`Error en editUser: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error editando usuario',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -55,17 +67,27 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
         const resultSelectUsers = await executeQuery(dbConnection, querySelectUsers, [userId]);
 
         if (resultSelectUsers.length === 0) {
-            throw new Error("Usuario no encontrado");
+            throw new CustomException({
+                title: 'Error cambiando contraseña',
+                message: 'Usuario no encontrado',
+            });
         }
 
         const userData = resultSelectUsers[0];
 
         if (oldPassword !== userData.pass) {
-            throw new Error("Las contraseñas no coinciden");
+            throw new CustomException({
+                title: 'Error cambiando contraseña',
+                message: 'La contraseña actual no es correcta',
+            });
         }
 
         if (oldPassword === newPassword) {
-            throw new Error("La nueva contraseña no puede ser igual a la anterior");
+            throw new CustomException({
+                title: 'Error cambiando contraseña',
+                message: 'La nueva contraseña no puede ser igual a la anterior',
+            });
+
         }
 
         const insertQuery = `INSERT INTO sistema_usuarios
@@ -79,8 +101,6 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
             userData.identificador, userData.direccion, userData.inicio_ruta, userData.lista_de_precios
         ];
 
-
-
         const resultInsert = await executeQuery(dbConnection, insertQuery, insertValues);
         const insertedId = resultInsert.insertId;
 
@@ -90,7 +110,15 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
         return;
     } catch (error) {
         logRed(`Error en changePassword: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error cambiando contraseña',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -123,12 +151,18 @@ export async function changeProfilePicture(company, userId, profile, image, date
             const response = await axios.post('https://files.lightdata.app/upload_perfil.php', data, config)
 
             if (response.data.error) {
-                throw new Error(response.data.error);
+                throw new CustomException({
+                    title: 'Error en subida de imagen',
+                    message: response.data.error,
+                });
             }
 
             return response.data;
         } else {
-            throw new Error("Tipo de imagen no soportado");
+            throw new CustomException({
+                title: 'Error en subida de imagen',
+                message: 'Tipo de imagen no soportado',
+            });
         }
     }
 }

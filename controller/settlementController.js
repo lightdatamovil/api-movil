@@ -1,6 +1,7 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany } from "../db.js";
 import mysql2 from 'mysql';
 import { logRed } from "../src/funciones/logsCustom.js";
+import CustomException from "../clases/custom_exception.js";
 
 export async function getSettlementList(company, userId, from, to) {
     const dbConfig = getProdDbConfig(company);
@@ -36,7 +37,15 @@ export async function getSettlementList(company, userId, from, to) {
         }));
     } catch (error) {
         logRed(`Error en getSettlementList: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo liquidaciones',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -56,7 +65,10 @@ export async function getSettlementDetails(company, settlementId) {
         const resultQueryLine = await executeQuery(dbConnection, queryLines, [settlementId]);
 
         if (resultQueryLine.length === 0) {
-            throw new Error("No se encontraron datos para la liquidación");
+            throw new CustomException({
+                title: 'Error en liquidación',
+                message: 'No se encontró la liquidación',
+            });
         }
 
         const idLine = resultQueryLine.length > 0 ? resultQueryLine[0].idlineas : "";
@@ -80,7 +92,14 @@ export async function getSettlementDetails(company, settlementId) {
         }));
     } catch (error) {
         logRed(`Error en getSettlementDetails: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo detalles de liquidación',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -123,11 +142,21 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
                 obs: row.destination_comments || ""
             };
         } else {
-            throw new Error("No se encontraron datos para el envío");
+            throw new CustomException({
+                title: 'Error en liquidación',
+                message: 'No se encontró el envío',
+            });
         }
     } catch (error) {
         logRed(`Error en getSettlementShipmentDetails: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo detalles de liquidación',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

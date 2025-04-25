@@ -20,7 +20,14 @@ export async function verifyStartedRoute(company, userId) {
         return resultQueryCadetesMovimientos[0].tipo == 0;
     } catch (error) {
         logRed(`Error en verifyStartedRoute: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error verificando ruta',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -53,34 +60,46 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
         }
     } catch (error) {
         logRed(`Error en startRoute: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error iniciando ruta',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
 }
 
 async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS) {
-    const onTheWayState = 2;
-    const query1 = `
+    try {
+        const onTheWayState = 2;
+        const query1 = `
         UPDATE envios_historial
         SET superado = 1
         WHERE superado = 0 AND didEnvio IN(${shipmentIds.join(',')})
     `;
-    await executeQuery(connection, query1);
+        await executeQuery(connection, query1);
 
-    const query2 = `
+        const query2 = `
         UPDATE envios
         SET estado_envio =?
         WHERE superado = 0 AND did IN(${shipmentIds.join(',')})
     `;
-    await executeQuery(connection, query2, [onTheWayState]);
+        await executeQuery(connection, query2, [onTheWayState]);
 
-    const query3 = `
+        const query3 = `
         INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
         SELECT did, ?, 0, ?, 0, ?
         FROM envios WHERE did IN(${shipmentIds.join(',')})
     `;
-    await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, deviceFrom]);
+        await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, deviceFrom]);
+    } catch (error) {
+        throw error;
+    }
+
 }
 
 export async function endRoute(company, userId, dateYYYYMMDD) {
@@ -98,7 +117,14 @@ export async function endRoute(company, userId, dateYYYYMMDD) {
         await executeQuery(dbConnection, sqlUpdateRuteo, [hour, userId]);
     } catch (error) {
         logRed(`Error en endRoute: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error finalizando ruta',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -289,7 +315,14 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
 
     } catch (error) {
         logRed(`Error en getHomeData: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo datos de inicio',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

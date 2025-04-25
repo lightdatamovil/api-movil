@@ -1,6 +1,7 @@
 import mysql2 from 'mysql';
 import { getProdDbConfig, executeQuery } from '../db.js';
 import { logRed } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
 export async function accountList(company, userId, profile) {
     const dbConfig = getProdDbConfig(company);
@@ -70,7 +71,11 @@ export async function accountList(company, userId, profile) {
 
     } catch (error) {
         logRed(`Error en accountList: ${error.stack}`);
-        throw error;
+        throw new CustomException({
+            title: 'Error en accountList',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

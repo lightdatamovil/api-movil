@@ -2,6 +2,7 @@ import { getProdDbConfig, executeQuery } from "../db.js";
 import mysql2 from "mysql";
 import axios from "axios";
 import { logRed, logYellow } from "../src/funciones/logsCustom.js";
+import CustomException from "../clases/custom_exception.js";
 
 export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
     const dbConfig = getProdDbConfig(company);
@@ -22,7 +23,10 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
         });
 
         if (!response.data) {
-            throw new Error("Error servidor files");
+            throw new CustomException({
+                title: 'Error en subida de imagen',
+                message: 'No se pudo subir la imagen',
+            });
         }
 
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
@@ -30,7 +34,14 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
         await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
     } catch (error) {
         logRed(`Error en uploadImage: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en subida de imagen',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -47,11 +58,17 @@ export async function registerVisit(company, userId, shipmentId, recieverDNI, re
         const estadoActualRows = await executeQuery(dbConnection, queryEnviosHistorial, [shipmentId]);
 
         if (estadoActualRows.length == 0) {
-            throw new Error("No se encontró el envío");
+            throw new CustomException({
+                title: 'Error en registro de visita',
+                message: 'No se encontró el envío',
+            });
         }
 
         if (estadoActualRows.length > 0 && estadoActualRows[0].estado == 8) {
-            throw new Error("El envío fue cancelado");
+            throw new CustomException({
+                title: 'El envío ya fue entregado o cancelado',
+                message: 'El envío ya fue entregado o cancelado',
+            });
         }
 
         const currentShipmentState = estadoActualRows[0].estado;
@@ -73,7 +90,10 @@ export async function registerVisit(company, userId, shipmentId, recieverDNI, re
                     const dataML = await mlShipment(token, mlshipmentRows[0].ml_shipment_id);
 
                     if (!dataML || dataML.status !== "delivered") {
-                        throw new Error("Debe ser entregado en MercadoLibre");
+                        throw new CustomException({
+                            title: 'El envío no fue entregado en MercadoLibre',
+                            message: 'El envío no fue entregado en MercadoLibre',
+                        });
                     }
                 }
             }
@@ -145,7 +165,14 @@ export async function registerVisit(company, userId, shipmentId, recieverDNI, re
         };
     } catch (error) {
         logRed(`Error in register visit: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error en registro de visita',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
@@ -160,7 +187,15 @@ async function getToken(clientId, accountId, companyId) {
         return data.trim();
     } catch (error) {
         logRed(`Error obteniendo token: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo token',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }
 
@@ -175,6 +210,13 @@ async function mlShipment(token, shipmentId) {
         return data;
     } catch (error) {
         logRed(`Error obteniendo datos de MercadoLibre: ${error.stack}`);
-        throw error;
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo datos de MercadoLibre',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }

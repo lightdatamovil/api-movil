@@ -218,7 +218,7 @@ export async function getClientsByCompany(dbConnection, companyId) {
                 companyClients = clientList[companyId];
             } catch (error) {
                 logRed(`Error al cargar compañías desde Redis: ${error.stack}`);
-                throw companyClients;
+                throw error;
             }
         }
 
@@ -273,7 +273,7 @@ export async function getZonesByCompany(dbConnection, companyId) {
                 companyZones = zoneList[companyId];
             } catch (error) {
                 logRed(`Error al cargar compañías desde Redis: ${error.stack}`);
-                throw companyZones;
+                throw error;
             }
         }
 
@@ -336,7 +336,7 @@ export async function getDriversByCompany(dbConnection, companyId) {
                 companyDrivers = driverList[companyId];
             } catch (error) {
                 logRed(`Error al cargar compañías desde Redis: ${error.stack}`);
-                throw companyDrivers;
+                throw error;
             }
         }
 

@@ -1,210 +1,276 @@
-import { getCompanyById } from '../db.js';
 import { Router } from 'express';
+import verifyToken from '../src/funciones/verifyToken.js';
+import { getCompanyById } from '../db.js';
+import {
+    saveRoute,
+    getCollectDetails,
+    getCollectList,
+    shipmentsFromClient,
+    getRoute,
+    startCollectRoute,
+    getSettlementDetails,
+    getSettlementList
+} from '../controller/collectController.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { saveRoute, getCollectDetails, getCollectList, shipmentsFromClient, getRoute, startCollectRoute, getSettlementDetails, getSettlementList } from '../controller/collectController.js';
-import { logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import CustomException from '../clases/custom_exception.js';
 
 const collect = Router();
 
-collect.post("/get-route", async (req, res) => {
+collect.post("/get-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, userId, dateYYYYMMDD } = req.body;
-
     try {
-        const company = await getCompanyById(companyId);
+        const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'dateYYYYMMDD'], true);
+        if (mensajeError) {
+            logRed(`Error en get-route: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en get-route', message: mensajeError });
+        }
 
+        const { companyId, userId, dateYYYYMMDD } = req.body;
+        const company = await getCompanyById(companyId);
         const route = await getRoute(company, userId, dateYYYYMMDD);
 
+        logGreen(`Ruta obtenida correctamente`);
         res.status(200).json({ body: route, message: "Ruta obtenida correctamente" });
     } catch (error) {
-        logRed(`Error en get-route: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en get-route: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en get-route: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
-collect.post("/start-route", async (req, res) => {
+collect.post("/start-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, [], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, userId } = req.body;
-
     try {
-        const company = await getCompanyById(companyId);
+        const mensajeError = verifyParamaters(req.body, ['companyId', 'userId'], true);
+        if (mensajeError) {
+            logRed(`Error en start-route: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en start-route', message: mensajeError });
+        }
 
+        const { companyId, userId } = req.body;
+        const company = await getCompanyById(companyId);
         const startedRoute = await startCollectRoute(company, userId);
 
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+        logGreen(`Ruta comenzada correctamente`);
         res.status(200).json({ body: startedRoute, message: "Ruta comenzada correctamente" });
     } catch (error) {
-        logRed(`Error en start-route: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en start-route: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en start-route: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
-collect.post("/save-route", async (req, res) => {
+collect.post("/save-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['operationDate', 'additionalRouteData', 'orders', 'dateYYYYMMDD'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, userId, dateYYYYMMDD, additionalRouteData, orders } = req.body;
-
     try {
-        const company = await getCompanyById(companyId);
+        const mensajeError = verifyParamaters(req.body, [
+            'companyId',
+            'userId',
+            'dateYYYYMMDD',
+            'operationDate',
+            'additionalRouteData',
+            'orders'
+        ], true);
+        if (mensajeError) {
+            logRed(`Error en save-route: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en save-route', message: mensajeError });
+        }
 
+        const { companyId, userId, dateYYYYMMDD, additionalRouteData, orders } = req.body;
+        const company = await getCompanyById(companyId);
         const savedRoute = await saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders);
 
-        res.json({ body: savedRoute, message: "Ruta guardada correctamente." });
+        logGreen(`Ruta guardada correctamente`);
+        res.status(200).json({ body: savedRoute, message: "Ruta guardada correctamente" });
     } catch (error) {
-        logRed(`Error en save-route: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en save-route: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en save-route: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
-collect.post("/get-collect-details", async (req, res) => {
+collect.post("/get-collect-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, userId, profile, dateYYYYMMDD } = req.body;
-
     try {
+        const mensajeError = verifyParamaters(req.body, [
+            'companyId',
+            'userId',
+            'profile',
+            'dateYYYYMMDD'
+        ], true);
+        if (mensajeError) {
+            logRed(`Error en get-collect-details: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en get-collect-details', message: mensajeError });
+        }
+
+        const { companyId, userId, profile, dateYYYYMMDD } = req.body;
         const company = await getCompanyById(companyId);
+        const collectDetails = await getCollectDetails(company, userId, profile, dateYYYYMMDD);
 
-        const collect = await getCollectDetails(company, userId, profile, dateYYYYMMDD);
-
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
-        res.status(200).json({ body: collect, message: "Colecta obtenida correctamente" });
+        logGreen(`Colecta obtenida correctamente`);
+        res.status(200).json({ body: collectDetails, message: "Colecta obtenida correctamente" });
     } catch (error) {
-        logRed(`Error en get-collect-details: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en get-collect-details: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en get-collect-details: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
-collect.post("/get-client-details", async (req, res) => {
+collect.post("/get-client-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['dateYYYYMMDD', 'clientId'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, dateYYYYMMDD, clientId } = req.body;
-
     try {
+        const mensajeError = verifyParamaters(req.body, [
+            'companyId',
+            'dateYYYYMMDD',
+            'clientId'
+        ], true);
+        if (mensajeError) {
+            logRed(`Error en get-client-details: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en get-client-details', message: mensajeError });
+        }
+
+        const { companyId, dateYYYYMMDD, clientId } = req.body;
         const company = await getCompanyById(companyId);
+        const shipments = await shipmentsFromClient(company, dateYYYYMMDD, clientId);
 
-        const result = await shipmentsFromClient(company, dateYYYYMMDD, clientId);
-
-        res.status(200).json({ body: result, message: "Envíos obtenidos correctamente" });
+        logGreen(`Envíos obtenidos correctamente`);
+        res.status(200).json({ body: shipments, message: "Envíos obtenidos correctamente" });
     } catch (error) {
-        logRed(`Error en get-client-details: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en get-client-details: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en get-client-details: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
-collect.post("/get-collect-list", async (req, res) => {
+collect.post("/get-collect-list", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['from', 'to', true]);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, userId, from, to } = req.body;
-
     try {
-        const company = await getCompanyById(companyId)
+        const mensajeError = verifyParamaters(req.body, [
+            'companyId',
+            'userId',
+            'from',
+            'to'
+        ], true);
+        if (mensajeError) {
+            logRed(`Error en get-collect-list: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en get-collect-list', message: mensajeError });
+        }
 
-        const collectList = await getCollectList(company, userId, from, to);
-
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
-        res.status(200).json({ body: collectList, message: "Listado de colectas obtenido correctamente" });
-    } catch (error) {
-        logRed(`Error en get-collect-list: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
-    } finally {
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
-    }
-});
-
-collect.post("/get-settlement-list", async (req, res) => {
-    const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['from', 'to'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-
-    const { companyId, from, to, } = req.body;
-
-    try {
+        const { companyId, userId, from, to } = req.body;
         const company = await getCompanyById(companyId);
+        const list = await getCollectList(company, userId, from, to);
 
-        const settlementList = await getSettlementList(company, from, to);
-
-        res.status(200).json({ body: settlementList, message: "Listado de liquidaciones obtenido correctamente" });
+        logGreen(`Listado de colectas obtenido correctamente`);
+        res.status(200).json({ body: list, message: "Listado de colectas obtenido correctamente" });
     } catch (error) {
-        logRed(`Error en get-settlement-list: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en get-collect-list: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en get-collect-list: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
 
-collect.post("/get-settlement-details", async (req, res) => {
+collect.post("/get-settlement-list", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['settlementId'], true);
-
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
-    const { companyId, settlementId } = req.body;
-
     try {
+        const mensajeError = verifyParamaters(req.body, [
+            'companyId',
+            'from',
+            'to'
+        ], true);
+        if (mensajeError) {
+            logRed(`Error en get-settlement-list: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en get-settlement-list', message: mensajeError });
+        }
+
+        const { companyId, from, to } = req.body;
         const company = await getCompanyById(companyId);
+        const settlements = await getSettlementList(company, from, to);
 
-        const respuesta = await getSettlementDetails(company, settlementId);
-
-        res.json({ body: respuesta, message: "Detalle de colecta obtenido correctamente" });
+        logGreen(`Listado de liquidaciones obtenido correctamente`);
+        res.status(200).json({ body: settlements, message: "Listado de liquidaciones obtenido correctamente" });
     } catch (error) {
-        logRed(`Error en get-settlement-details: ${error.stack}`);
-        res.status(500).json({ message: error.stack });
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en get-settlement-list: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en get-settlement-list: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
+    } finally {
+        const endTime = performance.now();
+        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+    }
+});
+
+collect.post("/get-settlement-details", verifyToken, async (req, res) => {
+    const startTime = performance.now();
+    try {
+        const mensajeError = verifyParamaters(req.body, [
+            'companyId',
+            'settlementId'
+        ], true);
+        if (mensajeError) {
+            logRed(`Error en get-settlement-details: ${mensajeError}`);
+            throw new CustomException({ title: 'Error en get-settlement-details', message: mensajeError });
+        }
+
+        const { companyId, settlementId } = req.body;
+        const company = await getCompanyById(companyId);
+        const details = await getSettlementDetails(company, settlementId);
+
+        logGreen(`Detalle de liquidación obtenido correctamente`);
+        res.status(200).json({ body: details, message: "Detalle de liquidación obtenido correctamente" });
+    } catch (error) {
+        if (error instanceof CustomException) {
+            logRed(`Error 400 en get-settlement-details: ${error}`);
+            res.status(400).json({ title: error.title, message: error.message });
+        } else {
+            logRed(`Error 500 en get-settlement-details: ${error}`);
+            res.status(500).json({ message: 'Error interno del servidor' });
+        }
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
