@@ -22,7 +22,6 @@
     "express": "^4.21.2",
     "image-type": "^5.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mysql": "^2.18.1",
     "mysql2": "^3.13.0",
     "node-fetch": "^3.3.2",
     "redis": "^4.6.13",

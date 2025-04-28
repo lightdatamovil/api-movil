@@ -1,9 +1,11 @@
 import jwt from 'jsonwebtoken';
+import { logRed } from './logsCustom.js';
 
 function verifyToken(req, res, next) {
   const token = req.headers.authorization;
 
   if (!token) {
+    logRed('Token no proporcionado');
     return res.status(401).json({ message: 'Token no proporcionado' });
   }
 

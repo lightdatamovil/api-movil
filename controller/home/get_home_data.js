@@ -1,5 +1,10 @@
+import { getDbConfig, executeQuery } from "../../db.js";
+import mysql2 from "mysql";
+import { logRed } from "../../src/funciones/logsCustom.js";
+
+
 export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
-    const dbConfig = getProdDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -71,7 +76,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.elim = 0
                     AND eh.superado = 0
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
-                    AND eh.estado IN (${estadosPendientes})
+                    AND eh.estado IN (${estadosPendientes[company.did]})
                 `;
                     const rowsPendientes = await executeQuery(dbConnection, queryPendientes, []);
                     infoADevolver.pendings = rowsPendientes.length;
@@ -79,9 +84,9 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     // En Camino, Cerrados y Entregados HOY (fecha actual)
                     const queryHistorial = `
                   SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS enCamino,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN estado IN (${estadosEnCamino[company.did]}) THEN 1 ELSE 0 END) AS enCamino,
+                    SUM(CASE WHEN estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
+                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
                   FROM envios_historial 
                   WHERE elim = 0 
                     AND superado = 0 
@@ -101,8 +106,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     // Cerrados y Entregados HOY para caso 2
                     const queryCerradosYEntregados = `
                   SELECT
-                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
+                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
                   FROM envios_historial AS eh
                   LEFT JOIN envios AS e 
                     ON (e.did = eh.didEnvio AND e.superado = 0 AND e.elim = 0)
@@ -148,7 +153,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.elim = 0
                     AND eh.superado = 0
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
-                    AND eh.estado IN (${estadosPendientes})
+                    AND eh.estado IN (${estadosPendientes[company.did]})
                 `;
                     const rowsPendientesOperador = await executeQuery(dbConnection, queryPendientes, []);
                     infoADevolver.pendings = rowsPendientesOperador.length;
@@ -156,9 +161,9 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     // En Camino, Cerrados y Entregados HOY para operador
                     const queryHistorial = `
                   SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS enCamino,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN estado IN (${estadosEnCamino[company.did]}) THEN 1 ELSE 0 END) AS enCamino,
+                    SUM(CASE WHEN estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
+                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
                   FROM envios_historial 
                   WHERE elim = 0 
                     AND superado = 0 
