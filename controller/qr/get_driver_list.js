@@ -1,9 +1,9 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
+import { executeQuery, getDbConfig } from "../../db.js";
 import mysql2 from 'mysql';
 import { logRed } from "../../src/funciones/logsCustom.js";
 
 export async function driverList(company) {
-    const dbConfig = getProdDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -12,8 +12,8 @@ export async function driverList(company) {
 
         const query = `
             SELECT u.did, concat(u.nombre, ' ', u.apellido) as nombre
-            FROM sistema_usuarios as u JOIN sistema_usuarios_accesos as a on(a.elim = 0 and a.superado = 0 and a.usuario = u.did)
-            where u.elim = 0 and u.superado = 0 and a.perfil IN(3, 6)
+            FROM sistema_usuarios as u
+            where u.elim = 0 and u.superado = 0 and u.perfil IN(3, 6)
             ORDER BY nombre ASC
             `;
 

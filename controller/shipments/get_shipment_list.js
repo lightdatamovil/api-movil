@@ -1,10 +1,10 @@
-import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from '../../db.js';
+import { executeQuery, getClientsByCompany, getDriversByCompany, getDbConfig } from '../../db.js';
 import mysql2 from 'mysql';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function shipmentList(company, userId, profile, from, shipmentStates, isAssignedToday) {
-    const dbConfig = getProdDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -32,9 +32,8 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             estadoAsignacion = ', e.estadoAsignacion';
         }
 
-        const b = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : '';
-        const a = isAssignedToday ? '' : 'LEFT';
-        const c = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${hoy} 23:59:59'`;
+        const b = isAssignedToday ? `AND e.asignacionFecha > '${hoy} 00:00:00'` : '';
+        const c = isAssignedToday ? `AND e.asignacionFecha > '${hoy} 00:00:00'` : `AND e.fechaHistorial BETWEEN '${from} 00:00:00' AND '${hoy} 23:59:59'`;
 
         if (shipmentStates.length == 0) {
             return [];
@@ -47,11 +46,11 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 e.flex,
                 e.ml_shipment_id,
                 e.ml_venta_id,
-                eh.estado,
+                e.didEstado as estado,
                 e.didCliente,
                 DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
-                DATE_FORMAT(eh.autofecha, '%d/%m/%Y') as fecha_historial,
-                ${estadoAsignacion} e.destination_receiver_name,
+                DATE_FORMAT(e.fechaHistorial, '%d/%m/%Y') as fecha_historial,
+                ${estadoAsignacion} e.nombreDestinatario as destination_receiver_name,
                 e.destination_shipping_address_line as address_line,
                 edd.address_line as address_lineEDD,
                 e.destination_shipping_zip_code as cp,
@@ -60,51 +59,18 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 edd.localidad as localidadEDD,
                 edd.provincia,
                 e.destination_receiver_phone,
-                ROUND(e.destination_latitude, 8) as lat,
-                ROUND(e.destination_longitude, 8) AS lng,
-                ei.valor,
+                ROUND(e.lat, 8) as lat,
+                ROUND(e.long, 8) AS lng,
+                e.logisticainversa as valor,
                 e.destination_comments,
                 edd.destination_comments AS destination_commentsEDD,
-                rp.orden,
+                e.orden,
                 ec.didCampoCobranza,
                 e.choferAsignado,
-                ec.valor
+                e.monto_a_cobrar,
+                e.cobranza
             FROM
-                envios_historial as eh
-                LEFT JOIN envios AS e ON(
-                    e.superado = 0
-                    AND e.elim = 0
-                    AND e.did = eh.didEnvio
-                )
-                LEFT JOIN envios_logisticainversa AS ei ON(
-                    ei.superado = 0
-                    AND ei.elim = 0
-                    AND ei.didEnvio = eh.didEnvio
-                )
-                ${a} JOIN envios_asignaciones as ea ON(
-                    ea.superado = 0
-                    AND ea.elim = 0
-                    AND ea.didEnvio = eh.didEnvio
-                    ${b}
-                )
-                LEFT JOIN ruteo as r ON(
-                    r.elim = 0
-                    and r.superado = 0
-                    and r.fechaOperativa = CURDATE() ${sqlchoferruteo}
-                )
-                LEFT JOIN ruteo_paradas AS rp ON(
-                    rp.superado = 0
-                    AND rp.elim = 0
-                    AND rp.didPaquete = eh.didEnvio
-                    and rp.didRuteo = r.did
-                    and rp.autofecha like '${hoy}%'
-                )
-                LEFT JOIN envios_cobranzas as ec on(
-                    ec.elim = 0
-                    and ec.superado = 0
-                    and ec.didEnvio = eh.didEnvio
-                    and ec.didCampoCobranza = 4
-                )
+                envios as e
                 LEFT JOIN envios_direcciones_destino as edd on(
                     edd.superado = 0
                     and edd.elim = 0
@@ -114,6 +80,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 eh.superado = 0
                 AND eh.elim = 0
                 AND e.elim = 0
+                ${b}
                 ${c}
                 ${sqlduenio}
                 AND eh.estado IN ${estadosQuery}
@@ -158,7 +125,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 cobranza: 0,
                 chofer: nombreChofer,
                 choferId: row.choferAsignado * 1,
-                monto_a_cobrar: monto,
+                monto_a_cobrar: cobranza == 4 ? monto : 0,
             });
         }
         return lista;

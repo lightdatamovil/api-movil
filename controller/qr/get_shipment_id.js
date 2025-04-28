@@ -1,12 +1,13 @@
 import { executeQuery, getDbConfig } from "../../db.js";
 import mysql2 from 'mysql';
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getShipmentIdFromQrLocal(dataQr, company) {
     const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
+
     try {
         let shipmentId;
 
@@ -45,7 +46,16 @@ export async function getShipmentIdFromQrLocal(dataQr, company) {
         return shipmentId;
     } catch (error) {
         logRed(`Error en getShipmentIdFromQr: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+
+        throw new CustomException({
+            title: 'Error obteniendo el ID del envío',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }

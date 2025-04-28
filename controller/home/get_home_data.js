@@ -1,7 +1,7 @@
 import { getDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql";
 import { logRed } from "../../src/funciones/logsCustom.js";
-
+import CustomException from "../../classes/custom_exception.js";
 
 export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
     const dbConfig = getDbConfig(company.did);
@@ -9,33 +9,34 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
     dbConnection.connect();
 
     try {
-        const estadosPendientes = {
-            20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
-            55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
-            72: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 16, 18, 16],
-            default: [0, 1, 2, 3, 6, 7, 10, 11, 12]
-        }[company] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
+        // --- 1) Defino y convierto a strings todas las listas de estados
+        let estadosPendientes = {
+            20: '(0,1,2,3,6,7,10,11,12,13)',
+            55: '(0,1,2,3,6,7,10,11,12,13)',
+            72: '(0,1,2,3,6,7,10,11,12,13,16,18)',
+            default: '(0,1,2,3,6,7,10,11,12)'
+        }[company.did] || '(0,1,2,3,6,7,10,11,12)';
 
-        const estadosEnCamino = {
-            20: [2, 11, 12, 16],
-            55: [2, 11, 12],
-            72: [2, 11, 12],
-            default: [2, 11, 12]
-        }[company] || [2, 11, 12];
+        let estadosEnCamino = {
+            20: '(2,11,12,16)',
+            55: '(2,11,12)',
+            72: '(2,11,12)',
+            default: '(2,11,12)'
+        }[company.did] || '(2,11,12)';
 
-        const estadosCerradosHoy = {
-            20: [5, 8, 9, 14, 17],
-            55: [5, 8, 9, 14, 16],
-            72: [5, 8, 9, 14],
-            default: [5, 8, 9, 14],
-        }[company] || [5, 8, 9, 14];
+        let estadosCerradosHoy = {
+            20: '(5,8,9,14,17)',
+            55: '(5,8,9,14,16)',
+            72: '(5,8,9,14)',
+            default: '(5,8,9,14)'
+        }[company.did] || '(5,8,9,14)';
 
-        const estadosEntregadosHoy = {
-            20: [5, 9, 17],
-            55: [5, 9, 16],
-            72: [5, 9],
-            default: [5, 9]
-        }[company] || [5, 9];
+        let estadosEntregadosHoy = {
+            20: '(5,9,17)',
+            55: '(5,9,16)',
+            72: '(5,9)',
+            default: '(5,9)'
+        }[company.did] || '(5,9)';
 
         const infoADevolver = {
             assignedToday: 0,
@@ -44,143 +45,120 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
             closedToday: 0,
             deliveredToday: 0
         };
+
         async function fetchCount(query) {
             const rows = await executeQuery(dbConnection, query, []);
             return rows && rows.length ? parseInt(rows[0].total, 10) : 0;
         }
 
         switch (profile) {
+            // ------------------------------------------------------------------
             case 1:
             case 5:
+                // ya tenés este unificado sobre envios...
+                const queryUnificada = `
+                    SELECT
+                      SUM(CASE WHEN asignacionFecha > '${dateYYYYMMDD} 00:00:00' THEN 1 ELSE 0 END) AS assignedToday,
+                      SUM(CASE WHEN fechaHistorial BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY)
+                            AND '${dateYYYYMMDD} 23:59:59' AND estado IN ${estadosPendientes}
+                           THEN 1 ELSE 0 END) AS pendings,
+                      SUM(CASE WHEN DATE(fechaHistorial)=CURDATE() AND estado IN ${estadosEnCamino}
+                           THEN 1 ELSE 0 END) AS onTheWay,
+                      SUM(CASE WHEN DATE(fechaHistorial)=CURDATE() AND estado IN ${estadosCerradosHoy}
+                           THEN 1 ELSE 0 END) AS closedToday,
+                      SUM(CASE WHEN DATE(fechaHistorial)=CURDATE() AND estado IN ${estadosEntregadosHoy}
+                           THEN 1 ELSE 0 END) AS deliveredToday
+                    FROM envios
+                    WHERE elim = 0
+                      AND superado = 0
+                `;
                 {
-                    // ASIGNADOS HOY: Contar registros en envios_asignaciones con autofecha mayor a "$hoy 00:00:00"
-                    const queryAsignadosHoy = `
-                  SELECT COUNT(id) AS total 
-                  FROM envios_asignaciones 
-                  WHERE superado = 0 
-                    AND elim = 0 
-                    AND autofecha > '${dateYYYYMMDD} 00:00:00'
-                `;
-                    infoADevolver.assignedToday = await fetchCount(queryAsignadosHoy);
-
-                    // PENDIENTES: Registros de envios_historial (con LEFT JOIN a envios) en los últimos 7 días
-                    const queryPendientes = `
-                  SELECT didEnvio
-                  FROM envios_historial AS eh
-                  LEFT JOIN envios AS e ON (
-                    e.superado = 0
-                    AND e.elim = 0
-                    AND e.did = eh.didEnvio
-                  )
-                  WHERE e.elim = 0
-                    AND eh.elim = 0
-                    AND eh.superado = 0
-                    AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
-                    AND eh.estado IN (${estadosPendientes[company.did]})
-                `;
-                    const rowsPendientes = await executeQuery(dbConnection, queryPendientes, []);
-                    infoADevolver.pendings = rowsPendientes.length;
-
-                    // En Camino, Cerrados y Entregados HOY (fecha actual)
-                    const queryHistorial = `
-                  SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino[company.did]}) THEN 1 ELSE 0 END) AS enCamino,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
-                  FROM envios_historial 
-                  WHERE elim = 0 
-                    AND superado = 0 
-                    AND DATE(fecha) = CURDATE()
-                `;
-                    const rowsHistorial = await executeQuery(dbConnection, queryHistorial, []);
-                    if (rowsHistorial && rowsHistorial.length > 0) {
-                        infoADevolver.onTheWay = parseInt(rowsHistorial[0].enCamino, 10) || 0;
-                        infoADevolver.closedToday = parseInt(rowsHistorial[0].cerradosHoy, 10) || 0;
-                        infoADevolver.deliveredToday = parseInt(rowsHistorial[0].entregadosHoy, 10) || 0;
-                    }
+                    const [row] = await executeQuery(dbConnection, queryUnificada, [], true);
+                    infoADevolver.assignedToday = parseInt(row.assignedToday, 10) || 0;
+                    infoADevolver.pendings = parseInt(row.pendings, 10) || 0;
+                    infoADevolver.onTheWay = parseInt(row.onTheWay, 10) || 0;
+                    infoADevolver.closedToday = parseInt(row.closedToday, 10) || 0;
+                    infoADevolver.deliveredToday = parseInt(row.deliveredToday, 10) || 0;
                 }
                 break;
 
+            // ------------------------------------------------------------------
             case 2:
+                // Unificado de cerradosHoy y entregadosHoy
                 {
-                    // Cerrados y Entregados HOY para caso 2
-                    const queryCerradosYEntregados = `
-                  SELECT
-                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
-                  FROM envios_historial AS eh
-                  LEFT JOIN envios AS e 
-                    ON (e.did = eh.didEnvio AND e.superado = 0 AND e.elim = 0)
-                  LEFT JOIN sistema_usuarios_accesos AS sua 
-                    ON (sua.superado = 0 AND sua.elim = 0 AND sua.usuario = ${userId})
-                  WHERE DATE(eh.fecha) = CURDATE()
-                    AND eh.superado = 0
-                    AND eh.elim = 0
-                    AND e.didCliente = sua.codigo_empleado
-                `;
-                    const rowsCE = await executeQuery(dbConnection, queryCerradosYEntregados, []);
-                    if (rowsCE && rowsCE.length > 0) {
-                        infoADevolver.closedToday = parseInt(rowsCE[0].cerradosHoy, 10) || 0;
-                        infoADevolver.deliveredToday = parseInt(rowsCE[0].entregadosHoy, 10) || 0;
-                    }
+                    const query2 = `
+                    SELECT
+                      SUM(CASE WHEN eh.estado IN ${estadosCerradosHoy} THEN 1 ELSE 0 END) AS closedToday,
+                      SUM(CASE WHEN eh.estado IN ${estadosEntregadosHoy} THEN 1 ELSE 0 END) AS deliveredToday
+                    FROM envios_historial AS eh
+                    LEFT JOIN envios AS e 
+                      ON (e.did = eh.didEnvio AND e.superado = 0 AND e.elim = 0)
+                    LEFT JOIN sistema_usuarios_accesos AS sua 
+                      ON (sua.usuario = ${userId} AND sua.superado = 0 AND sua.elim = 0)
+                    WHERE DATE(eh.fecha) = CURDATE()
+                      AND eh.superado = 0
+                      AND eh.elim = 0
+                      AND e.elim = 0
+                      AND e.superado = 0
+                      AND sua.codigo_empleado = e.didCliente
+                  `;
+                    const [row] = await executeQuery(dbConnection, query2, [], true);
+                    infoADevolver.closedToday = parseInt(row.closedToday, 10) || 0;
+                    infoADevolver.deliveredToday = parseInt(row.deliveredToday, 10) || 0;
                 }
                 break;
 
+            // ------------------------------------------------------------------
             case 3:
+                // Unificamos asignadosToday, pendings, onTheWay, closedToday y deliveredToday
                 {
-                    // ASIGNADOS HOY para operador: filtrar por operador = didUsuario
-                    const queryAsignadosHoy = `
-                  SELECT COUNT(id) AS total 
-                  FROM envios_asignaciones 
-                  WHERE operador = ${userId} 
-                    AND superado = 0 
-                    AND elim = 0 
-                    AND autofecha > '${dateYYYYMMDD} 00:00:00'
-                `;
-                    infoADevolver.assignedToday = await fetchCount(queryAsignadosHoy);
+                    const query3 = `
+                    SELECT
+                      SUM(CASE WHEN ea.operador = ${userId}
+                                   AND ea.autofecha > '${dateYYYYMMDD} 00:00:00'
+                               THEN 1 ELSE 0 END) AS assignedToday,
 
-                    // PENDIENTES para operador (filtrado por didCadete)
-                    const queryPendientes = `
-                  SELECT didEnvio
-                  FROM envios_historial AS eh
-                  LEFT JOIN envios AS e ON (
-                    e.superado = 0
-                    AND e.elim = 0
-                    AND e.did = eh.didEnvio
-                  )
-                  WHERE e.elim = 0
-                    AND eh.didCadete = ${userId}
-                    AND eh.elim = 0
-                    AND eh.superado = 0
-                    AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
-                    AND eh.estado IN (${estadosPendientes[company.did]})
-                `;
-                    const rowsPendientesOperador = await executeQuery(dbConnection, queryPendientes, []);
-                    infoADevolver.pendings = rowsPendientesOperador.length;
+                      SUM(CASE WHEN eh.didCadete = ${userId}
+                                   AND fechaHistorial BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY)
+                                                          AND '${dateYYYYMMDD} 23:59:59'
+                                   AND eh.estado IN ${estadosPendientes}
+                               THEN 1 ELSE 0 END) AS pendings,
 
-                    // En Camino, Cerrados y Entregados HOY para operador
-                    const queryHistorial = `
-                  SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino[company.did]}) THEN 1 ELSE 0 END) AS enCamino,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
-                  FROM envios_historial 
-                  WHERE elim = 0 
-                    AND superado = 0 
-                    AND didCadete = ${userId}
-                    AND DATE(fecha) = CURDATE()
-                `;
-                    const rowsHistorialOperador = await executeQuery(dbConnection, queryHistorial, []);
-                    if (rowsHistorialOperador && rowsHistorialOperador.length > 0) {
-                        infoADevolver.onTheWay = parseInt(rowsHistorialOperador[0].onTheWay, 10) || 0;
-                        infoADevolver.closedToday = parseInt(rowsHistorialOperador[0].closedToday, 10) || 0;
-                        infoADevolver.deliveredToday = parseInt(rowsHistorialOperador[0].deliveredToday, 10) || 0;
-                    }
+                      SUM(CASE WHEN eh.didCadete = ${userId}
+                                   AND DATE(fechaHistorial) = CURDATE()
+                                   AND eh.estado IN ${estadosEnCamino}
+                               THEN 1 ELSE 0 END) AS onTheWay,
+
+                      SUM(CASE WHEN eh.didCadete = ${userId}
+                                   AND DATE(fechaHistorial) = CURDATE()
+                                   AND eh.estado IN ${estadosCerradosHoy}
+                               THEN 1 ELSE 0 END) AS closedToday,
+
+                      SUM(CASE WHEN eh.didCadete = ${userId}
+                                   AND DATE(fechaHistorial) = CURDATE()
+                                   AND eh.estado IN ${estadosEntregadosHoy}
+                               THEN 1 ELSE 0 END) AS deliveredToday
+
+                    FROM envios_asignaciones AS ea
+                    LEFT JOIN envios_historial AS eh 
+                      ON eh.didEnvio = ea.didEnvio
+                    WHERE ea.operador = ${userId}
+                      AND ea.superado = 0
+                      AND ea.elim    = 0
+                      AND eh.superado = 0
+                      AND eh.elim     = 0
+                  `;
+                    const [row] = await executeQuery(dbConnection, query3, [], true);
+                    infoADevolver.assignedToday = parseInt(row.assignedToday, 10) || 0;
+                    infoADevolver.pendings = parseInt(row.pendings, 10) || 0;
+                    infoADevolver.onTheWay = parseInt(row.onTheWay, 10) || 0;
+                    infoADevolver.closedToday = parseInt(row.closedToday, 10) || 0;
+                    infoADevolver.deliveredToday = parseInt(row.deliveredToday, 10) || 0;
                 }
                 break;
 
+            // ------------------------------------------------------------------
             default:
-                // Manejar caso por defecto si es necesario
                 break;
         }
 
@@ -188,9 +166,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
 
     } catch (error) {
         logRed(`Error en getHomeData: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
+        if (error instanceof CustomException) throw error;
         throw new CustomException({
             title: 'Error obteniendo datos de inicio',
             message: error.message,

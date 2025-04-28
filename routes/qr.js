@@ -8,6 +8,7 @@ import { getSkuAndStock } from "../controller/qr/get_sku_and_stock.js";
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
+import { driverList } from '../controller/qr/get_driver_list.js';
 
 const qr = Router();
 
@@ -79,7 +80,9 @@ qr.post('/get-shipment-id', verifyToken, async (req, res) => {
         }
 
         const { companyId, dataQr } = req.body;
+
         const company = await getCompanyById(companyId);
+
         const response = await getShipmentIdFromQrLocal(dataQr, company);
 
         logGreen(`ID de envío obtenido correctamente`);

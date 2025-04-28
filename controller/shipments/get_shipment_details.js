@@ -1,10 +1,10 @@
-import { executeQuery, getProdDbConfig } from '../../db.js';
+import { executeQuery, getDbConfig } from '../../db.js';
 import mysql2 from 'mysql';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function shipmentDetails(company, shipmentId, userId) {
-    const dbConfig = getProdDbConfig(company);
+    const dbConfig = getDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -29,7 +29,7 @@ export async function shipmentDetails(company, shipmentId, userId) {
         detallesEnvio["observacionDomicilio"] = shipmentData.destination_comments;
         detallesEnvio["estadoActual"] = shipmentData.estado_envio;
         detallesEnvio["id_venta"] = shipmentData.ml_venta_id;
-        detallesEnvio["id_envio"] = shipmentData.ml_shipment_id;
+        detallesEnvio["id_envio"] = shipmentData.shipmentid;
         detallesEnvio["cobranza"] = 0;
         detallesEnvio["latitud"] = lat;
         detallesEnvio["longitud"] = long;
@@ -183,9 +183,31 @@ async function getImages(dbConnection, shipmentId) {
 
 async function shipmentInformation(dbConnection, shipmentId) {
     try {
-        const query = "SELECT e.did, e.flex, e.ml_shipment_id, e.didCliente, e.destination_latitude, e.destination_longitude, e.destination_shipping_zip_code, e.destination_city_name, e.ml_venta_id,e.destination_shipping_address_line, e.estado_envio, e.destination_comments, date_format (e.fecha_inicio,'%d/%m/%Y') AS fecha, e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, e.choferAsignado, ec.valor AS monto_a_cobrar FROM envios AS e LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = " + shipmentId + ") WHERE e.did = " + shipmentId;
+        const query = `
+        SELECT
+            e.did,
+            e.flex,
+            e.shipmentid,
+            e.didCliente,
+            e.lat,
+            e.long,
+            e.destination_shipping_zip_code,
+            e.destination_city_name,
+            e.ml_venta_id,
+            e.destination_shipping_address_line,
+            e.estado_envio,
+            e.destination_comments,
+            date_format (e.fecha_inicio,'%d/%m/%Y') AS fecha,
+            e.destination_receiver_name,
+            e.destination_receiver_phone,
+            e.didCliente,
+            e.choferAsignado,
+            e.monto_a_cobrar,
+            e.cobranza
+            FROM envios AS e
+            WHERE e.did = $`;
 
-        const results = await executeQuery(dbConnection, query, []);
+        const results = await executeQuery(dbConnection, query, [shipmentId]);
         if (results.length === 0) {
             throw new CustomException({
                 title: 'Error obteniendo información del envío',

@@ -16,7 +16,7 @@ export const redisClient = redis.createClient({
     password: redisPassword,
 });
 
-redisClient.on('error', (err) => {
+redisClient.on('error', (error) => {
     logRed(`Error al conectar con Redis: ${error.stack}`);
 });
 
@@ -291,14 +291,11 @@ async function loadDrivers(dbConnection, companyId) {
 
     try {
         const queryUsers = `
-            SELECT sistema_usuarios.did, sistema_usuarios.usuario 
-            FROM sistema_usuarios_accesos
-            INNER JOIN sistema_usuarios ON sistema_usuarios_accesos.did = sistema_usuarios.did
-            WHERE sistema_usuarios_accesos.perfil IN (3, 6)
-            AND sistema_usuarios_accesos.elim = 0
-            AND sistema_usuarios_accesos.superado = 0
-            AND sistema_usuarios.elim = 0
-            AND sistema_usuarios.superado = 0
+            SELECT su.did, su.usuario 
+            FROM sistema_usuarios as su
+            WHERE su.elim = 0
+            AND su.superado = 0
+            AND su.perfil IN (3, 6)
         `;
 
         const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
