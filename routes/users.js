@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { editUser, changePassword, changeProfilePicture } from '../controller/usersController.js';
+import { editUser } from '../controller/user/edit_user.js';
+import { changePassword } from '../controller/user/change_password.js';
+import { changeProfilePicture } from '../controller/user/change_profile_picture.js';
 import { createHash } from 'crypto';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const users = Router();
 

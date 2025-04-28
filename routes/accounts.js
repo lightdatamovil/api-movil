@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { accountList } from '../controller/accountsController.js';
+import { accountList } from '../controller/accounts/accountList.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const accounts = Router();
 

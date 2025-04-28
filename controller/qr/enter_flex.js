@@ -1,0 +1,281 @@
+import { executeQuery, getProdDbConfig } from "../../db.js";
+import mysql2 from 'mysql';
+import { logRed } from "../../src/funciones/logsCustom.js";
+import CustomException from "../../classes/custom_exception.js";
+
+export async function enterFlex(company, dataQr, userId) {
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
+    try {
+        const mlShipmentId = dataQr.id;
+
+        const mlSellerId = dataQr.sender_id;
+
+        let clientId = 0;
+        let accountId = 0;
+
+        const clienteQuery = `
+            SELECT didCliente, did FROM clientes_cuentas 
+            WHERE superado = 0 AND elim = 0 AND tipoCuenta = 1 AND ML_id_vendedor = ?
+            ORDER BY didCliente ASC
+            `;
+
+        const clientResult = await executeQuery(dbConnection, clienteQuery, [mlSellerId]);
+
+        if (clientResult.length > 0) {
+            clientId = clientResult[0].didCliente;
+            accountId = clientResult[0].did;
+        } else {
+            throw new CustomException({
+                title: 'Error ingresando al Flex',
+                message: 'No se encontró el cliente asociado al vendedor',
+            });
+        }
+
+        const envioQuery = `
+            SELECT did, estado FROM envios 
+            WHERE superado = 0 AND elim = 0 AND ml_shipment_id = ? AND ml_vendedor_id = ?
+            `;
+
+        const envioResult = await executeQuery(dbConnection, envioQuery, [mlShipmentId, mlSellerId]);
+
+        let isLoaded = envioResult.length > 0;
+        let shipmentData = envioResult.length ? envioResult[0] : {};
+
+        const nowInHours = new Date().getHours();
+        const fecha_despacho = await setDispatchDate(dbConnection, clientId, nowInHours);
+        const fecha_inicio = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+        if (!isLoaded) {
+            const fechaunix = Math.floor(Date.now() / 1000);
+
+            let shipmentId = 0;
+
+            const insertEnvioQuery = `
+                INSERT INTO envios(did, ml_shipment_id, ml_vendedor_id, didCliente, quien, lote, fecha_despacho, didCuenta, ml_qr_seguridad, fecha_inicio, fechaunix) 
+                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+
+            const insertResult = await executeQuery(dbConnection, insertEnvioQuery, [
+                shipmentId, mlShipmentId, mlSellerId, clientId, userId, lote, fecha_despacho, accountId, ml_qr_seguridad, fecha_inicio, fechaunix
+            ]);
+
+            if (!insertResult.insertId) {
+                throw new CustomException({
+                    title: 'Error ingresando al Flex',
+                    message: 'No se pudo guardar el envío en la base de datos',
+                });
+            }
+
+            shipmentId = insertResult.insertId;
+            pudeguardar = true;
+
+            const updateEnvioQuery = `
+                    UPDATE envios SET did = ?
+            WHERE superado = 0 AND elim = 0 AND id = ? AND ml_vendedor_id = ? AND ml_shipment_id = ?
+                LIMIT 1
+            `;
+
+            await executeQuery(dbConnection, updateEnvioQuery, [shipmentId, shipmentId, mlSellerId, mlShipmentId]);
+
+            let shipmentState = 0;
+
+            const perfilQuery = `
+                    SELECT perfil FROM sistema_usuarios_accesos 
+                    WHERE superado = 0 AND elim = 0 AND usuario = ?
+            `;
+
+            const perfilResult = await executeQuery(dbConnection, perfilQuery, [userId]);
+
+            let queperfil = 0;
+            if (perfilResult.length > 0) {
+                if (perfilResult[0].perfil === 2) {
+                    shipmentState = 7;
+                }
+                queperfil = perfilResult[0].perfil;
+            }
+
+            await setShipmentState(dbConnection, shipmentId, shipmentState, "");
+
+            if (queperfil === 3) {
+                await updateWhoPickedUp(dbConnection, userId, shipmentId);
+            }
+
+            if (autoasigna && perfil === 3) {
+                await asignarOperador(dbConnection, userId, [shipmentId]);
+            }
+
+            return;
+
+        } else {
+            if (shipmentData.estado === 7) {
+                const shipmentId = shipmentData.did;
+
+                await updateWhoPickedUp(dbConnection, userId, shipmentId);
+                await setShipmentState(dbConnection, shipmentId, 0, "");
+
+                return;
+            } else {
+                throw new CustomException({
+                    title: 'Error ingresando al Flex',
+                    message: 'El envío ya está cargado',
+                    stack: error.stack
+                });
+            }
+        }
+    } catch (error) {
+        logRed(`Error en enterFlex: ${error.stack}`);
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error ingresando al Flex',
+            message: error.message,
+            stack: error.stack
+        });
+    } finally {
+        dbConnection.end();
+    }
+}
+async function setShipmentState(dbConnection, shipmentId, shipmentState, userId) {
+    try {
+
+        const estadoActualQuery = `
+            SELECT estado FROM envios_historial 
+            WHERE didEnvio = ? AND superado = 0 AND elim = 0 
+            LIMIT 1
+            `;
+
+        const estadoActualResult = await executeQuery(dbConnection, estadoActualQuery, [shipmentId]);
+
+        const currentShipmentState = estadoActualResult.length ? estadoActualResult[0].estado : -1;
+
+        if (currentShipmentState !== shipmentState) {
+            const updateHistorialQuery = `
+                UPDATE envios_historial 
+                SET superado = 1 
+                WHERE superado = 0 AND elim = 0 AND didEnvio = ?
+            `;
+
+            await executeQuery(dbConnection, updateHistorialQuery, [shipmentId]);
+
+            const updateEnviosQuery = `
+                UPDATE envios 
+                SET estado_envio = ?
+            WHERE superado = 0 AND did = ?
+                `;
+
+            await executeQuery(dbConnection, updateEnviosQuery, [shipmentState, shipmentId]);
+
+            const operadorQuery = `
+                SELECT operador FROM envios_asignaciones 
+                WHERE didEnvio = ? AND superado = 0 AND elim = 0
+            `;
+
+            const operadorResult = await executeQuery(dbConnection, operadorQuery, [shipmentId]);
+
+            const driverId = operadorResult.length ? operadorResult[0].operador : 0;
+
+            const date = new Date().toISOString().slice(0, 19);
+
+            const insertHistorialQuery = `
+                INSERT INTO envios_historial(didEnvio, estado, quien, fecha, didCadete) 
+                VALUES(?, ?, ?, ?, ?)
+                `;
+
+            await executeQuery(dbConnection, insertHistorialQuery, [shipmentId, shipmentState, userId, date, driverId]);
+        }
+
+        return;
+    } catch (error) {
+        logRed(`Error en setShipmentState: ${error.stack}`);
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error poniendo estado al envío',
+            message: error.message,
+            stack: error.stack
+        });
+    }
+}
+
+async function setDispatchDate(dbConnection, clientId) {
+    let closeHour = 16;
+
+    try {
+        const configRows = await executeQuery(
+            dbConnection,
+            "SELECT config FROM `sistema_config` WHERE superado=0 AND elim=0",
+            []
+        );
+
+        if (configRows.length > 0) {
+            const strconfig = configRows[0].config;
+            const Aconfig = JSON.parse(strconfig);
+            if (Aconfig.hora_cierre) {
+                closeHour = parseInt(Aconfig.hora_cierre);
+            }
+        }
+
+        const clienteRows = await executeQuery(
+            dbConnection,
+            "SELECT hora FROM `clientes_cierre_ingreso` WHERE superado=0 AND elim=0 AND didcliente = ? LIMIT 1",
+            [clientId]
+        );
+
+        if (clienteRows.length > 0) {
+            const htemp = clienteRows[0].hora;
+            if (htemp !== 0) {
+                closeHour = parseInt(htemp);
+            }
+        }
+
+        const nowInHour = new Date().getHours();
+
+        const now = new Date();
+
+        if (nowInHour >= closeHour) {
+            now.setDate(now.getDate() + 1);
+        }
+
+        return now.toISOString().split("T")[0];
+    } catch (error) {
+        logRed(`Error en setDispatchDate: ${error.stack}`);
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error poniendo fecha de despacho',
+            message: error.message,
+            stack: error.stack
+        });
+    }
+}
+
+async function updateWhoPickedUp(dbConnection, userId, driverId) {
+    try {
+        const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+        const query = `
+            UPDATE envios 
+            SET quien_retiro = ?, quien_retiro_fecha = ?
+            WHERE superado = 0 AND elim = 0 AND did = ?
+                `;
+
+        await executeQuery(dbConnection, query, [userId, now, driverId]);
+
+    } catch (error) {
+        logRed(`Error en updateWhoPickedUp: ${error.stack}`);
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error actualizando quien retiró',
+            message: error.message,
+            stack: error.stack
+        });
+    }
+}

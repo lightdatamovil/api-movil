@@ -1,11 +1,9 @@
 import mysql2 from 'mysql';
-import { executeQuery, getDbConfig } from '../db.js';
+import { executeQuery, getDbConfig } from '../../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import axios from 'axios';
-import { logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
-
+import { logRed } from '../../src/funciones/logsCustom.js';
+import CustomException from '../../classes/custom_exception.js';
 
 function generateToken(userId, idEmpresa, perfil) {
     const payload = { userId, perfil, idEmpresa };
@@ -91,69 +89,6 @@ export async function login(username, password, company) {
         }
         throw new CustomException({
             title: 'No pudimos iniciar sesión',
-            message: error.message,
-            stack: error.stack
-        });
-    } finally {
-        dbConnection.end();
-    }
-}
-
-export async function identification(company) {
-    const imageUrl = company.url + "/app-assets/images/logo/logo.png";
-
-    try {
-        let imageBase64;
-        try {
-            const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-            const imageBuffer = Buffer.from(response.data, 'binary');
-            imageBase64 = imageBuffer.toString('base64');
-        } catch (error) {
-            imageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8v+d+AAAAWElEQVRIDbXBAQEAAAABIP6PzgpV+QUwbGR2rqlzdkcNoiCqk73A0B9H5KLVmr4YdTiO8gaCGg8VmYWqJf2zxeI1icT24tFS0hDJ01gg7LMEx6qI3SCqA6Uq8gRJbAqioBgCRH0CpvI0dpjlGr6hQJYtsDRS0BQ==';
-        }
-
-        return {
-            id: company.did * 1,
-            plan: company.plan * 1,
-            url: company.url,
-            country: company.pais * 1,
-            name: company.empresa,
-            appPro: company.did == 4,
-            colectaPro: false,
-            obligatoryImageOnRegisterVisit: company.did == 108,
-            obligatoryDniAndNameOnRegisterVisit: company.did == 97,
-            image: imageBase64,
-        };
-
-    } catch (error) {
-        logRed(`Error en identification: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en identificación',
-            message: error.message,
-            stack: error.stack
-        });
-    }
-}
-
-export async function whatsappMessagesList(company) {
-    const dbConfig = getDbConfig(company.did);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
-
-    try {
-        const queryTexts = "SELECT texto FROM `mensajeria_app` ORDER BY tipo ASC;";
-        const results = await executeQuery(dbConnection, queryTexts, []);
-        return results.map(row => row.texto);
-    } catch (error) {
-        logRed(`Error en whatsappMessagesList: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en la lista de mensajes de WhatsApp',
             message: error.message,
             stack: error.stack
         });

@@ -1,8 +1,8 @@
 import mysql2 from 'mysql';
 
-import { getProdDbConfig, executeQuery } from '../db.js';
-import { logRed, logYellow } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import { getProdDbConfig, executeQuery } from '../../db.js';
+import { logRed } from '../../src/funciones/logsCustom.js';
+import CustomException from '../../classes/custom_exception.js';
 
 export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
@@ -106,105 +106,6 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
         });
     }
     finally {
-        dbConnection.end();
-    }
-}
-
-export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
-
-    try {
-        let routeId = 0;
-
-        const rows = await executeQuery(dbConnection, "SELECT did FROM `ruteo` WHERE superado = 0 AND elim = 0 AND didChofer = ?", [userId]);
-        if (rows.length > 0) {
-            routeId = rows[0].did;
-        }
-
-        if (routeId !== 0) {
-            await executeQuery(dbConnection, "UPDATE `ruteo` SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ?", [routeId]);
-            // TODO: Verificar si es necesario actualizar las paradas
-            // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
-        }
-
-        const result = await executeQuery(
-            dbConnection,
-            "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [2, dateYYYYMMDD, dateYYYYMMDD, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)]
-        );
-
-        const newId = result.insertId;
-
-        const querySetDid = "UPDATE ruteo SET did = ? WHERE superado=0 AND elim=0 AND id = ? LIMIT 1";
-        await executeQuery(dbConnection, querySetDid, [newId, newId]);
-
-        for (const order of orders) {
-            const { index, shipmentId, arrivalTime } = order;
-
-            await executeQuery(
-                dbConnection,
-                "INSERT INTO ruteo_paradas (didRuteo, tipoParada, didPaquete, retira, didCliente, didDireccion, orden, hora_llegada) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                [newId, 1, shipmentId, 0, 0, 0, index, arrivalTime]
-            );
-        }
-
-        return;
-    } catch (error) {
-        logRed(`Error en saveRoute: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error guardando ruta',
-            message: error.message,
-            stack: error.stack
-        });
-    } finally {
-        dbConnection.end();
-    }
-}
-export async function geolocalize(company, shipmentId, latitude, longitude) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
-
-    try {
-        const queryShipment = `SELECT did FROM envios WHERE did = ${shipmentId}`;
-
-        const resultQuery = await executeQuery(dbConnection, queryShipment);
-
-        if (resultQuery.length > 0) {
-
-            const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude}, destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
-
-            await executeQuery(dbConnection, queryUpdateShipment);
-
-            const queryUpdateAddress = `UPDATE envios_direcciones_destino SET latitud = ${latitude}, longitud = ${longitude}  WHERE didEnvio = ${shipmentId}`;
-
-            await executeQuery(dbConnection, queryUpdateAddress);
-
-            return;
-        } else {
-            logRed(`El envío no existe`);
-            throw new CustomException({
-                title: 'Error geolocalizando',
-                message: 'El envío no existe',
-            });
-        }
-    } catch (error) {
-        logRed(`Error en geolocalize: ${error.stack}`);
-
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error geolocalizando',
-            message: error.message,
-            stack: error.stack
-        });
-    } finally {
         dbConnection.end();
     }
 }

@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { getRouteByUserId, geolocalize, saveRoute } from '../controller/mapsController.js';
+import { getRouteByUserId } from '../controller/maps/get_route.js';
+import { geolocalize } from '../controller/maps/geolocalize.js';
+import { saveRoute } from '../controller/maps/save_route.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const map = Router();
 

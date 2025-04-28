@@ -2,9 +2,10 @@ import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { registerVisit, uploadImage } from '../controller/registerVisitController.js';
+import { registerVisit } from '../controller/register_visit/register_visit.js';
+import { uploadImage } from '../controller/register_visit/upload_image.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const registerVisitRoute = Router();
 

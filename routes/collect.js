@@ -1,19 +1,22 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import {
-    saveRoute,
-    getCollectDetails,
-    getCollectList,
-    shipmentsFromClient,
-    getRoute,
-    startCollectRoute,
-    getSettlementDetails,
-    getSettlementList
-} from '../controller/collectController.js';
+
+import { saveRoute } from '../controller/collect/save_route.js';
+import { getRoute } from '../controller/collect/get_route.js';
+
+import { startCollectRoute } from '../controller/collect/start_route.js';
+import { getCollectDetails } from '../controller/collect/get_collect_details.js';
+
+import { shipmentsFromClient } from '../controller/collect/get_shipments_from_client.js';
+import { getCollectList } from '../controller/collect/get_collect_list.js';
+
+import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
+import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
+
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const collect = Router();
 

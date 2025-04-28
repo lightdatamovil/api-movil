@@ -1,14 +1,12 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import {
-    getSettlementList,
-    getSettlementDetails,
-    getSettlementShipmentDetails
-} from '../controller/settlementController.js';
+import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
+import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
+import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const settlements = Router();
 

@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { verifyStartedRoute, startRoute, endRoute, getHomeData } from '../controller/homeController.js';
+import { verifyStartedRoute } from '../controller/home/verify_started_route.js';
+import { startRoute } from '../controller/home/start_route.js';
+import { finishRoute } from '../controller/home/finish_route.js';
+import { getHomeData } from '../controller/home/get_home_data.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const home = Router();
 
@@ -77,7 +80,7 @@ home.post('/end-route', verifyToken, async (req, res) => {
 
 		const { companyId, userId, dateYYYYMMDD } = req.body;
 		const company = await getCompanyById(companyId);
-		await endRoute(company, userId, dateYYYYMMDD);
+		await finishRoute(company, userId, dateYYYYMMDD);
 
 		logGreen(`Ruta terminada exitosamente`);
 		res.status(200).json({ message: "La ruta ha terminado exitosamente" });

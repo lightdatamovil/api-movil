@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import { nextDeliver, shipmentDetails, shipmentList } from '../controller/shipmentsController.js';
+import { nextDeliver } from '../controller/shipments/next_deliver.js';
+import { shipmentDetails } from '../controller/shipments/get_shipment_details.js';
+import { shipmentList } from '../controller/shipments/get_shipment_list.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const shipments = Router();
 

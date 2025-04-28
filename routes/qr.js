@@ -1,17 +1,13 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
-import {
-    getShipmentIdFromQrLocal,
-    crossDocking,
-    driverList,
-    getSkuAndNumberOfItems,
-    getProductsFromShipment,
-    enterFlex
-} from "../controller/qrController.js";
+import { getShipmentIdFromQrLocal } from "../controller/qr/get_shipment_id.js";
+import { getProductsFromShipment } from "../controller/qr/get_products.js";
+import { enterFlex } from "../controller/qr/enter_flex.js";
+import { getSkuAndStock } from "../controller/qr/get_sku_and_stock.js";
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
-import CustomException from '../clases/custom_exception.js';
+import CustomException from '../classes/custom_exception.js';
 
 const qr = Router();
 
@@ -171,7 +167,7 @@ qr.post('/sku', verifyToken, async (req, res) => {
 
         const { companyId, dataQr } = req.body;
         const company = await getCompanyById(companyId);
-        const result = await getSkuAndNumberOfItems(company, dataQr);
+        const result = await getSkuAndStock(company, dataQr);
 
         logGreen(`SKU y cantidad de ítems obtenidos correctamente`);
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });

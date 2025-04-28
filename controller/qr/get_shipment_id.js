@@ -1,0 +1,52 @@
+import { executeQuery, getDbConfig } from "../../db.js";
+import mysql2 from 'mysql';
+import { logRed } from "../../src/funciones/logsCustom.js";
+import CustomException from "../../classes/custom_exception.js";
+
+export async function getShipmentIdFromQrLocal(dataQr, company) {
+    const dbConfig = getDbConfig(company.did);
+    const dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+    try {
+        let shipmentId;
+
+        const isLocal = dataQr.hasOwnProperty("local");
+
+        if (isLocal) {
+            shipmentId = dataQr.did;
+
+            if (company.did != dataQr.empresa) {
+                const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
+
+                if (resultQueryEnviosExteriores.length == 0) {
+                    return { message: "El envío no pertenece a la empresa", success: false };
+                }
+
+                shipmentId = resultQueryEnviosExteriores[0].didLocal;
+            }
+        } else {
+            const sellerId = dataQr.sender_id;
+            const mlShipmentId = dataQr.id;
+            const queryEnvios = `SELECT did FROM envios WHERE shipmentid = ${mlShipmentId} AND seller_id = ${sellerId}`;
+
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
+
+            if (resultQueryEnvios.length == 0) {
+                throw new CustomException({
+                    title: 'Error obteniendo el ID del envío',
+                    message: 'No se encontró el envío',
+                });
+            }
+
+            shipmentId = resultQueryEnvios[0];
+        }
+
+        return shipmentId;
+    } catch (error) {
+        logRed(`Error en getShipmentIdFromQr: ${error.stack}`);
+        throw error;
+    } finally {
+        dbConnection.end();
+    }
+}
