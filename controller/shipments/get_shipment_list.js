@@ -40,13 +40,13 @@ export async function shipmentList(company, userId, profile, from, shipmentState
         const estadosQuery = `(${shipmentStates.join(',')})`;
 
         const query = `SELECT
-                e.did as didEnvio,
+                e.didEnvio,
                 e.flex,
-                e.ml_shipment_id,
+                e.shipmentid,
                 e.ml_venta_id,
                 e.didEstado as estado,
                 e.didCliente,
-                DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
+                DATE_FORMAT(e.fechaInicio, '%d/%m/%Y') as fecha_inicio,
                 DATE_FORMAT(e.fechaHistorial, '%d/%m/%Y') as fecha_historial,
                 ${estadoAsignacion}
                 e.nombreDestinatario,
@@ -58,8 +58,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 e.logisticainversa as valor,
                 e.observacionDestinatario,
                 e.orden,
-                ec.didCampoCobranza,
-                e.choferAsignado,
+                e.didChofer,
                 e.monto_a_cobrar,
                 e.cobranza
             FROM
@@ -85,7 +84,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
             const estadoAsignacionVal = row.estadoAsignacion || 0;
             const monto = row.monto_total_a_cobrar || 0;
             const nombre = clientes[row.didCliente] ? clientes[row.didCliente].nombre : 'Cliente no encontrado';
-            const nombreChofer = drivers[row.choferAsignado] ? drivers[row.choferAsignado].nombre : 'Chofer no encontrado';
+            const nombreChofer = drivers[row.didChofer] ? drivers[row.didChofer].nombre : 'Chofer no encontrado';
             const isOnTheWay = (row.estado_envio == 2 || row.estado_envio == 11 || row.estado_envio == 12) ||
                 (company.did == 20 && row.estado_envio == 16);
             lista.push({
@@ -112,7 +111,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 cobranza: 0,
                 chofer: nombreChofer,
                 choferId: row.choferAsignado * 1,
-                monto_a_cobrar: cobranza == 4 ? monto : 0,
+                monto_a_cobrar: row.cobranza == 4 ? monto : 0,
             });
         }
         return lista;

@@ -1,6 +1,7 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
 import { logRed, logYellow } from './src/funciones/logsCustom.js';
+import CustomException from './classes/custom_exception.js';
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
@@ -369,6 +370,10 @@ export async function executeQuery(connection, query, values, log) {
         });
     } catch (error) {
         logRed(`Error en executeQuery: ${error.stack}`);
-        throw error;
+        throw new CustomException({
+            title: 'Error en la ejecución de la consulta',
+            message: error.message,
+            stack: error.stack
+        });
     }
 }

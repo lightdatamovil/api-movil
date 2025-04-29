@@ -32,7 +32,7 @@ shipments.post('/shipment-list', verifyToken, async (req, res) => {
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en shipment-list: ${error}`);
-      res.status(400).json({ title: error.title, message: error.message });
+      res.status(400).json(error);
     } else {
       logRed(`Error 500 en shipment-list: ${error}`);
       res.status(500).json({ message: 'Error interno del servidor' });
