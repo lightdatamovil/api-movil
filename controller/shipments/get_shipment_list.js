@@ -15,17 +15,15 @@ export async function shipmentList(company, userId, profile, from, shipmentState
         const drivers = await getDriversByCompany(dbConnection, company.did);
 
         // Variables para personalizar la consulta según el perfil
-        let sqlchoferruteo = "";
-        let leftjoinCliente = "";
+        let leftjoinSistemaUsuarios = "";
         let sqlduenio = "";
         let estadoAsignacion = "";
 
         if (profile == 2) {
-            leftjoinCliente = `LEFT JOIN sistema_usuarios_accesos as sua ON(sua.superado = 0 AND sua.elim = 0 AND sua.usuario = ${userId})`;
-            sqlduenio = "AND e.didCliente = sua.codigo_empleado";
+            leftjoinSistemaUsuarios = `LEFT JOIN sistema_usuarios as su ON(su.superado = 0 AND su.elim = 0 AND su.usuario = ${userId})`;
+            sqlduenio = "AND e.didCliente = su.codigo_empleado";
         } else if (profile == 3) {
             sqlduenio = `AND e.choferAsignado = ${userId} `;
-            sqlchoferruteo = ` AND r.didChofer = ${userId} `;
         }
 
         if (company.did == 4) {
@@ -50,20 +48,15 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 e.didCliente,
                 DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha_inicio,
                 DATE_FORMAT(e.fechaHistorial, '%d/%m/%Y') as fecha_historial,
-                ${estadoAsignacion} e.nombreDestinatario as destination_receiver_name,
-                e.destination_shipping_address_line as address_line,
-                edd.address_line as address_lineEDD,
-                e.destination_shipping_zip_code as cp,
-                edd.cp as cpEDD,
-                e.destination_city_name as localidad,
-                edd.localidad as localidadEDD,
-                edd.provincia,
-                e.destination_receiver_phone,
+                ${estadoAsignacion}
+                e.nombreDestinatario,
+                e.direccion1,
+                e.direccion2,
+                e.telefono,
                 ROUND(e.lat, 8) as lat,
                 ROUND(e.long, 8) AS lng,
                 e.logisticainversa as valor,
-                e.destination_comments,
-                edd.destination_comments AS destination_commentsEDD,
+                e.observacionDestinatario,
                 e.orden,
                 ec.didCampoCobranza,
                 e.choferAsignado,
@@ -71,21 +64,16 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 e.cobranza
             FROM
                 envios as e
-                LEFT JOIN envios_direcciones_destino as edd on(
-                    edd.superado = 0
-                    and edd.elim = 0
-                    and edd.didEnvio = eh.didEnvio
-                ) ${leftjoinCliente}
+                ${leftjoinSistemaUsuarios}
             WHERE
-                eh.superado = 0
-                AND eh.elim = 0
+                e.superado = 0
                 AND e.elim = 0
                 ${b}
                 ${c}
                 ${sqlduenio}
-                AND eh.estado IN ${estadosQuery}
-            GROUP BY eh.didEnvio
-    ORDER BY rp.orden ASC
+                AND e.estado IN ${estadosQuery}
+            GROUP BY e.didEnvio
+    ORDER BY e.orden ASC
     `;
 
         const rows = await executeQuery(dbConnection, query, []);
@@ -111,15 +99,14 @@ export async function shipmentList(company, userId, profile, from, shipmentState
                 fechaEmpresa: row.fecha_inicio,
                 fechaHistorial: row.fecha_historial || null,
                 estadoAsignacion: estadoAsignacionVal * 1,
-                nombreDestinatario: row.destination_receiver_name,
-                direccion1: row.address_line,
-                direccion2: `CP ${row.cp}, ${row.localidad} `,
-                provincia: row.provincia || 'Sin provincia',
-                telefono: row.destination_receiver_phone,
+                nombreDestinatario: row.nombreDestinatario,
+                direccion1: row.direccion1,
+                direccion2: row.direccion2,
+                telefono: row.telefono,
                 lat: lat,
                 long: long,
                 logisticainversa: logisticainversa,
-                observacionDestinatario: row.destination_comments,
+                observacionDestinatario: row.observacionDestinatario,
                 hasNextDeliverButton: isOnTheWay && row.proximaentregaId == null,
                 orden: row.orden * 1,
                 cobranza: 0,
