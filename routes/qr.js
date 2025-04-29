@@ -3,6 +3,7 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { getCompanyById } from '../db.js';
 import { getShipmentIdFromQrLocal } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
+import { crossDocking } from "../controller/qr/cross_docking.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
 import { getSkuAndStock } from "../controller/qr/get_sku_and_stock.js";
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
