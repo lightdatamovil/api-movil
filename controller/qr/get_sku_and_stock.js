@@ -22,7 +22,16 @@ export async function getSkuAndStock(company, dataQr) {
     const querySku = `SELECT seller_sku, cantidad FROM ordenes_items WHERE superado = 0 AND elim = 0 AND didOrden = ?`;
     const resultSku = await executeQuery(dbConnection, querySku, [didOrden]);
 
-    return resultSku;
+    const querycount = `SELECT COUNT(*) as total FROM ordenes_items WHERE superado = 0 AND elim = 0 AND didOrden = ?`;
+    const resultCount = await executeQuery(dbConnection, querycount, [didOrden]);
+
+    const response =
+    {
+        sku: resultSku,
+        total: resultCount[0].total
+    }
+
+    return response ;
 
 }
 
