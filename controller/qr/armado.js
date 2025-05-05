@@ -1,4 +1,4 @@
-import CustomException from "../../classes/custom_exception";
+import CustomException from "../../classes/custom_exception.js";
 
 export async function armado(company, modal, userId, dataEnvios, didClienteBody, insumos, fecha) {
     const dbConfig = getProdDbConfig(company);
