@@ -46,16 +46,9 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
             deliveredToday: 0
         };
 
-        async function fetchCount(query) {
-            const rows = await executeQuery(dbConnection, query, []);
-            return rows && rows.length ? parseInt(rows[0].total, 10) : 0;
-        }
-
         switch (profile) {
-            // ------------------------------------------------------------------
             case 1:
             case 5:
-                // ya tenés este unificado sobre envios...
                 const queryUnificada = `
                     SELECT
                       SUM(CASE WHEN asignacionFecha > '${dateYYYYMMDD} 00:00:00' THEN 1 ELSE 0 END) AS assignedToday,
@@ -82,9 +75,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                 }
                 break;
 
-            // ------------------------------------------------------------------
             case 2:
-                // Unificado de cerradosHoy y entregadosHoy
                 {
                     const query2 = `
                     SELECT
@@ -108,9 +99,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                 }
                 break;
 
-            // ------------------------------------------------------------------
             case 3:
-                // Unificamos asignadosToday, pendings, onTheWay, closedToday y deliveredToday
                 {
                     const query3 = `
                     SELECT
@@ -157,7 +146,6 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                 }
                 break;
 
-            // ------------------------------------------------------------------
             default:
                 break;
         }
