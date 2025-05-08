@@ -189,15 +189,15 @@ qr.post('/sku', verifyToken, async (req, res) => {
 qr.post('/armado', verifyToken, async (req, res) => {
     const startTime = performance.now();
     try {
-        const mensajeError = verifyParamaters(req.body, ['modal', 'userId', 'dataEnvios', 'didClienteBody', 'insumos', 'fecha'], true);
+        const mensajeError = verifyParamaters(req.body, ['userId', 'dataEnvios', 'didCliente', 'fecha'], true);
         if (mensajeError) {
             logRed(`Error en armado: ${mensajeError}`);
             throw new CustomException({ title: 'Error en armado', message: mensajeError });
         }
 
-        const { companyId, modal, userId, dataEnvios, didClienteBody, insumos, fecha } = req.body;
+        const { companyId, userId, dataEnvios, didCliente, fecha } = req.body;
         const company = await getCompanyById(companyId);
-        const result = await armado(company, modal, userId, dataEnvios, didClienteBody, insumos, fecha);
+        const result = await armado(company, userId, dataEnvios, didCliente, fecha);
 
         logGreen(`Armado ejecutado correctamente`);
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
