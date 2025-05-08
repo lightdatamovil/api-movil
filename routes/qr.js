@@ -171,7 +171,7 @@ qr.post('/sku', verifyToken, async (req, res) => {
         const result = await getSkuAndStock(company, dataQr);
 
         logGreen(`SKU y cantidad de ítems obtenidos correctamente`);
-        res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+        res.status(200).json({ body: result, message: "Datos obtenidos correctamente", success: true });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en sku: ${error}`);
@@ -200,7 +200,7 @@ qr.post('/armado', verifyToken, async (req, res) => {
         const result = await armado(company, userId, dataEnvios, didCliente, fecha);
 
         logGreen(`Armado ejecutado correctamente`);
-        res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+        res.status(200).json({ body: result, message: "Datos obtenidos correctamente", success: true });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en armado: ${error}`);
