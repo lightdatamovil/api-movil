@@ -31,7 +31,7 @@ export async function getSkuAndStock(company, dataQr) {
   `;
     const resultTodo = await executeQuery(dbConnection, queryTodo, [didOrden], true);
 
-    return resultTodo.map((item) => {
+    const l = resultTodo.map((item) => {
         return {
             did: didOrden,
             didProducto: item.didProducto,
@@ -43,6 +43,7 @@ export async function getSkuAndStock(company, dataQr) {
         };
     },
     );
+    return { body: l, message: "Datos obtenidos correctamente", success: true };
 }
 
 async function getShipmentIdFromQrProd(dataQr, company) {
