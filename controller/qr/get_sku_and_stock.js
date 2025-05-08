@@ -20,7 +20,7 @@ export async function getSkuAndStock(company, dataQr) {
     const didOrden = resultDidOrden[0].did;
 
     const queryTodo = `
-   SELECT oi.cantidad, oi.seller_sku as codigo, fp.sku AS producto_sku, fp.descripcion, fp.ean, fp.did as didProducto
+   SELECT oi.cantidad, oi.seller_sku as codigo, fp.sku AS producto_sku, fp.descripcion, fp.ean, fp.did as didProducto, url_imagen
    FROM ordenes_items AS oi
    LEFT JOIN fulfillment_productos AS fp ON (fp.sku = oi.seller_sku AND fp.superado = 0 AND fp.elim = 0)
    WHERE oi.didOrden IN (?);
