@@ -10,7 +10,7 @@ export async function getSkuAndStock(company, dataQr) {
 
     const didEnvio = await getShipmentIdFromQrProd(dataQr, company);
 
-    const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0AND elim = 0 AND didEnvio = ?`;
+    const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0 AND didEnvio = ?`;
     const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio]);
 
     if (resultDidOrden.length === 0) {
