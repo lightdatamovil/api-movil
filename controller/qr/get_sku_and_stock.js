@@ -14,17 +14,11 @@ export async function getSkuAndStock(company, dataQr) {
     const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio]);
 
     if (resultDidOrden.length === 0) {
-        throw new CustomException({
-            title: 'Error obteniendo el ID de la orden',
-            message: 'No se encontró la orden',
-        });
+        return { message: "No se encontró ninguna orden", success: false };
     }
 
     if (resultDidOrden[0].armado == 1) {
-        throw new CustomException({
-            title: 'La orden ya fue armada',
-            message: 'La orden ya fue armada',
-        });
+        return { message: "La orden ya fue armada", success: false };
     }
 
     const didOrden = resultDidOrden[0].did;
