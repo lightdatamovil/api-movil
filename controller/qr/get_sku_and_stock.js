@@ -10,11 +10,21 @@ export async function getSkuAndStock(company, dataQr) {
 
     const didEnvio = await getShipmentIdFromQrProd(dataQr, company);
 
-    const queryDidOrden = `SELECT did, didCliente FROM ordenes WHERE superado = 0 AND elim = 0 AND didEnvio = ?`;
+    const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0AND elim = 0 AND didEnvio = ?`;
     const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio]);
 
     if (resultDidOrden.length === 0) {
-        return { message: "No se encontró la orden", success: false };
+        throw new CustomException({
+            title: 'Error obteniendo el ID de la orden',
+            message: 'No se encontró la orden',
+        });
+    }
+
+    if (resultDidOrden[0].armado == 1) {
+        throw new CustomException({
+            title: 'La orden ya fue armada',
+            message: 'La orden ya fue armada',
+        });
     }
 
     const didOrden = resultDidOrden[0].did;
