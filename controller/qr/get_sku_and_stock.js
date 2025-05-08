@@ -35,6 +35,7 @@ export async function getSkuAndStock(company, dataQr) {
             descripcion: item.descripcion,
             ean: item.ean,
             cantidad: item.cantidad,
+            url_imagen: item.url_imagen,
         };
     },
     );
