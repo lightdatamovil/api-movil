@@ -31,7 +31,7 @@ export async function registerVisit(company, userId, shipmentId, recieverDNI, re
         const currentShipmentState = estadoActualRows[0].estado;
 
         // Para wynflex si esta entregado
-        if (currentShipmentState == 5 && company.did == 72) {
+        if (currentShipmentState == 5 && company.did == 72 && company.did == 125) {
             const queryEnvios = "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
             const envioRows = await executeQuery(dbConnection, queryEnvios, [shipmentId]);
