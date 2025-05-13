@@ -1,6 +1,6 @@
 import CustomException from "../../classes/custom_exception.js";
 import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql';
+import mysql2 from 'mysql2';
 
 export async function armado(company, userId, dataEnvios, didCliente, fecha) {
     const dbConfig = getProdDbConfig(company);

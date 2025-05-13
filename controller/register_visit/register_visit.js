@@ -1,5 +1,5 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
-import mysql2 from "mysql";
+import mysql2 from 'mysql2';
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";

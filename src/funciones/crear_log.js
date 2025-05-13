@@ -1,4 +1,4 @@
-import mysql2 from 'mysql';
+import mysql2 from 'mysql2';
 
 export async function crearLog(idEmpresa, operador, endpoint, result, quien, idDispositivo, modelo, marca, versionAndroid, versionApp) {
     const dbConfig = getDbConfig(company.did);

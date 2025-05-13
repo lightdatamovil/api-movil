@@ -1,5 +1,5 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany } from "../../db.js";
-import mysql2 from 'mysql';
+import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 
 export async function crossDocking(dataQr, company) {

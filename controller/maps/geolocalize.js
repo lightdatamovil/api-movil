@@ -1,4 +1,4 @@
-import mysql2 from 'mysql';
+import mysql2 from 'mysql2';
 
 import { getProdDbConfig, executeQuery } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';

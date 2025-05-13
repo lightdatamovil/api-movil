@@ -1,4 +1,4 @@
-import mysql2 from 'mysql';
+import mysql2 from 'mysql2';
 import { executeQuery, getDbConfig } from '../../db.js';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
