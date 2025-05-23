@@ -5,7 +5,7 @@ import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { identification } from '../controller/auth/identification.js';
 import { login } from '../controller/auth/login.js';
 import { whatsappMessagesList } from '../controller/auth/whatsappMessagesList.js';
-import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logPurple, logRed, logYellow } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 
 const auth = Router();

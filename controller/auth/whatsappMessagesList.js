@@ -4,7 +4,7 @@ import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function whatsappMessagesList(company) {
-  const dbConfig = getProdDbConfig(company.did);
+  const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
 

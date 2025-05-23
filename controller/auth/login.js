@@ -2,7 +2,7 @@ import mysql2 from "mysql2";
 import { executeQuery, getDbConfig, getProdDbConfig } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 function generateToken(userId, idEmpresa, perfil) {
@@ -12,7 +12,7 @@ function generateToken(userId, idEmpresa, perfil) {
 }
 
 export async function login(username, password, company) {
-  const dbConfig = getProdDbConfig(company.did);
+  const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
 
@@ -34,9 +34,7 @@ export async function login(username, password, company) {
       depotLongitude = row.longitud;
     }
 
-    const userQuery = `SELECT did, bloqueado, nombre, apellido, email, telefono, pass, usuario, perfil, direccion
-                           FROM sistema_usuarios 
-                           WHERE usuario = ? AND superado = 0 AND elim = 0`;
+    const userQuery = `SELECT u.did, u.bloqueado, u.nombre, u.apellido, u.email, u.telefono, u.pass, u.elim, u.usuario, u.token_fcm , a.perfil, u.direccion FROM sistema_usuarios as u JOIN sistema_usuarios_accesos as a on ( a.elim=0 and a.superado=0 and a.usuario = u.did) WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
     const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
       username,
     ]);
