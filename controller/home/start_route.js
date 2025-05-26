@@ -1,3 +1,8 @@
+import mysql2 from 'mysql2';
+import { executeQuery, getProdDbConfig } from '../../db.js';
+import { logRed } from '../../src/funciones/logsCustom.js';
+import CustomException from '../../classes/custom_exception.js';
+
 export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
@@ -21,7 +26,7 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
                 .filter(e => e.estado !== 5 && e.estado !== 8 && e.estado !== 9 && e.didEnvio != null)
                 .map(e => e.didEnvio);
 
-            await fsetestadoMasivoDesde(dbConnection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS);
+            await fsetestadoMasivoDesde(dbConnection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS, userId);
         }
     } catch (error) {
         logRed(`Error en startRoute: ${error.stack}`);
@@ -38,7 +43,7 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
     }
 }
 
-async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS) {
+async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS, userId) {
     try {
         const onTheWayState = 2;
         const query1 = `
@@ -57,10 +62,10 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYY
 
         const query3 = `
         INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
-        SELECT did, ?, 0, ?, 0, ?
+        SELECT did, ?, quien, ?, choferAsignado, ?
         FROM envios WHERE did IN(${shipmentIds.join(',')})
     `;
-        await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, deviceFrom]);
+        await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, userId, deviceFrom]);
     } catch (error) {
         throw error;
     }

@@ -107,8 +107,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     // Cerrados y Entregados HOY para caso 2
                     const queryCerradosYEntregados = `
                   SELECT
-                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS closedToday,
+                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS deliveredToday
                   FROM envios_historial AS eh
                   LEFT JOIN envios AS e 
                     ON (e.did = eh.didEnvio AND e.superado = 0 AND e.elim = 0)
@@ -119,10 +119,11 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.elim = 0
                     AND e.didCliente = sua.codigo_empleado
                 `;
+
                     const rowsCE = await executeQuery(dbConnection, queryCerradosYEntregados, []);
                     if (rowsCE && rowsCE.length > 0) {
-                        infoADevolver.closedToday = parseInt(rowsCE[0].cerradosHoy, 10) || 0;
-                        infoADevolver.deliveredToday = parseInt(rowsCE[0].entregadosHoy, 10) || 0;
+                        infoADevolver.closedToday = parseInt(rowsCE[0].closedToday, 10) || 0;
+                        infoADevolver.deliveredToday = parseInt(rowsCE[0].deliveredToday, 10) || 0;
                     }
                 }
                 break;
@@ -160,16 +161,16 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     // En Camino, Cerrados y Entregados HOY para operador
                     const queryHistorial = `
                   SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS enCamino,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS onTheWay,
+                    SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS closedToday,
+                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS deliveredToday
                   FROM envios_historial 
                   WHERE elim = 0 
                     AND superado = 0 
                     AND didCadete = ${userId}
                     AND DATE(fecha) = CURDATE()
                 `;
-                    const rowsHistorialOperador = await executeQuery(dbConnection, queryHistorial, []);
+                    const rowsHistorialOperador = await executeQuery(dbConnection, queryHistorial, [], true);
                     if (rowsHistorialOperador && rowsHistorialOperador.length > 0) {
                         infoADevolver.onTheWay = parseInt(rowsHistorialOperador[0].onTheWay, 10) || 0;
                         infoADevolver.closedToday = parseInt(rowsHistorialOperador[0].closedToday, 10) || 0;
