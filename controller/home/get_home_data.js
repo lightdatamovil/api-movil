@@ -4,7 +4,7 @@ import { logRed } from "../../src/funciones/logsCustom.js";
 
 
 export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
-    const dbConfig = getProdDbConfig(company.did);
+    const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
