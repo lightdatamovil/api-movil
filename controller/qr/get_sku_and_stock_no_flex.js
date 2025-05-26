@@ -3,7 +3,7 @@ import mysql2 from 'mysql2';
 import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getSkuAndStock(company, dataQr) {
+export async function getSkuAndStockNoFlex(company, dataQr) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();

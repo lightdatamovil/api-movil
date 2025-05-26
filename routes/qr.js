@@ -4,13 +4,14 @@ import { getCompanyById } from "../db.js";
 import { getShipmentIdFromQrLocal } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
-import { getSkuAndStock } from "../controller/qr/get_sku_and_stock.js";
+import { getSkuAndStockNoFlex as getSkuAndStockNoFlex } from "../controller/qr/get_sku_and_stock_no_flex.js";
 import { armado } from "../controller/qr/armado.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
 import { logGreen, logPurple, logRed, logYellow } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
+import { getSkuAndStockFlex } from "../controller/qr/get_sku_and_stock _flex.js";
 
 const qr = Router();
 
@@ -222,7 +223,13 @@ qr.post("/sku", verifyToken, async (req, res) => {
 
     const { companyId, dataQr } = req.body;
     const company = await getCompanyById(companyId);
-    const result = await getSkuAndStock(company, dataQr);
+    const isLocal = dataQr.hasOwnProperty("local");
+    let result;
+    if (isLocal) {
+      result = await getSkuAndStockNoFlex(company, dataQr);
+    } else {
+      result = await getSkuAndStockFlex(company, dataQr);
+    }
 
     logGreen(`SKU y cantidad de ítems obtenidos correctamente`);
     res.status(200).json(result);
