@@ -26,6 +26,7 @@ let accountList = {};
 let driverList = {};
 let zoneList = {};
 let clientList = {};
+
 export function getDbConfig(companyId) {
     return {
         // host: "localhost",

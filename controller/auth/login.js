@@ -1,5 +1,5 @@
 import mysql2 from "mysql2";
-import { executeQuery, getDbConfig, getProdDbConfig } from "../../db.js";
+import { executeQuery, getProdDbConfig } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
