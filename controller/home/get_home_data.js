@@ -1,6 +1,6 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 
@@ -15,28 +15,28 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
             55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
             72: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 16, 18, 16],
             default: [0, 1, 2, 3, 6, 7, 10, 11, 12]
-        }[company] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
+        }[company.did] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
 
         const estadosEnCamino = {
             20: [2, 11, 12, 16],
             55: [2, 11, 12],
             72: [2, 11, 12],
             default: [2, 11, 12]
-        }[company] || [2, 11, 12];
+        }[company.did] || [2, 11, 12];
 
         const estadosCerradosHoy = {
             20: [5, 8, 9, 14, 17],
             55: [5, 8, 9, 14, 16],
             72: [5, 8, 9, 14],
             default: [5, 8, 9, 14],
-        }[company] || [5, 8, 9, 14];
+        }[company.did] || [5, 8, 9, 14];
 
         const estadosEntregadosHoy = {
             20: [5, 9, 17],
             55: [5, 9, 16],
             72: [5, 9],
             default: [5, 9]
-        }[company] || [5, 9];
+        }[company.did] || [5, 9];
 
         const infoADevolver = {
             assignedToday: 0,
@@ -77,7 +77,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.elim = 0
                     AND eh.superado = 0
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
-                    AND eh.estado IN (${estadosPendientes[company.did]})
+                    AND eh.estado IN (${estadosPendientes})
                 `;
                     const rowsPendientes = await executeQuery(dbConnection, queryPendientes, []);
                     infoADevolver.pendings = rowsPendientes.length;
@@ -85,9 +85,9 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     // En Camino, Cerrados y Entregados HOY (fecha actual)
                     const queryHistorial = `
                   SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino[company.did]}) THEN 1 ELSE 0 END) AS enCamino,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS enCamino,
+                    SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
+                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
                   FROM envios_historial 
                   WHERE elim = 0 
                     AND superado = 0 
@@ -107,8 +107,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     // Cerrados y Entregados HOY para caso 2
                     const queryCerradosYEntregados = `
                   SELECT
-                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
+                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
                   FROM envios_historial AS eh
                   LEFT JOIN envios AS e 
                     ON (e.did = eh.didEnvio AND e.superado = 0 AND e.elim = 0)
@@ -139,7 +139,6 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND autofecha > '${dateYYYYMMDD} 00:00:00'
                 `;
                     infoADevolver.assignedToday = await fetchCount(queryAsignadosHoy);
-
                     // PENDIENTES para operador (filtrado por didCadete)
                     const queryPendientes = `
                   SELECT didEnvio
@@ -154,17 +153,16 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.elim = 0
                     AND eh.superado = 0
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
-                    AND eh.estado IN (${estadosPendientes[company.did]})
+                    AND eh.estado IN (${estadosPendientes})
                 `;
                     const rowsPendientesOperador = await executeQuery(dbConnection, queryPendientes, []);
                     infoADevolver.pendings = rowsPendientesOperador.length;
-
                     // En Camino, Cerrados y Entregados HOY para operador
                     const queryHistorial = `
                   SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino[company.did]}) THEN 1 ELSE 0 END) AS enCamino,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy[company.did]}) THEN 1 ELSE 0 END) AS cerradosHoy,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy[company.did]}) THEN 1 ELSE 0 END) AS entregadosHoy
+                    SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS enCamino,
+                    SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
+                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS entregadosHoy
                   FROM envios_historial 
                   WHERE elim = 0 
                     AND superado = 0 
