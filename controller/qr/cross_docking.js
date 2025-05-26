@@ -1,6 +1,7 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
+import CustomException from '../../classes/custom_exception.js';
 
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
@@ -25,7 +26,7 @@ export async function crossDocking(dataQr, company) {
                 const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
-                    return { message: "El envío no pertenece a la empresa", success: false };
+                    throw new CustomException("El envío no pertenece a la empresa");
                 }
 
                 shipmentId = resultQueryEnviosExteriores[0];
@@ -46,7 +47,7 @@ export async function crossDocking(dataQr, company) {
         const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
         if (envioData.length === 0) {
-            return { message: "No se encontró el envío", success: false };
+            throw new CustomException("No se encontró el envío");
         }
 
         const row = envioData[0];
