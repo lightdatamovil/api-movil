@@ -56,15 +56,11 @@ export async function crossDocking(dataQr, company) {
         const zones = await getZonesByCompany(dbConnection, company.did);
 
         return {
-            body: {
-                shipmentState: row.shipmentState,
-                date: row.date,
-                client: clients[row.clientId]?.nombre || "Desconocido",
-                zone: zones[row.zoneId]?.nombre || "Desconocido",
-                driver: row.driver ?? "Sin asignar"
-            },
-            message: "Datos obtenidos correctamente",
-            success: true,
+            shipmentState: row.shipmentState,
+            date: row.date,
+            client: clients[row.clientId]?.nombre || "Desconocido",
+            zone: zones[row.zoneId]?.nombre || "Desconocido",
+            driver: row.driver ?? "Sin asignar"
         };
     } catch (error) {
         logRed(`Error en crossDocking: ${error.stack}`);
