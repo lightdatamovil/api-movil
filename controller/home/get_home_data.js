@@ -1,10 +1,10 @@
-import { executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 
 
 export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
-    const dbConfig = getDbProdConfig(company.did);
+    const dbConfig = getProdDbConfig(company.did);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
