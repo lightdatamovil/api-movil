@@ -7,7 +7,7 @@ import { enterFlex } from "../controller/qr/enter_flex.js";
 import { getSkuAndStock } from "../controller/qr/get_sku_and_stock.js";
 import { armado } from "../controller/qr/armado.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import { logGreen, logPurple, logRed } from "../src/funciones/logsCustom.js";
+import { logGreen, logPurple, logRed, logYellow } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
@@ -114,9 +114,11 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
     });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en get-shipment-id: ${error}`);
+      logYellow(JSON.stringify(error));
+      logRed(`Error 400 en get-shipment-id: ${error.toJSON()}`);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
+      logYellow(JSON.stringify(error));
       logRed(`Error 500 en get-shipment-id: ${error}`);
       res.status(500).json({ message: "Error interno del servidor" });
     }
