@@ -1,6 +1,6 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function enterFlex(company, dataQr, userId) {
@@ -59,7 +59,7 @@ export async function enterFlex(company, dataQr, userId) {
                 `;
 
             const insertResult = await executeQuery(dbConnection, insertEnvioQuery, [
-                shipmentId, mlShipmentId, mlSellerId, clientId, userId, lote, fecha_despacho, accountId, ml_qr_seguridad, fecha_inicio, fechaunix
+                shipmentId, mlShipmentId, mlSellerId, clientId, userId, '', fecha_despacho, accountId, JSON.stringify(dataQr), fecha_inicio, fechaunix
             ]);
 
             if (!insertResult.insertId) {
@@ -70,14 +70,12 @@ export async function enterFlex(company, dataQr, userId) {
             }
 
             shipmentId = insertResult.insertId;
-            pudeguardar = true;
 
             const updateEnvioQuery = `
                     UPDATE envios SET did = ?
             WHERE superado = 0 AND elim = 0 AND id = ? AND ml_vendedor_id = ? AND ml_shipment_id = ?
                 LIMIT 1
             `;
-
             await executeQuery(dbConnection, updateEnvioQuery, [shipmentId, shipmentId, mlSellerId, mlShipmentId]);
 
             let shipmentState = 0;
@@ -103,27 +101,15 @@ export async function enterFlex(company, dataQr, userId) {
                 await updateWhoPickedUp(dbConnection, userId, shipmentId);
             }
 
-            if (autoasigna && perfil === 3) {
-                await asignarOperador(dbConnection, userId, [shipmentId]);
-            }
-
             return;
 
         } else {
-            if (shipmentData.estado === 7) {
-                const shipmentId = shipmentData.did;
 
-                await updateWhoPickedUp(dbConnection, userId, shipmentId);
-                await setShipmentState(dbConnection, shipmentId, 0, "");
+            throw new CustomException({
+                title: 'Error ingresando al Flex',
+                message: 'El envío ya está cargado'
+            });
 
-                return;
-            } else {
-                throw new CustomException({
-                    title: 'Error ingresando al Flex',
-                    message: 'El envío ya está cargado',
-                    stack: error.stack
-                });
-            }
         }
     } catch (error) {
         logRed(`Error en enterFlex: ${error.stack}`);
