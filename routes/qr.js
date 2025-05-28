@@ -142,8 +142,7 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
     }
 
     const { dataQr } = req.body;
-    const parsed = JSON.parse(dataQr);
-    const response = await getProductsFromShipment(parsed);
+    const response = await getProductsFromShipment(dataQr);
 
     logGreen(`Productos obtenidos correctamente`);
     res

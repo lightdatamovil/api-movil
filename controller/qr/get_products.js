@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logGreen, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getProductsFromShipment(dataQr) {
@@ -34,7 +34,7 @@ export async function getProductsFromShipment(dataQr) {
                     for (const variant of Avariations) {
                         if (variant.id === variation_id) {
                             stock = variant.available_quantity;
-                            imagen = variant.pictures[0]?.secure_url || '';
+                            imagen = `https://http2.mlstatic.com/D_${variant.picture_ids[0]}-O.jpg` || '';
                         }
                     }
                 } else {
@@ -69,7 +69,7 @@ export async function getProductsFromShipment(dataQr) {
 
 async function getToken(sellerid) {
     const dia = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = `https://lightdatas2.com.ar/getTokens.php?keysi=${dia}&sellerid=${sellerid}`;
+    const url = `https://cuentasarg.lightdata.com.ar/getToken.php?seller_id=${sellerid}&tk=${dia}`;
     const response = await axios.get(url);
     return response.data[sellerid];
 }
