@@ -1,3 +1,7 @@
+import { getProdDbConfig, executeQuery } from '../../db.js';
+import mysql2 from 'mysql2';
+import CustomException from '../../classes/custom_exception.js';
+
 export async function finishRoute(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
