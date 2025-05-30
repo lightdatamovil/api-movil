@@ -34,10 +34,10 @@ export async function crossDocking(dataQr, company) {
 
                 shipmentId = resultQueryEnviosExteriores[0];
             }
-            queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
+            queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0 AND su.superado = 0 AND su.elim = 0`;
         } else {
             shipmentId = dataQr.id;
-            queryWhereId = 'WHERE e.superado = 0 AND e.elim = 0 AND e.ml_shipment_id =' + shipmentId;
+            queryWhereId = `WHERE e.superado = 0 AND e.elim = 0 AND e.ml_shipment_id = ${shipmentId} AND su.superado = 0 AND su.elim = 0`;
         }
 
         const queryEnvios = `
