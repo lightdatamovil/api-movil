@@ -8,48 +8,56 @@ export async function getSkuAndStockFlex(company, dataQr) {
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
-    const didEnvio = await getShipmentIdFromQrProd(dataQr, company);
+    try {
+        const didEnvio = await getShipmentIdFromQrProd(dataQr, company);
 
-    const queryData = `SELECT ml_venta_id, ml_pack_id FROM envios WHERE superado = 0 AND elim = 52 AND did = ?`;
-    const resultData = await executeQuery(dbConnection, queryData, [didEnvio], true);
-    logYellow(`Resultado de queryData: ${JSON.stringify(resultData)}`);
-    const idNumber = resultData[0].ml_pack_id || resultData[0].ml_venta_id;
+        const queryData = `SELECT ml_venta_id, ml_pack_id FROM envios WHERE superado = 0 AND elim = 52 AND did = ?`;
+        const resultData = await executeQuery(dbConnection, queryData, [didEnvio], true);
+        logYellow(`Resultado de queryData: ${JSON.stringify(resultData)}`);
+        const idNumber = resultData[0].ml_pack_id || resultData[0].ml_venta_id;
 
-    const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0 AND number = ?`;
-    const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [idNumber], true);
+        const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0 AND number = ?`;
+        const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [idNumber], true);
 
-    if (resultDidOrden.length === 0) {
-        return { message: "No se encontró ninguna orden", success: false };
-    }
+        if (resultDidOrden.length === 0) {
+            return { message: "No se encontró ninguna orden", success: false };
+        }
 
-    if (resultDidOrden[0].armado == 1) {
-        return { message: "La orden ya fue armada", success: false };
-    }
+        if (resultDidOrden[0].armado == 1) {
+            return { message: "La orden ya fue armada", success: false };
+        }
 
-    const didOrden = resultDidOrden[0].did;
+        const didOrden = resultDidOrden[0].did;
 
-    const queryTodo = `
+        const queryTodo = `
    SELECT oi.cantidad, oi.seller_sku as codigo, fp.sku AS producto_sku, fp.descripcion, fp.ean, fp.did as didProducto, url_imagen
    FROM ordenes_items AS oi
    LEFT JOIN fulfillment_productos AS fp ON (fp.sku = oi.seller_sku AND fp.superado = 0 AND fp.elim = 0)
    WHERE oi.didOrden IN (?);
   `;
-    const resultTodo = await executeQuery(dbConnection, queryTodo, [didOrden], true);
+        const resultTodo = await executeQuery(dbConnection, queryTodo, [didOrden], true);
 
-    const l = resultTodo.map((item) => {
-        return {
-            did: didOrden,
-            didProducto: item.didProducto,
-            codigo: item.codigo,
-            descripcion: item.descripcion,
-            ean: item.ean,
-            cantidad: item.cantidad,
-            url_imagen: item.url_imagen,
-            alertada: item.didProducto === null
-        };
-    },
-    );
-    return { body: l, message: "Datos obtenidos correctamente", success: true };
+        const l = resultTodo.map((item) => {
+            return {
+                did: didOrden,
+                didProducto: item.didProducto,
+                codigo: item.codigo,
+                descripcion: item.descripcion,
+                ean: item.ean,
+                cantidad: item.cantidad,
+                url_imagen: item.url_imagen,
+                alertada: item.didProducto === null
+            };
+        },
+        );
+        return { body: l, message: "Datos obtenidos correctamente", success: true };
+    } catch (error) {
+        logRed(`Error en getSkuAndStockFlex: ${error.stack}`);
+        return { message: error.message, success: false };
+    }
+    finally {
+        dbConnection.end();
+    }
 }
 
 async function getShipmentIdFromQrProd(dataQr, company) {
