@@ -115,11 +115,9 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
     });
   } catch (error) {
     if (error instanceof CustomException) {
-      logYellow(JSON.stringify(error));
       logRed(`Error 400 en get-shipment-id: ${error.toJSON()}`);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
-      logYellow(JSON.stringify(error));
       logRed(`Error 500 en get-shipment-id: ${error}`);
       res.status(500).json({ message: "Error interno del servidor" });
     }

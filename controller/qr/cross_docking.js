@@ -70,7 +70,6 @@ export async function crossDocking(dataQr, company) {
             driver: row.driver ?? "Sin asignar"
         };
     } catch (error) {
-        logYellow(JSON.stringify(error));
         logRed(`Error en crossDocking: ${error.stack}`);
         throw error;
     } finally {

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { logGreen, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
+import { getToken } from '../../src/funciones/getTokenML.js';
 
 export async function getProductsFromShipment(dataQr) {
     try {
@@ -65,13 +66,6 @@ export async function getProductsFromShipment(dataQr) {
         });
     }
 
-}
-
-async function getToken(sellerid) {
-    const dia = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = `https://cuentasarg.lightdata.com.ar/getToken.php?seller_id=${sellerid}&tk=${dia}`;
-    const response = await axios.get(url);
-    return response.data[sellerid];
 }
 
 async function getShipmentDetails(shipmentId, token) {
