@@ -28,7 +28,7 @@ export async function getShipmentIdFromQrLocal(dataQr, company) {
         } else {
             const sellerId = dataQr.sender_id;
             const mlShipmentId = dataQr.id;
-            const queryEnvios = `SELECT did FROM envios WHERE shipmentid = ${mlShipmentId} AND seller_id = ${sellerId}`;
+            const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
 
             const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
