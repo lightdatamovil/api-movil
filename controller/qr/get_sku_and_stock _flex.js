@@ -49,17 +49,17 @@ export async function getSkuAndStockFlex(company, dataQr) {
             const itemML = items[i];
 
             const order = await getOrderFromML(itemML.order_id, token);
+            const cantidadML = order.order_items[0].quantity;
             for (let index = 0; index < order.order_items.length; index++) {
                 const element = order.order_items[index].item;
                 const sellerSKUFromML = element.seller_sku;
                 const titleFromML = element.title;
-                const cantidadML = element.quantity;
                 const queryTodo = `
                     SELECT descripcion, ean, did as didProducto, url_imagen, sku
                     FROM fulfillment_productos
                     WHERE sku = ? AND superado = 0 AND elim = 0 AND didCliente = ?
                 `;
-                const resultTodo = await executeQuery(dbConnection, queryTodo, [sellerSKUFromML, result[0].didCliente], true);
+                const resultTodo = await executeQuery(dbConnection, queryTodo, [sellerSKUFromML, result[0].didCliente]);
                 listaItemApp.push({
 
                     did: didOrden,
