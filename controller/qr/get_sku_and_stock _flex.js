@@ -60,7 +60,7 @@ export async function getSkuAndStockFlex(company, dataQr) {
         let l;
 
         if (resultTodo.length === 0) {
-            l = {
+            l = [{
                 did: didOrden,
                 didProducto: null,
                 codigo: sellerSKUFromML,
@@ -70,7 +70,7 @@ export async function getSkuAndStockFlex(company, dataQr) {
                 cantidad: cantidadML,
                 url_imagen: null,
                 alertada: true
-            };
+            }];
         } else {
             l = resultTodo.map((item) => {
                 return {
