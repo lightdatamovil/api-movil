@@ -3,7 +3,7 @@ import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getShipmentIdFromQrLocal(dataQr, company) {
+export async function getShipmentIdFromQr(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -39,7 +39,7 @@ export async function getShipmentIdFromQrLocal(dataQr, company) {
                 });
             }
 
-            shipmentId = resultQueryEnvios[0];
+            shipmentId = resultQueryEnvios[0].did;
         }
 
         return shipmentId;

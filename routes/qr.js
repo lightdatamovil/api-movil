@@ -1,7 +1,7 @@
 import { Router } from "express";
 import verifyToken from "../src/funciones/verifyToken.js";
 import { getCompanyById } from "../db.js";
-import { getShipmentIdFromQrLocal } from "../controller/qr/get_shipment_id.js";
+import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
 import { getSkuAndStockNoFlex as getSkuAndStockNoFlex } from "../controller/qr/get_sku_and_stock_no_flex.js";
@@ -105,7 +105,7 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
 
     const { companyId, dataQr } = req.body;
     const company = await getCompanyById(companyId);
-    const response = await getShipmentIdFromQrLocal(dataQr, company);
+    const response = await getShipmentIdFromQr(dataQr, company);
 
     logGreen(`ID de envío obtenido correctamente`);
     res.status(200).json({
