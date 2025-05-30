@@ -110,7 +110,7 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
     logGreen(`ID de envío obtenido correctamente`);
     res.status(200).json({
       success: true,
-      body: response,
+      body: `${response}`,
       message: "Datos obtenidos correctamente",
     });
   } catch (error) {
