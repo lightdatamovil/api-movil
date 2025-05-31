@@ -43,7 +43,7 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
     }
 }
 
-async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS, userId) {
+async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS) {
     try {
         const onTheWayState = 2;
         const query1 = `
@@ -65,7 +65,7 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYY
             SELECT did, ?, quien, ?, choferAsignado, ?
             FROM envios WHERE did IN(${shipmentIds.join(',')})
         `;
-        await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, userId, deviceFrom]);
+        await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, deviceFrom]);
     } catch (error) {
         throw error;
     }
