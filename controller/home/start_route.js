@@ -47,24 +47,24 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYY
     try {
         const onTheWayState = 2;
         const query1 = `
-        UPDATE envios_historial
-        SET superado = 1
-        WHERE superado = 0 AND didEnvio IN(${shipmentIds.join(',')})
-    `;
+            UPDATE envios_historial
+            SET superado = 1
+            WHERE superado = 0 AND didEnvio IN(${shipmentIds.join(',')})
+        `;
         await executeQuery(connection, query1);
 
         const query2 = `
-        UPDATE envios
-        SET estado_envio =?
-        WHERE superado = 0 AND did IN(${shipmentIds.join(',')})
-    `;
+            UPDATE envios
+            SET estado_envio =?
+            WHERE superado = 0 AND did IN(${shipmentIds.join(',')})
+        `;
         await executeQuery(connection, query2, [onTheWayState]);
 
         const query3 = `
-        INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
-        SELECT did, ?, quien, ?, choferAsignado, ?
-        FROM envios WHERE did IN(${shipmentIds.join(',')})
-    `;
+            INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
+            SELECT did, ?, quien, ?, choferAsignado, ?
+            FROM envios WHERE did IN(${shipmentIds.join(',')})
+        `;
         await executeQuery(connection, query3, [onTheWayState, dateYYYYMMDDHHSS, userId, deviceFrom]);
     } catch (error) {
         throw error;

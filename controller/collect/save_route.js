@@ -38,6 +38,7 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
             [didAsuperar]
         );
 
+        // TODO: Que significa este 2??
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO colecta_ruta (desde, fecha, fechaOperativa, didChofer, quien, dataRuta) VALUES (?, ?, ?, ?, ?, ?)",

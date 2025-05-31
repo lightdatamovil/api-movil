@@ -23,6 +23,7 @@ export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance,
             // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
         }
 
+        // TODO: Que significa este 2??
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
