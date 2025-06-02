@@ -44,10 +44,10 @@ export async function crossDocking(dataQr, company) {
             SELECT e.estado_envio AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date, 
             CONCAT(su.nombre, ' ', su.apellido) AS driver
             FROM envios AS e
-            LEFT JOIN sistema_usuarios AS su ON su.did = e.choferAsignado
+            LEFT JOIN sistema_usuarios AS su
             ${queryWhereId} LIMIT 1
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, []);
+        const envioData = await executeQuery(dbConnection, queryEnvios, [], true);
 
         if (envioData.length === 0) {
             throw new CustomException({
