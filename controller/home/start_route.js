@@ -18,16 +18,31 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
 
         const dias = 3;
 
-        const queryEnviosAsignadosHoy = "SELECT didEnvio, estado FROM envios_asignaciones WHERE superado=0 AND elim=0 AND operador=? AND DATE(autofecha) = CURDATE()";
+        const queryEnviosAsignadosHoy = `
+            SELECT didEnvio, estado
+            FROM envios_asignaciones
+            WHERE superado=0
+            AND elim=0
+            AND operador=?
+            AND estado NOT IN (5, 8, 9)
+            AND didEnvio IS NOT NULL
+            AND DATE(autofecha) BETWEEN DATE_SUB(CURDATE(), INTERVAL ? DAY) AND CURDATE()
+        `;
+        let shipmentIds = [];
 
         const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
-        if (envios.length > 0) {
-            const shipmentIds = envios
-                .filter(e => e.estado !== 5 && e.estado !== 8 && e.estado !== 9 && e.didEnvio != null)
-                .map(e => e.didEnvio);
 
-            await fsetestadoMasivoDesde(dbConnection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS, userId);
+        if (envios.length > 0) {
+            shipmentIds = envios.map(envio => envio.didEnvio);
         }
+
+        const q = `SELECT did FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
+        const enviosPendientes = await executeQuery(dbConnection, q, [[5, 7, 8, 9, 14], shipmentIds]);
+
+        const enviosPendientesIds = enviosPendientes.map(envio => envio.did);
+
+        await fsetestadoMasivoDesde(dbConnection, enviosPendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId);
+
     } catch (error) {
         logRed(`Error en startRoute: ${error.stack}`);
         if (error instanceof CustomException) {
