@@ -17,9 +17,12 @@ export async function getSkuAndStockFlex(company, dataQr) {
 
 
         const queryData = `SELECT ml_venta_id, ml_pack_id FROM envios WHERE superado = 0 AND elim = 52 AND ml_shipment_id = ?`;
-        const resultData = await executeQuery(dbConnection, queryData, [tracking]);
+        const resultData = await executeQuery(dbConnection, queryData, [tracking], true);
 
-        const idNumber = resultData[0].ml_pack_id || resultData[0].ml_venta_id;
+        if (!resultData || resultData.length === 0) {
+            return { message: "No se encontró el envío", success: false };
+        }
+        const idNumber = (resultData[0].ml_pack_id ?? resultData[0].ml_venta_id);
 
         const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0 AND number = ?`;
         const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [idNumber]);
