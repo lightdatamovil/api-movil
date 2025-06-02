@@ -30,19 +30,16 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
         `;
         let shipmentIds = [];
 
-        const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
+        const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias], true);
 
         if (envios.length > 0) {
-            shipmentIds = envios.map(envio => envio.didEnvio);
+            shipmentIds = envios.map(envio => envio.didEnvio); const q = `SELECT did FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
+            const enviosPendientes = await executeQuery(dbConnection, q, [[5, 7, 8, 9, 14], shipmentIds]);
+
+            const enviosPendientesIds = enviosPendientes.map(envio => envio.did);
+
+            await fsetestadoMasivoDesde(dbConnection, enviosPendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId);
         }
-
-        const q = `SELECT did FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
-        const enviosPendientes = await executeQuery(dbConnection, q, [[5, 7, 8, 9, 14], shipmentIds]);
-
-        const enviosPendientesIds = enviosPendientes.map(envio => envio.did);
-
-        await fsetestadoMasivoDesde(dbConnection, enviosPendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId);
-
     } catch (error) {
         logRed(`Error en startRoute: ${error.stack}`);
         if (error instanceof CustomException) {
