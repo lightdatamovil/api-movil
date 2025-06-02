@@ -34,20 +34,20 @@ export async function crossDocking(dataQr, company) {
 
                 shipmentId = resultQueryEnviosExteriores[0];
             }
-            queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0 AND su.superado = 0 AND su.elim = 0`;
+            queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
             shipmentId = dataQr.id;
-            queryWhereId = `WHERE e.superado = 0 AND e.elim = 0 AND e.ml_shipment_id = ${shipmentId} AND su.superado = 0 AND su.elim = 0`;
+            queryWhereId = `WHERE e.superado = 0 AND e.elim = 0 AND e.ml_shipment_id = ${shipmentId}`;
         }
 
         const queryEnvios = `
             SELECT e.estado_envio AS shipmentState, e.didCliente AS clientId, e.didEnvioZona AS zoneId, DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date, 
             CONCAT(su.nombre, ' ', su.apellido) AS driver
             FROM envios AS e
-            LEFT JOIN sistema_usuarios AS su
+            LEFT JOIN sistema_usuarios AS su ON (su.did = e.choferAsignado AND su.superado=0 AND su.elim=0)
             ${queryWhereId} LIMIT 1
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, [], true);
+        const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
         if (envioData.length === 0) {
             throw new CustomException({
