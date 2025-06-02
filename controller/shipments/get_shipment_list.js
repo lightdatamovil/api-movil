@@ -3,13 +3,13 @@ import mysql2 from 'mysql2';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function shipmentList(company, userId, profile, from, shipmentStates, isAssignedToday) {
+export async function shipmentList(company, userId, profile, from, shipmentStates, isAssignedToday, date) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = date || new Date().toISOString().split('T')[0];
         // Obtener clientes y choferes
         const clientes = await getClientsByCompany(dbConnection, company.did);
         const drivers = await getDriversByCompany(dbConnection, company.did);

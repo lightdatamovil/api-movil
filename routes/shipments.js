@@ -23,9 +23,9 @@ shipments.post('/shipment-list', verifyToken, async (req, res) => {
       throw new CustomException({ title: 'Error en shipment-list', message: mensajeError });
     }
 
-    const { companyId, userId, profile, from, shipmentStates, isAssignedToday } = req.body;
+    const { companyId, userId, profile, from, shipmentStates, isAssignedToday, date } = req.body;
     const company = await getCompanyById(companyId);
-    const result = await shipmentList(company, userId, profile, from, shipmentStates, isAssignedToday);
+    const result = await shipmentList(company, userId, profile, from, shipmentStates, isAssignedToday, date);
 
     logGreen(`Listado de envíos obtenido correctamente`);
     res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
