@@ -29,7 +29,7 @@ export async function shipmentList(company, userId, profile, from, shipmentState
         }
 
         if (company.did == 4) {
-            estadoAsignacion = ', e.estadoAsignacion';
+            estadoAsignacion = 'e.estadoAsignacion,';
         }
 
         const b = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : '';
