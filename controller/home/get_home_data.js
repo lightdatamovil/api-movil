@@ -1,6 +1,6 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
-import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
@@ -9,13 +9,11 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
   dbConnection.connect();
 
   if (profile == 0) {
-    query = `SELECT sua.usuario as profile FROM sistema_usuarios su 
-        LEFT JOIN sistema_usuarios_accesos sua ON (su.elim = 0 AND su.superado = 0 AND su.usuario = sua.usuario)
-        WHERE elim = 0 AND superado = 0`;
+    let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
-    const rows = await executeQuery(dbConnection, query, []);
+    const rows = await executeQuery(dbConnection, query, [userId], true);
     if (rows && rows.length > 0) {
-      profile = parseInt(rows[0].profile);
+      profile = parseInt(rows[0].perfil);
     } else {
       logRed(`No se encontró el perfil del usuario con ID ${userId}`);
       throw new CustomException({
@@ -24,7 +22,9 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
       });
     }
   }
-
+  logCyan(
+    `Obteniendo datos de inicio para companyId: ${company.did}, userId: ${userId}, profile: ${profile}, dateYYYYMMDD: ${dateYYYYMMDD}`
+  );
   try {
     const estadosPendientes = {
       20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
