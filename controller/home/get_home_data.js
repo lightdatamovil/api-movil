@@ -170,7 +170,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND didCadete = ${userId}
                     AND DATE(fecha) = CURDATE()
                 `;
-                    const rowsHistorialOperador = await executeQuery(dbConnection, queryHistorial, [], true);
+                    const rowsHistorialOperador = await executeQuery(dbConnection, queryHistorial, []);
                     if (rowsHistorialOperador && rowsHistorialOperador.length > 0) {
                         infoADevolver.onTheWay = parseInt(rowsHistorialOperador[0].onTheWay, 10) || 0;
                         infoADevolver.closedToday = parseInt(rowsHistorialOperador[0].closedToday, 10) || 0;

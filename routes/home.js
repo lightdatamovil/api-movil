@@ -20,6 +20,7 @@ home.post('/home', verifyToken, async (req, res) => {
 			throw new CustomException({ title: 'Error en home', message: mensajeError });
 		}
 
+		logCyan(`Iniciando ruta... ${JSON.stringify(req.body)}`);
 		const { companyId, userId, profile, dateYYYYMMDD } = req.body;
 		const company = await getCompanyById(companyId);
 		const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
@@ -48,7 +49,7 @@ home.post('/start-route', verifyToken, async (req, res) => {
 			logRed(`Error en start-route: ${mensajeError}`);
 			throw new CustomException({ title: 'Error en start-route', message: mensajeError });
 		}
-		logCyan(`Iniciando ruta... ${JSON.stringify(req.body)}`);
+
 		const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
 		const company = await getCompanyById(companyId);
 		const result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
