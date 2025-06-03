@@ -43,7 +43,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
       date,
     } = req.body;
 
-    console.log(req.body, "pa chrisss");
+    //console.log(req.body, "pa chrisss");
 
     const company = await getCompanyById(companyId);
     const result = await shipmentList(
