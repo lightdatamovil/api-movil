@@ -6,7 +6,7 @@ import { startRoute } from '../controller/home/start_route.js';
 import { finishRoute } from '../controller/home/finish_route.js';
 import { getHomeData } from '../controller/home/get_home_data.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logCyan, logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 
 const home = Router();
@@ -48,7 +48,7 @@ home.post('/start-route', verifyToken, async (req, res) => {
 			logRed(`Error en start-route: ${mensajeError}`);
 			throw new CustomException({ title: 'Error en start-route', message: mensajeError });
 		}
-
+		logCyan(`Iniciando ruta... ${JSON.stringify(req.body)}`);
 		const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
 		const company = await getCompanyById(companyId);
 		const result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
