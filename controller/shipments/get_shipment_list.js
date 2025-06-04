@@ -34,6 +34,9 @@ export async function shipmentList(
       });
     }
   }
+  logCyan(
+    `Obteniendo listado de paquetes para companyId: ${company.did}, userId: ${userId}, profile: ${profile}, dateYYYYMMDD: ${dateYYYYMMDD}`
+  );
   try {
     const hoy = date || new Date().toISOString().split("T")[0];
     // Obtener clientes y choferes
