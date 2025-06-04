@@ -30,7 +30,7 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
         `;
         let shipmentIds = [];
 
-        const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias], true);
+        const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
 
         if (envios.length > 0) {
             shipmentIds = envios.map(envio => envio.didEnvio); const q = `SELECT did FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;

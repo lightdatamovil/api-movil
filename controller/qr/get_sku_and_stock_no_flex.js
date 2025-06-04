@@ -11,7 +11,7 @@ export async function getSkuAndStockNoFlex(company, dataQr) {
         const didEnvio = await getShipmentIdFromQrProd(dataQr, company);
 
         const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0 AND didEnvio = ?`;
-        const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio], true);
+        const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [didEnvio]);
 
         if (resultDidOrden.length === 0) {
             return { message: "No se encontró ninguna orden", success: false };
@@ -29,7 +29,7 @@ export async function getSkuAndStockNoFlex(company, dataQr) {
    LEFT JOIN fulfillment_productos AS fp ON (fp.sku = oi.seller_sku AND fp.superado = 0 AND fp.elim = 0)
    WHERE oi.didOrden IN (?);
   `;
-        const resultTodo = await executeQuery(dbConnection, queryTodo, [didOrden], true);
+        const resultTodo = await executeQuery(dbConnection, queryTodo, [didOrden]);
         if (resultTodo[0].didProducto == null) {
             return { message: `No se encontró el producto ${resultTodo[0].codigo}`, success: false };
         }
@@ -68,7 +68,7 @@ async function getShipmentIdFromQrProd(dataQr, company) {
 
             if (company.did != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did], true);
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     return { message: "El envío no pertenece a la empresa", success: false };
@@ -81,7 +81,7 @@ async function getShipmentIdFromQrProd(dataQr, company) {
             const mlShipmentId = dataQr.id;
             const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
 
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [], true);
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
             if (resultQueryEnvios.length == 0) {
                 throw new CustomException({

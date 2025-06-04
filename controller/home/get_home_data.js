@@ -11,7 +11,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
-    const rows = await executeQuery(dbConnection, query, [userId], true);
+    const rows = await executeQuery(dbConnection, query, [userId]);
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
