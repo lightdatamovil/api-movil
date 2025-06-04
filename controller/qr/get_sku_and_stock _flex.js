@@ -17,7 +17,7 @@ export async function getSkuAndStockFlex(company, dataQr) {
 
 
         const queryData = `SELECT ml_venta_id, ml_pack_id FROM envios WHERE superado = 0 AND elim = 52 AND ml_shipment_id = ?`;
-        const resultData = await executeQuery(dbConnection, queryData, [tracking], true);
+        const resultData = await executeQuery(dbConnection, queryData, [tracking]);
 
         if (!resultData || resultData.length === 0) {
             return { message: "No se encontró el envío", success: false };
@@ -102,7 +102,7 @@ async function getShipmentIdFromQrProd(dataQr, company) {
 
             if (company.did != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did], true);
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     return { message: "El envío no pertenece a la empresa", success: false };
@@ -115,7 +115,7 @@ async function getShipmentIdFromQrProd(dataQr, company) {
             const mlShipmentId = dataQr.id;
             const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
 
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [], true);
+            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
             if (resultQueryEnvios.length == 0) {
                 throw new CustomException({
