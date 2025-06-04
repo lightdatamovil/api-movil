@@ -20,7 +20,20 @@ export async function shipmentList(
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
+  if (profile == 0) {
+    let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
+    const rows = await executeQuery(dbConnection, query, [userId], true);
+    if (rows && rows.length > 0) {
+      profile = parseInt(rows[0].perfil);
+    } else {
+      logRed(`No se encontró el perfil del usuario con ID ${userId}`);
+      throw new CustomException({
+        title: "Error al obtener perfil",
+        message: `No se encontró el perfil del usuario con ID ${userId}`,
+      });
+    }
+  }
   try {
     const hoy = date || new Date().toISOString().split("T")[0];
     // Obtener clientes y choferes
