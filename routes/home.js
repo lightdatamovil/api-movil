@@ -32,7 +32,6 @@ home.post("/home", verifyToken, async (req, res) => {
       });
     }
 
-    logCyan(`Iniciando ruta... ${JSON.stringify(req.body)}`);
     const { companyId, userId, dateYYYYMMDD } = req.body;
     let profile = req.body.profile;
     const company = await getCompanyById(companyId);
