@@ -9,7 +9,8 @@ export async function whatsappMessagesList(company) {
   dbConnection.connect();
 
   try {
-    const queryTexts = "SELECT texto FROM `mensajeria_app` ORDER BY tipo ASC;";
+    const queryTexts =
+      "SELECT texto FROM `mensajeria_app` WHERE superado = 0 ORDER BY tipo ASC;";
     const results = await executeQuery(dbConnection, queryTexts, []);
     return results.map((row) => row.texto);
   } catch (error) {
