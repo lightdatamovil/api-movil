@@ -10,8 +10,8 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
 
     const hour = dateYYYYMMDDHHSS.split(' ')[1];
     try {
-        const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo) VALUES (?, ?)";
-        await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0]);
+        const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo,desde) VALUES (?, ?,?)";
+        await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0, 3]);
 
         const sqlUpdateRuteo = "UPDATE ruteo SET hs_inicioApp = ? WHERE superado=0 AND elim=0 AND didChofer = ?";
         await executeQuery(dbConnection, sqlUpdateRuteo, [hour, userId]);
