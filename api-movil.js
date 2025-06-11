@@ -105,7 +105,7 @@ if (cluster.isMaster) {
                 logBlue(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
             });
         } catch (err) {
-            logRed('Error al iniciar el servidor:', err);
+            logRed(`Error al iniciar el servidor: ${err}`);
         }
     })();
 }

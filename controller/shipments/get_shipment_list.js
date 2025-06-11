@@ -155,6 +155,10 @@ export async function shipmentList(
     const rows = await executeQuery(dbConnection, query, []);
     const lista = [];
     for (const row of rows) {
+
+      logCyan(
+        `Procesando envío: ${row.didEnvio}, estado: ${row.estado}, cliente: ${row.didCliente}`
+      );
       const lat = row.lat !== "0" ? row.lat : "0";
       const long = row.lng !== "0" ? row.lng : "0";
       const logisticainversa = row.valor !== null;

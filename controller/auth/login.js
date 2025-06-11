@@ -17,29 +17,8 @@ export async function login(username, password, company) {
   dbConnection.connect();
 
   try {
-    const depotQuery =
-      "SELECT id, latitud, longitud, nombre  FROM `depositos`";
-    const resultsFromDepotQuery = await executeQuery(
-      dbConnection,
-      depotQuery,
-      []
-    );
 
     let userAddress = {};
-    let depots = [];
-
-    if (resultsFromDepotQuery.length > 0) {
-      for (let i = 0; i < resultsFromDepotQuery.length; i++) {
-        const element = resultsFromDepotQuery[i];
-        depots.push({
-          id: element.id,
-          latitude: element.latitud,
-          longitude: element.longitud,
-          name: element.nombre,
-          tipo: "depot",
-        });
-      }
-    }
 
     const userQuery = `SELECT
     u.did,
@@ -57,6 +36,7 @@ export async function login(username, password, company) {
     FROM sistema_usuarios as u
     JOIN sistema_usuarios_accesos as a on (a.elim=0 and a.superado=0 and a.usuario = u.did)
     WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
+
     const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
       username,
     ]);
@@ -103,9 +83,7 @@ export async function login(username, password, company) {
         name: "Casa",
         latitude: userHomeLatitude,
         longitude: userHomeLongitude,
-        home: "home",
       },
-      ...depots,
     ];
 
     return {
