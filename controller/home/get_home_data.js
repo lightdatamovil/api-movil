@@ -188,6 +188,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.superado = 0
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
                     AND eh.estado IN (${estadosPendientes})
+                    GROUP BY eh.didEnvio
                 `;
           const rowsPendientesOperador = await executeQuery(
             dbConnection,
