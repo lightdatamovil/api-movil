@@ -18,45 +18,23 @@ export async function login(username, password, company) {
 
   try {
     const depotQuery =
-      "SELECT id, latitud, longitud, nombre  FROM `depositos`";
+      "SELECT latitud, longitud FROM `depositos` where did = 1";
     const resultsFromDepotQuery = await executeQuery(
       dbConnection,
       depotQuery,
       []
     );
 
-    let userAddress = {};
-    let depots = [];
-
+    let depotLatitude,
+      depotLongitude,
+      userAddress = {};
     if (resultsFromDepotQuery.length > 0) {
-      for (let i = 0; i < resultsFromDepotQuery.length; i++) {
-        const element = resultsFromDepotQuery[i];
-        depots.push({
-          id: element.id,
-          latitude: element.latitud,
-          longitude: element.longitud,
-          name: element.nombre,
-          tipo: "depot",
-        });
-      }
+      const row = resultsFromDepotQuery[0];
+      depotLatitude = row.latitud;
+      depotLongitude = row.longitud;
     }
 
-    const userQuery = `SELECT
-    u.did,
-    u.bloqueado,
-    u.nombre,
-    u.apellido,
-    u.email,
-    u.telefono,
-    u.pass,
-    u.elim,
-    u.usuario,
-    u.token_fcm,
-    a.perfil,
-    u.direccion
-    FROM sistema_usuarios as u
-    JOIN sistema_usuarios_accesos as a on (a.elim=0 and a.superado=0 and a.usuario = u.did)
-    WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
+    const userQuery = `SELECT u.did, u.bloqueado, u.nombre, u.apellido, u.email, u.telefono, u.pass, u.elim, u.usuario, u.token_fcm , a.perfil, u.direccion FROM sistema_usuarios as u JOIN sistema_usuarios_accesos as a on ( a.elim=0 and a.superado=0 and a.usuario = u.did) WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
     const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
       username,
     ]);
@@ -99,13 +77,17 @@ export async function login(username, password, company) {
 
     const userLocations = [
       {
-        id: 0,
+        id: 2,
         name: "Casa",
         latitude: userHomeLatitude,
         longitude: userHomeLongitude,
-        home: "home",
       },
-      ...depots,
+      {
+        id: 3,
+        name: "Deposito",
+        latitude: depotLatitude,
+        longitude: depotLongitude,
+      },
     ];
 
     return {
