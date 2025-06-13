@@ -77,12 +77,13 @@ export async function login(username, password, company) {
       userHomeLongitude = userAddress.lng;
     }
 
-    const userLocations = [
+    const userHouses = [
       {
         id: 0,
         name: "Casa",
         latitude: userHomeLatitude,
         longitude: userHomeLongitude,
+        abreviation: "casa",
       },
     ];
 
@@ -95,7 +96,7 @@ export async function login(username, password, company) {
       hasShipmentProductsQr: company.did == 200,
       phone: user.telefono,
       token,
-      locations: userLocations,
+      houses: userHouses,
     };
   } catch (error) {
     logRed(`Error en login: ${error.stack}`);

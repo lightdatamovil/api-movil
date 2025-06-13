@@ -23,7 +23,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                     e.destination_comments, e.destination_city_name, e.destination_shipping_zip_code, 
                     e.destination_state_name, ea.orden, RP.orden AS ordenRuteo, e.ml_shipment_id, 
                     c.nombre_fantasia, e.destination_receiver_name, DATE(e.fecha_venta) as fechaVenta, 
-                    R.dataDeRuta as dataR, R.didDeposito
+                    R.dataDeRuta as dataR
                 FROM envios as e 
                 LEFT JOIN clientes AS c ON (c.elim = 0 AND c.superado = 0 AND c.did = e.didCliente)
                 LEFT JOIN ruteo AS R ON (R.superado = 0 AND R.elim = 0 AND R.didChofer = ?)
@@ -53,7 +53,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                 });
                 additionalRouteData = JSON.parse(row.dataR);
                 if (additionalRouteData.inicioEn == 'dep') {
-                    additionalRouteData.inicioEn = row.didDeposito;
+                    additionalRouteData.inicioEn = additionalRouteData.idDepositoComienzo;
                 }
                 if (additionalRouteData.inicioEn == 'casa' || additionalRouteData.inicioEn == 'casaChofer') {
                     additionalRouteData.inicioEn = 0;
@@ -61,14 +61,17 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                 if (additionalRouteData.inicioEn == 'parada') {
                     additionalRouteData.inicioEn = -1;
                 }
+                if (additionalRouteData.inicioEn == 'User Location') {
+                    additionalRouteData.inicioEn = -2;
+                }
                 if (additionalRouteData.finalizoEn == 'dep') {
-                    additionalRouteData.finalizoEn = row.didDeposito;
+                    additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion;
                 }
                 if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer') {
                     additionalRouteData.finalizoEn = 0;
                 }
                 if (additionalRouteData.finalizoEn == 'parada') {
-                    additionalRouteData.finalizoEn = -1;
+                    additionalRouteData.finalizoEn = -3;
                 }
             }
         } else {
