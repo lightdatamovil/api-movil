@@ -12,6 +12,7 @@ const map = Router();
 
 map.post('/get-route-by-user', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, dateYYYYMMDD } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -23,7 +24,6 @@ map.post('/get-route-by-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-route-by-user', message: mensajeError });
         }
 
-        const { companyId, userId, dateYYYYMMDD } = req.body;
         const company = await getCompanyById(companyId);
         const result = await getRouteByUserId(company, userId, dateYYYYMMDD);
 
@@ -45,6 +45,7 @@ map.post('/get-route-by-user', verifyToken, async (req, res) => {
 
 map.post('/geolocalize', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, shipmentId, latitude, longitude } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -56,7 +57,6 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en geolocalize', message: mensajeError });
         }
 
-        const { companyId, shipmentId, latitude, longitude } = req.body;
         const company = await getCompanyById(companyId);
         await geolocalize(company, shipmentId, latitude, longitude);
 
@@ -78,6 +78,7 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
 
 map.post('/save-route', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -89,7 +90,6 @@ map.post('/save-route', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en save-route', message: mensajeError });
         }
 
-        const { companyId, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData } = req.body;
         const company = await getCompanyById(companyId);
         const response = await saveRoute(
             company,

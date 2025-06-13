@@ -12,6 +12,7 @@ const settlements = Router();
 
 settlements.post('/settlement-list', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, from, to } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -23,7 +24,6 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en settlement-list', message: mensajeError });
         }
 
-        const { companyId, userId, from, to } = req.body;
         const company = await getCompanyById(companyId);
         const list = await getSettlementList(company, userId, from, to);
 
@@ -45,6 +45,7 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
 
 settlements.post('/settlement-details', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, settlementId } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -56,7 +57,6 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en settlement-details', message: mensajeError });
         }
 
-        const { companyId, settlementId } = req.body;
         const company = await getCompanyById(companyId);
         const details = await getSettlementDetails(company, settlementId);
 
@@ -78,6 +78,7 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
 
 settlements.post('/settlement-shipment-details', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -89,7 +90,6 @@ settlements.post('/settlement-shipment-details', verifyToken, async (req, res) =
             throw new CustomException({ title: 'Error en settlement-shipment-details', message: mensajeError });
         }
 
-        const { companyId, userId } = req.body;
         const company = await getCompanyById(companyId);
         const shipments = await getSettlementShipmentDetails(company, userId);
 

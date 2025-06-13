@@ -12,6 +12,15 @@ const shipments = Router();
 
 shipments.post("/shipment-list", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const {
+    companyId,
+    userId,
+    profile,
+    from,
+    shipmentStates,
+    isAssignedToday,
+    date,
+  } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -33,15 +42,6 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
       });
     }
 
-    const {
-      companyId,
-      userId,
-      profile,
-      from,
-      shipmentStates,
-      isAssignedToday,
-      date,
-    } = req.body;
 
     //console.log(req.body, "pa chrisss");
 
@@ -76,6 +76,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
 
 shipments.post("/shipment-details", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, shipmentId } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -90,7 +91,6 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, shipmentId } = req.body;
     const company = await getCompanyById(companyId);
     const result = await shipmentDetails(company, shipmentId, userId);
 
@@ -116,6 +116,7 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
 shipments.post("/next-visit", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, shipmentId, dateYYYYMMDD } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -130,7 +131,6 @@ shipments.post("/next-visit", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, shipmentId, dateYYYYMMDD } = req.body;
     const company = await getCompanyById(companyId);
     const result = await nextDeliver(company, shipmentId, dateYYYYMMDD, userId);
 

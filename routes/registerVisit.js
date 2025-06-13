@@ -11,6 +11,17 @@ const registerVisitRoute = Router();
 
 registerVisitRoute.post('/register', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const {
+        companyId,
+        userId,
+        shipmentId,
+        recieverDNI,
+        recieverName,
+        latitude,
+        longitude,
+        shipmentState,
+        observation
+    } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -28,17 +39,6 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en register', message: mensajeError });
         }
 
-        const {
-            companyId,
-            userId,
-            shipmentId,
-            recieverDNI,
-            recieverName,
-            latitude,
-            longitude,
-            shipmentState,
-            observation
-        } = req.body;
         const company = await getCompanyById(companyId);
         const result = await registerVisit(
             company,
@@ -70,6 +70,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
 
 registerVisitRoute.post('/upload-image', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, shipmentId, userId, shipmentState, image, lineId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -84,7 +85,6 @@ registerVisitRoute.post('/upload-image', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en upload-image', message: mensajeError });
         }
 
-        const { companyId, shipmentId, userId, shipmentState, image, lineId } = req.body;
         const company = await getCompanyById(companyId);
         const response = await uploadImage(company, shipmentId, userId, shipmentState, image, lineId);
 

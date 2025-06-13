@@ -17,6 +17,7 @@ const qr = Router();
 
 qr.post("/driver-list", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId } = req.body;
   try {
     const mensajeError = verifyParamaters(req.body, ["companyId"], true);
     if (mensajeError) {
@@ -27,7 +28,6 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId } = req.body;
     const company = await getCompanyById(companyId);
     const result = await driverList(company);
 
@@ -51,6 +51,7 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
 
 qr.post("/cross-docking", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -65,7 +66,6 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, dataQr } = req.body;
     const company = await getCompanyById(companyId);
     const response = await crossDocking(dataQr, company);
 
@@ -89,6 +89,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
 
 qr.post("/get-shipment-id", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -103,7 +104,6 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, dataQr } = req.body;
     const company = await getCompanyById(companyId);
     const response = await getShipmentIdFromQr(dataQr, company);
 
@@ -129,6 +129,7 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
 
 qr.post("/products-from-shipment", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(req.body, ["dataQr"], true);
     if (mensajeError) {
@@ -139,7 +140,6 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
       });
     }
 
-    const { dataQr } = req.body;
     const response = await getProductsFromShipment(dataQr);
 
     logGreen(`Productos obtenidos correctamente`);
@@ -166,6 +166,7 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
 
 qr.post("/enter-flex", async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, dataQr, profile } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -180,7 +181,6 @@ qr.post("/enter-flex", async (req, res) => {
       });
     }
 
-    const { companyId, userId, dataQr, profile } = req.body;
     const company = await getCompanyById(companyId);
     const result = await enterFlex(company, dataQr, userId, profile);
 
@@ -204,6 +204,7 @@ qr.post("/enter-flex", async (req, res) => {
 
 qr.post("/sku", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -218,7 +219,6 @@ qr.post("/sku", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, dataQr } = req.body;
     const company = await getCompanyById(companyId);
     const isLocal = dataQr.hasOwnProperty("local");
     let result;
@@ -246,6 +246,7 @@ qr.post("/sku", verifyToken, async (req, res) => {
 
 qr.post("/armado", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, dataEnvios, didCliente, fecha } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -260,7 +261,6 @@ qr.post("/armado", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dataEnvios, didCliente, fecha } = req.body;
     const company = await getCompanyById(companyId);
     const result = await armado(company, userId, dataEnvios, didCliente, fecha);
 

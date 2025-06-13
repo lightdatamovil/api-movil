@@ -10,6 +10,7 @@ const accounts = Router();
 
 accounts.post('/account-list', verifyToken, async (req, res) => {
 	const startTime = performance.now();
+	const { companyId, userId, profile } = req.body;
 
 	try {
 		const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'profile']);
@@ -21,7 +22,6 @@ accounts.post('/account-list', verifyToken, async (req, res) => {
 			});
 		}
 
-		const { companyId, userId, profile } = req.body;
 		const company = await getCompanyById(companyId);
 		const result = await accountList(company, userId, profile);
 

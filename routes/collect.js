@@ -22,6 +22,7 @@ const collect = Router();
 
 collect.post("/get-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, dateYYYYMMDD } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'dateYYYYMMDD'], true);
         if (mensajeError) {
@@ -29,7 +30,6 @@ collect.post("/get-route", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-route', message: mensajeError });
         }
 
-        const { companyId, userId, dateYYYYMMDD } = req.body;
         const company = await getCompanyById(companyId);
         const route = await getRoute(company, userId, dateYYYYMMDD);
 
@@ -51,6 +51,7 @@ collect.post("/get-route", verifyToken, async (req, res) => {
 
 collect.post("/start-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, ['companyId', 'userId'], true);
         if (mensajeError) {
@@ -58,7 +59,6 @@ collect.post("/start-route", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en start-route', message: mensajeError });
         }
 
-        const { companyId, userId } = req.body;
         const company = await getCompanyById(companyId);
         const startedRoute = await startCollectRoute(company, userId);
 
@@ -80,6 +80,7 @@ collect.post("/start-route", verifyToken, async (req, res) => {
 
 collect.post("/save-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, dateYYYYMMDD, additionalRouteData, orders } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -94,7 +95,6 @@ collect.post("/save-route", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en save-route', message: mensajeError });
         }
 
-        const { companyId, userId, dateYYYYMMDD, additionalRouteData, orders } = req.body;
         const company = await getCompanyById(companyId);
         const savedRoute = await saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders);
 
@@ -116,6 +116,7 @@ collect.post("/save-route", verifyToken, async (req, res) => {
 
 collect.post("/get-collect-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, profile, dateYYYYMMDD } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -150,6 +151,7 @@ collect.post("/get-collect-details", verifyToken, async (req, res) => {
 
 collect.post("/get-client-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, dateYYYYMMDD, clientId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -183,6 +185,7 @@ collect.post("/get-client-details", verifyToken, async (req, res) => {
 
 collect.post("/get-collect-list", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, from, to } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -217,6 +220,7 @@ collect.post("/get-collect-list", verifyToken, async (req, res) => {
 
 collect.post("/get-settlement-list", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, from, to } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -250,6 +254,7 @@ collect.post("/get-settlement-list", verifyToken, async (req, res) => {
 
 collect.post("/get-settlement-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, settlementId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',

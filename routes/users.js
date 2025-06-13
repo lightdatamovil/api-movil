@@ -13,6 +13,7 @@ const users = Router();
 
 users.post('/edit-user', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, email, phone } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -24,7 +25,6 @@ users.post('/edit-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en edit-user', message: mensajeError });
         }
 
-        const { companyId, userId, email, phone } = req.body;
         const company = await getCompanyById(companyId);
         const result = await editUser(company, userId, email, phone);
 
@@ -46,6 +46,7 @@ users.post('/edit-user', verifyToken, async (req, res) => {
 
 users.post('/change-password', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, oldPassword, newPassword } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -57,7 +58,6 @@ users.post('/change-password', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en change-password', message: mensajeError });
         }
 
-        const { companyId, userId, oldPassword, newPassword } = req.body;
         const oldPasswordHash = createHash('sha256').update(oldPassword).digest('hex');
         const newPasswordHash = createHash('sha256').update(newPassword).digest('hex');
         const company = await getCompanyById(companyId);
@@ -81,6 +81,7 @@ users.post('/change-password', verifyToken, async (req, res) => {
 
 users.post('/change-profile-picture', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, profile, image, dateYYYYMMDD } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -92,7 +93,6 @@ users.post('/change-profile-picture', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en change-profile-picture', message: mensajeError });
         }
 
-        const { companyId, userId, profile, image, dateYYYYMMDD } = req.body;
         const company = await getCompanyById(companyId);
         const result = await changeProfilePicture(company, userId, profile, image, dateYYYYMMDD);
 

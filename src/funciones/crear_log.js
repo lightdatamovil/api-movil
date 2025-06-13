@@ -1,41 +1,16 @@
-import mysql2 from 'mysql2';
+import { executeQuery, poolLocal } from "../../db.js";
+import { logGreen, logRed } from "./logsCustom.js";
 
-export async function crearLog(idEmpresa, operador, endpoint, result, quien, idDispositivo, modelo, marca, versionAndroid, versionApp) {
-    const dbConfig = getDbConfig(company.did);
-    const dbConnection = mysql2.createConnection(dbConfig);
+export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito) {
+    try {
+        const sqlLog = `INSERT INTO logs_v2 (empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    return new Promise((resolve, reject) => {
-        dbConnection.connect((err) => {
-            if (err) {
-                return reject({ error: "error", details: err.message });
-            }
+        const values = [empresa, usuario, perfil, JSON.stringify(body), tiempo, resultado, JSON.stringify(endpoint), exito];
 
-            const sql = `
-                INSERT INTO logs (company, operador, request, response, quien, dispositivo, uid, appversion)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-
-            const values = [
-                idEmpresa,
-                operador,
-                endpoint,
-                JSON.stringify(result),
-                quien,
-                `${modelo} ${marca} ${versionAndroid}`,
-                idDispositivo,
-                versionApp
-            ];
-
-            const queryString = mysql2.format(sql, values);
-
-            dbConnection.query(sql, values, (err, results) => {
-                dbConnection.end();
-                if (err) {
-                    return reject({ error: "error", details: err.message, query: queryString });
-                } else {
-                    return resolve({ error: "no error", results: results, query: queryString });
-                }
-            });
-        });
-    });
+        await executeQuery(poolLocal, sqlLog, values);
+        logGreen(`Log creado: ${JSON.stringify(values)}`);
+    } catch (error) {
+        logRed(`Error en crearLog: ${error.stack}`)
+        throw error;
+    }
 }

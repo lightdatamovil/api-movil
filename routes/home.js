@@ -18,6 +18,7 @@ const home = Router();
 
 home.post("/home", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, profile, dateYYYYMMDD } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -32,8 +33,6 @@ home.post("/home", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dateYYYYMMDD } = req.body;
-    let profile = req.body.profile;
     const company = await getCompanyById(companyId);
     const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
 
@@ -57,6 +56,7 @@ home.post("/home", verifyToken, async (req, res) => {
 
 home.post("/start-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -71,7 +71,6 @@ home.post("/start-route", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
     const company = await getCompanyById(companyId);
     const result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
 
@@ -95,6 +94,7 @@ home.post("/start-route", verifyToken, async (req, res) => {
 
 home.post("/end-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, dateYYYYMMDD } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -109,7 +109,6 @@ home.post("/end-route", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dateYYYYMMDD } = req.body;
     const company = await getCompanyById(companyId);
     await finishRoute(company, userId, dateYYYYMMDD);
 
@@ -131,6 +130,7 @@ home.post("/end-route", verifyToken, async (req, res) => {
 
 home.post("/verify-started-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -145,7 +145,6 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId } = req.body;
     const company = await getCompanyById(companyId);
     const result = await verifyStartedRoute(company, userId);
 
