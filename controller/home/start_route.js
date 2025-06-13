@@ -33,17 +33,25 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
         const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
 
         if (envios.length > 0) {
-            shipmentIds = envios.map(envio => envio.didEnvio); const q = `SELECT did FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
-            const enviosPendientes = await executeQuery(dbConnection, q, [[2, 5, 7, 8, 9, 14], shipmentIds]);
+            shipmentIds = envios.map(envio => envio.didEnvio); const q = `SELECT did, estado_envio FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
+            const enviosPendientes = await executeQuery(dbConnection, q, [[5, 7, 8, 9, 14], shipmentIds]);
 
-            const enviosPendientesIds = enviosPendientes.map(envio => envio.did);
-            const enviosEnCaminoIds = enviosPendientes.filter(estado => estado.estado_envio === 2);
+            let enCaminoIds = enviosPendientes
+                .filter(e => e.estado_envio == 2)
+                .map(e => e.did);
+
+            let pendientesIds = enviosPendientes
+                .filter(e => e.estado_envio != 2)
+                .map(e => e.did);
+
+
+
             if (company.did == 22
-                && enviosEnCaminoIds.length > 0) {
-                await fsetestadoMasivoDesde(dbConnection, enviosEnCaminoIds, deviceFrom, dateYYYYMMDDHHSS, userId, 11);
+                && enCaminoIds.length > 0) {
+                await fsetestadoMasivoDesde(dbConnection, enCaminoIds, deviceFrom, dateYYYYMMDDHHSS, userId, 11);
             }
-            if (enviosPendientesIds.length > 0) {
-                await fsetestadoMasivoDesde(dbConnection, enviosPendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId, 2);
+            if (pendientesIds.length > 0) {
+                await fsetestadoMasivoDesde(dbConnection, pendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId, 2);
             }
         }
     } catch (error) {
