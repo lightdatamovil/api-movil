@@ -17,12 +17,13 @@ import { getSettlementDetails } from '../controller/settlements/get_settlement_d
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
+import { crearLog } from '../src/funciones/crear_log.js';
 
 const collect = Router();
 
 collect.post("/get-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, dateYYYYMMDD } = req.body;
+    const { companyId, userId, profile, dateYYYYMMDD } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'dateYYYYMMDD'], true);
         if (mensajeError) {
@@ -34,13 +35,16 @@ collect.post("/get-route", verifyToken, async (req, res) => {
         const route = await getRoute(company, userId, dateYYYYMMDD);
 
         logGreen(`Ruta obtenida correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(route), "/get-route", true);
         res.status(200).json({ body: route, message: "Ruta obtenida correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en get-route: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-route", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en get-route: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-route", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -51,7 +55,7 @@ collect.post("/get-route", verifyToken, async (req, res) => {
 
 collect.post("/start-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId } = req.body;
+    const { companyId, userId, profile } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, ['companyId', 'userId'], true);
         if (mensajeError) {
@@ -63,10 +67,12 @@ collect.post("/start-route", verifyToken, async (req, res) => {
         const startedRoute = await startCollectRoute(company, userId);
 
         logGreen(`Ruta comenzada correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(startedRoute), "/start-route", true);
         res.status(200).json({ body: startedRoute, message: "Ruta comenzada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en start-route: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/start-route", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en start-route: ${error}`);
@@ -80,7 +86,7 @@ collect.post("/start-route", verifyToken, async (req, res) => {
 
 collect.post("/save-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, dateYYYYMMDD, additionalRouteData, orders } = req.body;
+    const { companyId, userId, profile, dateYYYYMMDD, additionalRouteData, orders } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -99,13 +105,16 @@ collect.post("/save-route", verifyToken, async (req, res) => {
         const savedRoute = await saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders);
 
         logGreen(`Ruta guardada correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(savedRoute), "/save-route", true);
         res.status(200).json({ body: savedRoute, message: "Ruta guardada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en save-route: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/save-route", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en save-route: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/save-route", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -129,18 +138,20 @@ collect.post("/get-collect-details", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-collect-details', message: mensajeError });
         }
 
-        const { companyId, userId, profile, dateYYYYMMDD } = req.body;
         const company = await getCompanyById(companyId);
         const collectDetails = await getCollectDetails(company, userId, profile, dateYYYYMMDD);
 
         logGreen(`Colecta obtenida correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(collectDetails), "/get-collect-details", true);
         res.status(200).json({ body: collectDetails, message: "Colecta obtenida correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en get-collect-details: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-collect-details", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en get-collect-details: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-collect-details", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -151,7 +162,7 @@ collect.post("/get-collect-details", verifyToken, async (req, res) => {
 
 collect.post("/get-client-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, dateYYYYMMDD, clientId } = req.body;
+    const { companyId, userId, profile, dateYYYYMMDD, clientId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -163,18 +174,20 @@ collect.post("/get-client-details", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-client-details', message: mensajeError });
         }
 
-        const { companyId, dateYYYYMMDD, clientId } = req.body;
         const company = await getCompanyById(companyId);
         const shipments = await shipmentsFromClient(company, dateYYYYMMDD, clientId);
 
         logGreen(`Envíos obtenidos correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(shipments), "/get-client-details", true);
         res.status(200).json({ body: shipments, message: "Envíos obtenidos correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en get-client-details: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-client-details", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en get-client-details: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-client-details", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -185,7 +198,7 @@ collect.post("/get-client-details", verifyToken, async (req, res) => {
 
 collect.post("/get-collect-list", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, from, to } = req.body;
+    const { companyId, userId, profile, from, to } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -198,18 +211,20 @@ collect.post("/get-collect-list", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-collect-list', message: mensajeError });
         }
 
-        const { companyId, userId, from, to } = req.body;
         const company = await getCompanyById(companyId);
         const list = await getCollectList(company, userId, from, to);
 
         logGreen(`Listado de colectas obtenido correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(list), "/get-collect-list", true);
         res.status(200).json({ body: list, message: "Listado de colectas obtenido correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en get-collect-list: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-collect-list", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en get-collect-list: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-collect-list", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -220,7 +235,7 @@ collect.post("/get-collect-list", verifyToken, async (req, res) => {
 
 collect.post("/get-settlement-list", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, from, to } = req.body;
+    const { companyId, userId, profile, from, to } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -232,18 +247,20 @@ collect.post("/get-settlement-list", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-settlement-list', message: mensajeError });
         }
 
-        const { companyId, from, to } = req.body;
         const company = await getCompanyById(companyId);
         const settlements = await getSettlementList(company, from, to);
 
         logGreen(`Listado de liquidaciones obtenido correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(settlements), "/get-settlement-list", true);
         res.status(200).json({ body: settlements, message: "Listado de liquidaciones obtenido correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en get-settlement-list: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-settlement-list", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en get-settlement-list: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-settlement-list", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -254,7 +271,7 @@ collect.post("/get-settlement-list", verifyToken, async (req, res) => {
 
 collect.post("/get-settlement-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, settlementId } = req.body;
+    const { companyId, userId, profile, settlementId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -265,18 +282,20 @@ collect.post("/get-settlement-details", verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-settlement-details', message: mensajeError });
         }
 
-        const { companyId, settlementId } = req.body;
         const company = await getCompanyById(companyId);
         const details = await getSettlementDetails(company, settlementId);
 
         logGreen(`Detalle de liquidación obtenido correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(details), "/get-settlement-details", true);
         res.status(200).json({ body: details, message: "Detalle de liquidación obtenido correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en get-settlement-details: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-settlement-details", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en get-settlement-details: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-settlement-details", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
