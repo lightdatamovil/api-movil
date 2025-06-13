@@ -13,6 +13,7 @@
   "author": "lightdata",
   "license": "ISC",
   "dependencies": {
+    "amqplib": "^0.10.8",
     "axios": "^1.7.9",
     "body-parser": "^1.20.2",
     "cluster": "^0.7.7",

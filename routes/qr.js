@@ -164,12 +164,12 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
   }
 });
 
-qr.post("/enter-flex", verifyToken, async (req, res) => {
+qr.post("/enter-flex", async (req, res) => {
   const startTime = performance.now();
   try {
     const mensajeError = verifyParamaters(
       req.body,
-      ["companyId", "userId", "dataQr"],
+      ["companyId", "userId", "profile", "dataQr"],
       true
     );
     if (mensajeError) {
@@ -180,9 +180,9 @@ qr.post("/enter-flex", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dataQr } = req.body;
+    const { companyId, userId, dataQr, profile } = req.body;
     const company = await getCompanyById(companyId);
-    const result = await enterFlex(company, dataQr, userId);
+    const result = await enterFlex(company, dataQr, userId, profile);
 
     logGreen(`Enter flex ejecutado correctamente`);
     res
