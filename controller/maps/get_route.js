@@ -53,7 +53,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                 });
                 additionalRouteData = JSON.parse(row.dataR);
                 if (additionalRouteData.inicioEn == 'dep') {
-                    additionalRouteData.inicioEn = additionalRouteData.idDepositoComienzo;
+                    additionalRouteData.inicioEn = additionalRouteData.idDepositoComienzo * 1;
                 }
                 if (additionalRouteData.inicioEn == 'casa' || additionalRouteData.inicioEn == 'casaChofer') {
                     additionalRouteData.inicioEn = 0;
@@ -65,7 +65,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                     additionalRouteData.inicioEn = -2;
                 }
                 if (additionalRouteData.finalizoEn == 'dep') {
-                    additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion;
+                    additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion * 1;
                 }
                 if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer') {
                     additionalRouteData.finalizoEn = 0;
@@ -73,6 +73,8 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                 if (additionalRouteData.finalizoEn == 'parada') {
                     additionalRouteData.finalizoEn = -3;
                 }
+                additionalRouteData.idDepositoComienzo = additionalRouteData.idDepositoComienzo * 1;
+                additionalRouteData.idDepositoFinalizacion = additionalRouteData.idDepositoFinalizacion * 1;
             }
         } else {
             // No tiene ruta asignada, obtener envíos sin orden

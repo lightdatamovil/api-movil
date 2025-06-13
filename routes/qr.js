@@ -12,6 +12,7 @@ import CustomException from "../classes/custom_exception.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
 import { getSkuAndStockFlex } from "../controller/qr/get_sku_and_stock _flex.js";
+import { parseIfJson } from "../src/funciones/isValidJson.js";
 
 const qr = Router();
 
@@ -65,7 +66,8 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, dataQr } = req.body;
+    let { companyId, dataQr } = req.body;
+    dataQr = parseIfJson(dataQr);
     const company = await getCompanyById(companyId);
     const response = await crossDocking(dataQr, company);
 
@@ -103,7 +105,9 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, dataQr } = req.body;
+    let { companyId, dataQr } = req.body;
+    dataQr = parseIfJson(dataQr);
+    logYellow(`dataQr: ${dataQr}`);
     const company = await getCompanyById(companyId);
     const response = await getShipmentIdFromQr(dataQr, company);
 
@@ -139,7 +143,9 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
       });
     }
 
-    const { dataQr } = req.body;
+    let { dataQr } = req.body;
+    dataQr = parseIfJson(dataQr);
+
     const response = await getProductsFromShipment(dataQr);
 
     logGreen(`Productos obtenidos correctamente`);
@@ -180,7 +186,9 @@ qr.post("/enter-flex", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dataQr } = req.body;
+    let { companyId, userId, dataQr } = req.body;
+    dataQr = parseIfJson(dataQr);
+
     const company = await getCompanyById(companyId);
     const result = await enterFlex(company, dataQr, userId);
 
@@ -218,7 +226,9 @@ qr.post("/sku", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, dataQr } = req.body;
+    let { companyId, dataQr } = req.body;
+    dataQr = parseIfJson(dataQr);
+
     const company = await getCompanyById(companyId);
     const isLocal = dataQr.hasOwnProperty("local");
     let result;
