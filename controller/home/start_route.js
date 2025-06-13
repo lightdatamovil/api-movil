@@ -34,11 +34,17 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
 
         if (envios.length > 0) {
             shipmentIds = envios.map(envio => envio.didEnvio); const q = `SELECT did FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
-            const enviosPendientes = await executeQuery(dbConnection, q, [[5, 7, 8, 9, 14], shipmentIds]);
+            const enviosPendientes = await executeQuery(dbConnection, q, [[2, 5, 7, 8, 9, 14], shipmentIds]);
 
             const enviosPendientesIds = enviosPendientes.map(envio => envio.did);
-
-            await fsetestadoMasivoDesde(dbConnection, enviosPendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId);
+            const enviosEnCaminoIds = enviosPendientes.filter(estado => estado.estado_envio === 2);
+            if (company.did == 22
+                && enviosEnCaminoIds.length > 0) {
+                await fsetestadoMasivoDesde(dbConnection, enviosEnCaminoIds, deviceFrom, dateYYYYMMDDHHSS, userId, 11);
+            }
+            if (enviosPendientesIds.length > 0) {
+                await fsetestadoMasivoDesde(dbConnection, enviosPendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId, 2);
+            }
         }
     } catch (error) {
         logRed(`Error en startRoute: ${error.stack}`);
@@ -55,9 +61,8 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
     }
 }
 
-async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS, userId) {
+async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS, userId, onTheWayState) {
     try {
-        const onTheWayState = 2;
         const query1 = `
             UPDATE envios_historial
             SET superado = 1
