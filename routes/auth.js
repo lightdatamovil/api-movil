@@ -32,13 +32,16 @@ auth.post('/company-identification', async (req, res) => {
         const result = await identification(company);
 
         logGreen(`Empresa identificada correctamente`);
+        crearLog(company.did, null, null, req.body, performance.now() - startTime, JSON.stringify(result), "/company-identification", true);
         res.status(200).json({ body: result, message: "Empresa identificada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en login: ${error} `);
+            crearLog(null, null, null, req.body, performance.now() - startTime, JSON.stringify(error), "/company-identification", false);
             res.status(400).json(error);
         } else {
             logRed(`Error 500 en login: ${error} `);
+            crearLog(null, null, null, req.body, performance.now() - startTime, JSON.stringify(error.message), "/company-identification", false);
             res.status(500).json({ title: 'Error interno del servidor', message: 'Unhandled Error', stack: error.stack });
         }
     } finally {
@@ -97,13 +100,15 @@ auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
     try {
         const company = await getCompanyById(companyId);
         const result = await whatsappMessagesList(company);
-
+        crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(result), "/whatsapp-message-list", true);
         res.status(200).json({ body: result, message: "Mensajes traidos correctamente" });
     } catch (error) {
         logRed(`Error en whatsapp - message - list: ${error.stack} `);
         if (error instanceof CustomException) {
+            crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(error), "/whatsapp-message-list", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
+            crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(error.message), "/whatsapp-message-list", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
