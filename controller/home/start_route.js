@@ -46,8 +46,7 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
 
 
 
-            if (company.did == 22
-                && enCaminoIds.length > 0) {
+            if ((company.did == 22 || company.did == 20) && enCaminoIds.length > 0) {
                 await fsetestadoMasivoDesde(dbConnection, enCaminoIds, deviceFrom, dateYYYYMMDDHHSS, userId, 11);
             }
             if (pendientesIds.length > 0) {
