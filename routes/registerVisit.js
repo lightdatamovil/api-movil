@@ -76,7 +76,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
 
 registerVisitRoute.post('/upload-image', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, shipmentId, userId, shipmentState, image, lineId } = req.body;
+    const { companyId, shipmentId, userId, profile, shipmentState, image, lineId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
@@ -96,7 +96,7 @@ registerVisitRoute.post('/upload-image', verifyToken, async (req, res) => {
 
         logGreen(`Imagen subida correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/upload-image", true);
-        res.status(200).json({ body: response, message: "Imagen subida correctamente" });
+        res.status(200).json({ message: "Imagen subida correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en upload-image: ${error}`);

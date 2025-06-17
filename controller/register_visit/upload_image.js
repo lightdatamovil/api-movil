@@ -32,6 +32,10 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
         await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
+        return {
+            message: "Imagen subida correctamente",
+
+        }
     } catch (error) {
         logRed(`Error en uploadImage: ${error.stack}`);
         if (error instanceof CustomException) {
