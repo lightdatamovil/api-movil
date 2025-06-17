@@ -21,7 +21,8 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
         latitude,
         longitude,
         shipmentState,
-        observation
+        observation,
+        date,
     } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
@@ -50,7 +51,8 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
             latitude,
             longitude,
             shipmentState,
-            observation
+            observation,
+            date,
         );
 
         logGreen(`Visita registrada correctamente`);
