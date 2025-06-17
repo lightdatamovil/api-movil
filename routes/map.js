@@ -48,7 +48,7 @@ map.post('/get-route-by-user', verifyToken, async (req, res) => {
 
 map.post('/geolocalize', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, shipmentId, latitude, longitude } = req.body;
+    const { companyId, profile, userId, shipmentId, latitude, longitude } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -64,13 +64,18 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
         await geolocalize(company, shipmentId, latitude, longitude);
 
         logGreen(`Geolocalización registrada correctamente`);
-        res.status(200).json({ message: "Geolocalización registrada correctamente" });
+
+        const result = { message: "Geolocalización registrada correctamente" };
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, result, "/geolocalize", true);
+        res.status(200).json();
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en geolocalize: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/geolocalize", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en geolocalize: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/geolocalize", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -81,7 +86,7 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
 
 map.post('/save-route', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData } = req.body;
+    const { companyId, userId, profile, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -105,13 +110,16 @@ map.post('/save-route', verifyToken, async (req, res) => {
         );
 
         logGreen(`Ruta guardada correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/save-route", true);
         res.status(200).json({ body: response, message: "Ruta guardada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en save-route: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/save-route", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en save-route: ${error}`);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/save-route", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {

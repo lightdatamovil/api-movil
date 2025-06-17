@@ -12,12 +12,13 @@ import CustomException from "../classes/custom_exception.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
 import { getSkuAndStockFlex } from "../controller/qr/get_sku_and_stock _flex.js";
+import { crearLog } from "../src/funciones/crear_log.js";
 
 const qr = Router();
 
 qr.post("/driver-list", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId } = req.body;
+  const { companyId, userId, profile } = req.body;
   try {
     const mensajeError = verifyParamaters(req.body, ["companyId"], true);
     if (mensajeError) {
@@ -32,15 +33,18 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
     const result = await driverList(company);
 
     logGreen(`Listado de choferes obtenido correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/driver-list", true);
     res
       .status(200)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en driver-list: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/driver-list", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en driver-list: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/driver-list", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -51,7 +55,7 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
 
 qr.post("/cross-docking", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, dataQr } = req.body;
+  const { companyId, userId, profile, dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -70,15 +74,18 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
     const response = await crossDocking(dataQr, company);
 
     logGreen(`Cross-docking completado correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/cross-docking", true);
     res
       .status(200)
       .json({ body: response, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en cross-docking: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cross-docking", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en cross-docking: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/cross-docking", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -108,6 +115,7 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
     const response = await getShipmentIdFromQr(dataQr, company);
 
     logGreen(`ID de envío obtenido correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/get-shipment-id", true);
     res.status(200).json({
       success: true,
       body: `${response}`,
@@ -116,9 +124,11 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en get-shipment-id: ${error.toJSON()}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-shipment-id", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en get-shipment-id: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-shipment-id", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -129,7 +139,7 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
 
 qr.post("/products-from-shipment", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { dataQr } = req.body;
+  const { companyId, userId, profile, dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(req.body, ["dataQr"], true);
     if (mensajeError) {
@@ -143,15 +153,18 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
     const response = await getProductsFromShipment(dataQr);
 
     logGreen(`Productos obtenidos correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/products-from-shipment", true);
     res
       .status(200)
       .json({ body: response, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en products-from-shipment: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/products-from-shipment", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en products-from-shipment: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/products-from-shipment", false);
       res
         .status(500)
         .json({ success: false, message: "Error interno del servidor." });
@@ -185,15 +198,18 @@ qr.post("/enter-flex", async (req, res) => {
     const result = await enterFlex(company, dataQr, userId, profile);
 
     logGreen(`Enter flex ejecutado correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/enter-flex", true);
     res
       .status(200)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en enter-flex: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/enter-flex", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en enter-flex: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/enter-flex", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -204,7 +220,7 @@ qr.post("/enter-flex", async (req, res) => {
 
 qr.post("/sku", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, dataQr } = req.body;
+  const { companyId, userId, profile, dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -229,13 +245,16 @@ qr.post("/sku", verifyToken, async (req, res) => {
     }
 
     logGreen(`SKU y cantidad de ítems obtenidos correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/sku", true);
     res.status(200).json(result);
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en sku: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/sku", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en sku: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/sku", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -246,7 +265,7 @@ qr.post("/sku", verifyToken, async (req, res) => {
 
 qr.post("/armado", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, dataEnvios, didCliente, fecha } = req.body;
+  const { companyId, userId, profile, dataEnvios, didCliente, fecha } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -265,6 +284,7 @@ qr.post("/armado", verifyToken, async (req, res) => {
     const result = await armado(company, userId, dataEnvios, didCliente, fecha);
 
     logGreen(`Armado ejecutado correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/armado", true);
     res.status(200).json({
       body: result,
       message: "Datos obtenidos correctamente",
@@ -273,9 +293,11 @@ qr.post("/armado", verifyToken, async (req, res) => {
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en armado: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/armado", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en armado: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/armado", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
