@@ -146,7 +146,11 @@ export async function registerVisit(
 
     const queryInsertEnviosHistorial =
       "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, 'APP NUEVA', ?)";
-
+    if (company.did == 240) {
+      const now = new Date();
+      now.setHours(now.getHours() - 2);
+      date = now.toISOString().slice(0, 19).replace('T', ' ');
+    }
     const historialResult = await executeQuery(
       dbConnection,
       queryInsertEnviosHistorial,
