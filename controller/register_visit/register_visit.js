@@ -1,7 +1,7 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 
@@ -144,12 +144,20 @@ export async function registerVisit(
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
 
     const queryInsertEnviosHistorial =
-      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, NOW(), 'APP NUEVA', ?)";
-
+      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, 'APP NUEVA', ?)";
+    let date;
+    const now = new Date();
+    if (company.did == 240) {
+      now.setHours(now.getHours() - 5);
+      date = now.toISOString().slice(0, 19).replace('T', ' ');
+    } else {
+      now.setHours(now.getHours() - 3);
+      date = now.toISOString().slice(0, 19).replace('T', ' ');
+    }
     const historialResult = await executeQuery(
       dbConnection,
       queryInsertEnviosHistorial,
-      [shipmentId, shipmentState, assignedDriverId, userId]
+      [shipmentId, shipmentState, assignedDriverId, date, userId]
     );
 
     const idInsertado = historialResult.insertId;

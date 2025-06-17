@@ -79,7 +79,7 @@ export async function login(username, password, company) {
 
     const userHouses = [
       {
-        id: 0,
+        id: 2,
         name: "Casa",
         latitude: userHomeLatitude,
         longitude: userHomeLongitude,

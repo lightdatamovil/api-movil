@@ -2,8 +2,9 @@ import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
+import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
 
-export async function enterFlex(company, dataQr, userId) {
+export async function enterFlex(company, dataQr, userId, profile) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -80,24 +81,14 @@ export async function enterFlex(company, dataQr, userId) {
 
             let shipmentState = 0;
 
-            const perfilQuery = `
-                    SELECT perfil FROM sistema_usuarios_accesos 
-                    WHERE superado = 0 AND elim = 0 AND usuario = ?
-            `;
-
-            const perfilResult = await executeQuery(dbConnection, perfilQuery, [userId]);
-
-            let queperfil = 0;
-            if (perfilResult.length > 0) {
-                if (perfilResult[0].perfil === 2) {
-                    shipmentState = 7;
-                }
-                queperfil = perfilResult[0].perfil;
+            if (profile === 2) {
+                shipmentState = 7;
             }
 
-            await setShipmentState(dbConnection, shipmentId, shipmentState, "");
+            await sendToShipmentStateMicroService(company.did, userId, shipmentState, shipmentId);
+            // await setShipmentState(dbConnection, shipmentId, shipmentState, "");
 
-            if (queperfil === 3) {
+            if (profile === 3) {
                 await updateWhoPickedUp(dbConnection, userId, shipmentId);
             }
 
