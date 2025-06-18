@@ -69,7 +69,7 @@ export async function getProductsFromShipment(dataQr) {
 }
 
 async function getShipmentDetails(shipmentId, token) {
-    const url = `https://api-test.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
+    const url = `https://api.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
 
     try {
         const response = await axios.get(url, {
@@ -93,13 +93,13 @@ async function getShipmentDetails(shipmentId, token) {
 }
 
 async function getSaleDetails(idventa, token) {
-    const url = `https://api-test.mercadolibre.com/orders/${idventa}?access_token=${token}`;
+    const url = `https://api.mercadolibre.com/orders/${idventa}?access_token=${token}`;
     const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
     return response.data;
 }
 
 async function getItemData(iditem, token) {
-    const url = `https://api-test.mercadolibre.com/items/${iditem}?access_token=${token}`;
+    const url = `https://api.mercadolibre.com/items/${iditem}?access_token=${token}`;
     const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
     return response.data;
 }
