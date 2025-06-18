@@ -224,7 +224,7 @@ export async function registerVisit(
 }
 
 async function mlShipment(token, shipmentId) {
-  const url = `https://api.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
+  const url = `https://api-test.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
 
   try {
     const { data } = await axios.get(url, {
