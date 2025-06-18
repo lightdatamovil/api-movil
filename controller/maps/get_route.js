@@ -56,13 +56,13 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                     additionalRouteData.inicioEn = additionalRouteData.idDepositoComienzo * 1;
                 }
                 if (additionalRouteData.inicioEn == 'casa' || additionalRouteData.inicioEn == 'casaChofer') {
-                    additionalRouteData.inicioEn = 0;
+                    additionalRouteData.inicioEn = MapConstants.inicioEnCasa;
                 }
                 if (additionalRouteData.inicioEn == 'parada') {
-                    additionalRouteData.inicioEn = -1;
+                    additionalRouteData.inicioEn = MapConstants.inicioEnShipment;
                 }
                 if (additionalRouteData.inicioEn == 'User Location') {
-                    additionalRouteData.inicioEn = -2;
+                    additionalRouteData.inicioEn = MapConstants.inicioEnUserLocation;
                 }
                 if (additionalRouteData.finalizoEn == 'dep') {
                     logCyan(`Finalizó en depósito: dep`);
@@ -70,15 +70,14 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                 }
                 if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer') {
                     logCyan(`Finalizó en casa: casaChofer`);
-                    additionalRouteData.finalizoEn = 0;
+                    additionalRouteData.finalizoEn = MapConstants.inicioEnCasa;
                 }
                 if (additionalRouteData.finalizoEn == 'parada') {
                     logCyan(`Finalizó en parada: parada`);
-                    additionalRouteData.finalizoEn = -3;
+                    additionalRouteData.finalizoEn = MapConstants.finalizoEnShipment;
                 }
                 additionalRouteData.idDepositoComienzo = additionalRouteData.idDepositoComienzo * 1;
                 additionalRouteData.idDepositoFinalizacion = additionalRouteData.idDepositoFinalizacion * 1;
-                logCyan(`Ruta de ${userId} tiene inicioEn: ${additionalRouteData.inicioEn} y finalizoEn: ${additionalRouteData.finalizoEn}`);
             }
         } else {
             // No tiene ruta asignada, obtener envíos sin orden
