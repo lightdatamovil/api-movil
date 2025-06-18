@@ -8,11 +8,13 @@ import { createHash } from 'crypto';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
+import { crearLog } from '../src/funciones/crear_log.js';
 
 const users = Router();
 
 users.post('/edit-user', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, email, phone } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -24,18 +26,20 @@ users.post('/edit-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en edit-user', message: mensajeError });
         }
 
-        const { companyId, userId, email, phone } = req.body;
         const company = await getCompanyById(companyId);
         const result = await editUser(company, userId, email, phone);
 
         logGreen(`Usuario editado correctamente`);
+        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/edit-user", true);
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en edit-user: ${error}`);
+            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/edit-user", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en edit-user: ${error}`);
+            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/edit-user", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -46,6 +50,7 @@ users.post('/edit-user', verifyToken, async (req, res) => {
 
 users.post('/change-password', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, oldPassword, newPassword } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -57,20 +62,22 @@ users.post('/change-password', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en change-password', message: mensajeError });
         }
 
-        const { companyId, userId, oldPassword, newPassword } = req.body;
         const oldPasswordHash = createHash('sha256').update(oldPassword).digest('hex');
         const newPasswordHash = createHash('sha256').update(newPassword).digest('hex');
         const company = await getCompanyById(companyId);
         const result = await changePassword(company, userId, oldPasswordHash, newPasswordHash);
 
         logGreen(`Contraseña cambiada correctamente`);
+        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-password", true);
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en change-password: ${error}`);
+            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/change-password", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en change-password: ${error}`);
+            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/change-password", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
@@ -81,6 +88,7 @@ users.post('/change-password', verifyToken, async (req, res) => {
 
 users.post('/change-profile-picture', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, profile, image, dateYYYYMMDD } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -92,18 +100,20 @@ users.post('/change-profile-picture', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en change-profile-picture', message: mensajeError });
         }
 
-        const { companyId, userId, profile, image, dateYYYYMMDD } = req.body;
         const company = await getCompanyById(companyId);
         const result = await changeProfilePicture(company, userId, profile, image, dateYYYYMMDD);
 
         logGreen(`Foto de perfil cambiada correctamente`);
+        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-profile-picture", true);
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en change-profile-picture: ${error}`);
+            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/change-profile-picture", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en change-profile-picture: ${error}`);
+            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/change-profile-picture", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {

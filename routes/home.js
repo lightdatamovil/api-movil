@@ -13,11 +13,13 @@ import {
   logRed,
 } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
+import { crearLog } from "../src/funciones/crear_log.js";
 
 const home = Router();
 
 home.post("/home", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, profile, dateYYYYMMDD } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -32,21 +34,22 @@ home.post("/home", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dateYYYYMMDD } = req.body;
-    let profile = req.body.profile;
     const company = await getCompanyById(companyId);
     const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
 
     logGreen(`Datos obtenidos correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
     res
       .status(200)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en home: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/home", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en home: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/home", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -57,6 +60,7 @@ home.post("/home", verifyToken, async (req, res) => {
 
 home.post("/start-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, profile, dateYYYYMMDD, deviceFrom } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -71,20 +75,22 @@ home.post("/start-route", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dateYYYYMMDD, deviceFrom } = req.body;
     const company = await getCompanyById(companyId);
     const result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
 
     logGreen(`Ruta comenzada exitosamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/start-route", true);
     res
       .status(200)
       .json({ body: result, message: "La ruta ha comenzado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en start-route: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/start-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en start-route: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/start-route", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -95,6 +101,7 @@ home.post("/start-route", verifyToken, async (req, res) => {
 
 home.post("/end-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, profile, dateYYYYMMDD } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -109,18 +116,20 @@ home.post("/end-route", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId, dateYYYYMMDD } = req.body;
     const company = await getCompanyById(companyId);
     await finishRoute(company, userId, dateYYYYMMDD);
 
     logGreen(`Ruta terminada exitosamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, "Ruta terminada exitosamente", "/end-route", true);
     res.status(200).json({ message: "La ruta ha terminado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en end-route: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/end-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en end-route: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/end-route", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -131,6 +140,7 @@ home.post("/end-route", verifyToken, async (req, res) => {
 
 home.post("/verify-started-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
+  const { companyId, userId, profile } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -145,11 +155,11 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
       });
     }
 
-    const { companyId, userId } = req.body;
     const company = await getCompanyById(companyId);
     const result = await verifyStartedRoute(company, userId);
 
     logGreen(`Verificación de ruta iniciada: ${result}`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/verify-started-route", true);
     res.status(200).json({
       body: result,
       message: `La ruta ${result ? "ha comenzado" : "no ha comenzado"}`,
@@ -157,9 +167,11 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en verify-started-route: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/verify-started-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en verify-started-route: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/verify-started-route", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {

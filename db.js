@@ -1,7 +1,7 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
 import { logRed, logYellow } from './src/funciones/logsCustom.js';
-
+import mysql2 from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 const redisHost = process.env.REDIS_HOST;
@@ -38,6 +38,17 @@ export function getDbConfig(companyId) {
     };
 }
 
+export const poolLocal = mysql2.createPool({
+    host: "149.56.182.49",
+    user: "ulog",
+    password: "yusito23",
+    database: "data",
+    port: 44339,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
 export function getProdDbConfig(company) {
     return {
         host: "bhsmysql1.lightdata.com.ar",
@@ -46,6 +57,7 @@ export function getProdDbConfig(company) {
         database: company.dbname
     };
 }
+
 export async function updateRedis(empresaId, envioId, choferId) {
     const DWRTE = await redisClient.get('DWRTE',);
     const empresaKey = `e.${empresaId}`;

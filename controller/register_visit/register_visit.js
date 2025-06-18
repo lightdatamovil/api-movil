@@ -14,7 +14,8 @@ export async function registerVisit(
   latitude,
   longitude,
   shipmentState,
-  observation
+  observation,
+  date
 ) {
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
