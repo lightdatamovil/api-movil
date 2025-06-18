@@ -1,7 +1,7 @@
 import mysql2 from 'mysql2';
 
 import { getProdDbConfig, executeQuery } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
+import { logCyan, logRed, logYellow } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
@@ -65,16 +65,20 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                     additionalRouteData.inicioEn = -2;
                 }
                 if (additionalRouteData.finalizoEn == 'dep') {
+                    logCyan(`Finalizó en depósito: dep`);
                     additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion * 1;
                 }
                 if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer') {
+                    logCyan(`Finalizó en casa: casaChofer`);
                     additionalRouteData.finalizoEn = 0;
                 }
                 if (additionalRouteData.finalizoEn == 'parada') {
+                    logCyan(`Finalizó en parada: parada`);
                     additionalRouteData.finalizoEn = -3;
                 }
                 additionalRouteData.idDepositoComienzo = additionalRouteData.idDepositoComienzo * 1;
                 additionalRouteData.idDepositoFinalizacion = additionalRouteData.idDepositoFinalizacion * 1;
+                logCyan(`Ruta de ${userId} tiene inicioEn: ${additionalRouteData.inicioEn} y finalizoEn: ${additionalRouteData.finalizoEn}`);
             }
         } else {
             // No tiene ruta asignada, obtener envíos sin orden
