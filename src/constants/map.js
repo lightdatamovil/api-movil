@@ -1,4 +1,4 @@
-class MapConstants {
+export default class MapConstants {
     static finalizoEnShipment = -3;
     static inicioEnShipment = -1;
     static inicioEnCasa = 0;
