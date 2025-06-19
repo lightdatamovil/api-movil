@@ -37,11 +37,11 @@ auth.post('/company-identification', async (req, res) => {
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en login: ${error} `);
-            crearLog(null, null, null, req.body, performance.now() - startTime, JSON.stringify(error), "/company-identification", false);
+            crearLog(nucompany.didll, null, null, req.body, performance.now() - startTime, JSON.stringify(error), "/company-identification", false);
             res.status(400).json(error);
         } else {
             logRed(`Error 500 en login: ${error} `);
-            crearLog(null, null, null, req.body, performance.now() - startTime, JSON.stringify(error.message), "/company-identification", false);
+            crearLog(nucompany.didll, null, null, req.body, performance.now() - startTime, JSON.stringify(error.message), "/company-identification", false);
             res.status(500).json({ title: 'Error interno del servidor', message: 'Unhandled Error', stack: error.stack });
         }
     } finally {
