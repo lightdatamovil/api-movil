@@ -98,7 +98,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
 
 qr.post("/get-shipment-id", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  let { companyId, dataQr } = req.body;
+  let { companyId, userId, profile, dataQr } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -121,7 +121,7 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/get-shipment-id", true);
     res.status(200).json({
       success: true,
-      body: `${response}`,
+      body: response,
       message: "Datos obtenidos correctamente",
     });
   } catch (error) {
