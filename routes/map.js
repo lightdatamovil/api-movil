@@ -110,7 +110,7 @@ map.post('/save-route', verifyToken, async (req, res) => {
             additionalRouteData
         );
 
-        logGreen(`Ruta guardada correctamente`);
+        logGreen(`Ruta guardada correctamente ${JSON.stringify(response)}`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/save-route", true);
         res.status(200).json({ body: response, message: "Ruta guardada correctamente" });
     } catch (error) {
