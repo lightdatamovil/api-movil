@@ -26,26 +26,50 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
-            const sellerId = dataQr.sender_id;
             const mlShipmentId = dataQr.id;
-            const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
+            if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND didCliente = 301`;
 
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
 
-            if (resultQueryEnvios.length == 0) {
-                throw new CustomException({
-                    title: 'Error obteniendo el ID del envío',
-                    message: 'No se encontró el envío',
-                });
+                if (resultQueryEnvios.length == 0) {
+                    throw new CustomException({
+                        title: 'Error obteniendo el ID del envío',
+                        message: 'No se encontró el envío',
+                    });
+                }
+
+                shipmentId = resultQueryEnvios[0].did;
+            } else {
+                const sellerId = dataQr.sender_id;
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
+
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
+
+                if (resultQueryEnvios.length == 0) {
+                    throw new CustomException({
+                        title: 'Error obteniendo el ID del envío',
+                        message: 'No se encontró el envío',
+                    });
+                }
+
+                shipmentId = resultQueryEnvios[0].did;
             }
 
-            shipmentId = resultQueryEnvios[0].did;
         }
 
         return shipmentId;
     } catch (error) {
         logRed(`Error en getShipmentIdFromQr: ${error.stack}`);
-        throw error;
+
+        if (error instanceof CustomException) {
+            throw error;
+        }
+        throw new CustomException({
+            title: 'Error obteniendo el ID del envío',
+            message: error.message,
+            stack: error.stack
+        });
     } finally {
         dbConnection.end();
     }
