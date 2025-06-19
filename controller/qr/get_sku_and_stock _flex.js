@@ -16,16 +16,16 @@ export async function getSkuAndStockFlex(company, dataQr) {
 
 
 
-        const queryData = `SELECT ml_venta_id, ml_pack_id FROM envios WHERE superado = 0 AND elim = 52 AND ml_shipment_id = ?`;
-        const resultData = await executeQuery(dbConnection, queryData, [tracking]);
+        const queryData = `SELECT ml_venta_id, ml_pack_id, ml_vendedor_id FROM envios WHERE superado = 0 AND elim = 52 AND ml_shipment_id = ?`;
+        const resultData = await executeQuery(dbConnection, queryData, [tracking], true);
 
         if (!resultData || resultData.length === 0) {
             return { message: "No se encontró el envío", success: false };
         }
-        const idNumber = (resultData[0].ml_pack_id ?? resultData[0].ml_venta_id);
+        const idNumber = (resultData[0].ml_pack_id != undefined && resultData[0].ml_pack_id != null && resultData[0].ml_pack_id !== "") ? resultData[0].ml_pack_id : resultData[0].ml_venta_id;
 
         const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0 AND number = ?`;
-        const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [idNumber]);
+        const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [idNumber], true);
 
         if (resultDidOrden.length === 0) {
             return { message: "No se encontró ninguna orden", success: false };
@@ -40,10 +40,8 @@ export async function getSkuAndStockFlex(company, dataQr) {
 
         const listaItemApp = [];
 
-        const senderId = dataQr["sender_id"];
-
         const q = "SELECT did, didCliente FROM clientes_cuentas WHERE ML_id_vendedor = ? AND superado = 0 AND elim = 0";
-        const result = await executeQuery(dbConnection, q, [senderId]);
+        const result = await executeQuery(dbConnection, q, [resultData[0].ml_vendedor_id], true);
 
         const token = await getTokenMLconMasParametros(result[0].didCliente, result[0].did, company.did);
 
