@@ -76,13 +76,13 @@ home.post("/start-route", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    const result = await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
+    await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
 
     logGreen(`Ruta comenzada exitosamente`);
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/start-route", true);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta comenzada exitosamente" }), "/start-route", true);
     res
       .status(200)
-      .json({ body: result, message: "La ruta ha comenzado exitosamente" });
+      .json({ message: "La ruta ha comenzado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en start-route: ${error}`);
