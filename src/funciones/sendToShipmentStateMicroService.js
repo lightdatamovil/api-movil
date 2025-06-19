@@ -23,8 +23,6 @@ export async function sendToShipmentStateMicroService(companyId, userId, estado,
             fecha: formatFechaUTC3(),
             quien: userId,
             operacion: "ingresarFlex",
-
-
         };
 
         channel.sendToQueue(QUEUE_ESTADOS, Buffer.from(JSON.stringify(message)), { persistent: true }, (err, ok) => {

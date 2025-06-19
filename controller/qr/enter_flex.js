@@ -43,7 +43,6 @@ export async function enterFlex(company, dataQr, userId, profile) {
         const envioResult = await executeQuery(dbConnection, envioQuery, [mlShipmentId, mlSellerId]);
 
         let isLoaded = envioResult.length > 0;
-        let shipmentData = envioResult.length ? envioResult[0] : {};
 
         const nowInHours = new Date().getHours();
         const fecha_despacho = await setDispatchDate(dbConnection, clientId, nowInHours);
