@@ -126,7 +126,7 @@ qr.post("/get-shipment-id", verifyToken, async (req, res) => {
     });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en get-shipment-id: ${error.toJSON()}`);
+      logRed(`Error 400 en get-shipment-id: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-shipment-id", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {

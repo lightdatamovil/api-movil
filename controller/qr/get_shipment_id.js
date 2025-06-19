@@ -28,9 +28,9 @@ export async function getShipmentIdFromQr(dataQr, company) {
         } else {
             const mlShipmentId = dataQr.id;
             if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
-                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND didCliente = 301`;
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 
-                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [mlShipmentId], true);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
@@ -60,7 +60,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
         return shipmentId;
     } catch (error) {
-        logRed(`Error en getShipmentIdFromQr: ${error.stack}`);
+        logRed(`Error en getShipmentIdFromQr: ${error}`);
 
         if (error instanceof CustomException) {
             throw error;
