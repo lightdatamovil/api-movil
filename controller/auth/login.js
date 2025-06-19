@@ -78,15 +78,17 @@ export async function login(username, password, company) {
     }
 
     const userHouses = [
-      {
+
+    ];
+    if (userHomeLatitude && userHomeLongitude) {
+      userHouses.push({
         id: 0,
         name: "Casa",
+        address: userAddress.direccion,
         latitude: userHomeLatitude,
         longitude: userHomeLongitude,
-        abreviation: "casa",
-      },
-    ];
-
+      });
+    }
     return {
       id: user.did,
       username: user.usuario,
