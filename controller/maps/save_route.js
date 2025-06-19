@@ -44,8 +44,6 @@ export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance,
                 [newId, 1, shipmentId, 0, 0, 0, index, arrivalTime]
             );
         }
-
-        return;
     } catch (error) {
         logRed(`Error en saveRoute: ${error.stack}`);
         if (error instanceof CustomException) {

@@ -100,7 +100,7 @@ map.post('/save-route', verifyToken, async (req, res) => {
         }
 
         const company = await getCompanyById(companyId);
-        const response = await saveRoute(
+        await saveRoute(
             company,
             userId,
             dateYYYYMMDD,
@@ -110,9 +110,9 @@ map.post('/save-route', verifyToken, async (req, res) => {
             additionalRouteData
         );
 
-        logGreen(`Ruta guardada correctamente ${JSON.stringify(response)}`);
-        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/save-route", true);
-        res.status(200).json({ body: response, message: "Ruta guardada correctamente" });
+        logGreen(`Ruta guardada correctamente`);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta guardada correctamente" }), "/save-route", true);
+        res.status(200).json({ message: "Ruta guardada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en save-route: ${error}`);
