@@ -24,12 +24,13 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                     e.destination_state_name, ea.orden, RP.orden AS ordenRuteo, e.ml_shipment_id, 
                     c.nombre_fantasia, e.destination_receiver_name, DATE(e.fecha_venta) as fechaVenta, 
                     R.dataDeRuta as dataR
-                FROM envios as e 
+                FROM envios as e
+                LEFT JOIN envios_historial as eh ON (eh.didEnvio = e.did AND eh.superado = 0 AND eh.elim = 0 and eh.autofecha >= now() - interval 3 day)
                 LEFT JOIN clientes AS c ON (c.elim = 0 AND c.superado = 0 AND c.did = e.didCliente)
                 LEFT JOIN ruteo AS R ON (R.superado = 0 AND R.elim = 0 AND R.didChofer = ?)
                 LEFT JOIN ruteo_paradas AS RP ON (RP.superado = 0 AND RP.elim = 0 AND R.did = RP.didRuteo AND RP.didPaquete = e.did)
                 JOIN envios_asignaciones as ea ON (ea.didEnvio = e.did AND ea.superado = 0 AND ea.elim = 0 AND ea.operador = ?)
-                WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,9,10,12) and e.autofecha >= now() - interval 3 day 
+                WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,9,10,12)
                 ORDER BY RP.orden ASC`;
 
             const getRouteShipmentsQueryResult = await executeQuery(dbConnection, getRouteShipmentsQuery, [userId, userId]);
