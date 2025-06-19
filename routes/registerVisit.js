@@ -16,6 +16,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
         companyId,
         userId,
         shipmentId,
+        profile,
         recieverDNI,
         recieverName,
         latitude,
