@@ -37,7 +37,7 @@ if (cluster.isMaster) {
     app.use(json());
     app.use(cors());
 
-    app.post('/api-test/testapi', async (req, res) => {
+    app.post('/api/testapi', async (req, res) => {
         const startTime = performance.now();
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
@@ -60,7 +60,7 @@ if (cluster.isMaster) {
         });
     });
 
-    app.post('/api-test/get-urls', async (req, res) => {
+    app.post('/api/get-urls', async (req, res) => {
         const startTime = performance.now();
         const { companyId } = req.body;
 
@@ -73,7 +73,7 @@ if (cluster.isMaster) {
         res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
     });
 
-    app.post('/api-test/get-urls-dev', async (req, res) => {
+    app.post('/api/get-urls-dev', async (req, res) => {
         const startTime = performance.now();
         const { companyId } = req.body;
 
@@ -90,16 +90,16 @@ if (cluster.isMaster) {
         try {
             await redisClient.connect();
 
-            app.use('/api-test/auth', auth);
-            app.use('/api-test/accounts', accounts);
-            app.use('/api-test/shipments', shipments);
-            app.use('/api-test/settlements', settlements);
-            app.use('/api-test/qr', qr);
-            app.use('/api-test/home', home);
-            app.use('/api-test/users', users);
-            app.use('/api-test/map', map);
-            app.use("/api-test/collect", collect)
-            app.use("/api-test/register-visit", registerVisitRoute)
+            app.use('/api/auth', auth);
+            app.use('/api/accounts', accounts);
+            app.use('/api/shipments', shipments);
+            app.use('/api/settlements', settlements);
+            app.use('/api/qr', qr);
+            app.use('/api/home', home);
+            app.use('/api/users', users);
+            app.use('/api/map', map);
+            app.use("/api/collect", collect)
+            app.use("/api/register-visit", registerVisitRoute)
 
             app.listen(PORT, '0.0.0.0', () => {
                 logBlue(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
