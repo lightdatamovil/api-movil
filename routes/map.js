@@ -72,11 +72,11 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en geolocalize: ${error}`);
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/geolocalize", false);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/geolocalize", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             logRed(`Error 500 en geolocalize: ${error}`);
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/geolocalize", false);
+            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/geolocalize", false);
             res.status(500).json({ message: 'Error interno del servidor' });
         }
     } finally {
