@@ -68,7 +68,7 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
 
         const result = { message: "Geolocalización registrada correctamente" };
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, result, "/geolocalize", true);
-        res.status(200).json();
+        res.status(200).json(result);
     } catch (error) {
         if (error instanceof CustomException) {
             logRed(`Error 400 en geolocalize: ${error}`);
