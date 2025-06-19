@@ -7,6 +7,7 @@ import { shipmentList } from "../controller/shipments/get_shipment_list.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
 import { logGreen, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
+import { crearLog } from "../src/funciones/crear_log.js";
 
 const shipments = Router();
 
@@ -58,18 +59,18 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
 
     logGreen(`Listado de envíos obtenido correctamente`);
 
-    crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/shipment-list", true);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/shipment-list", true);
     res
       .status(200)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en shipment-list: ${error}`);
-      crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/shipment-list", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/shipment-list", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en shipment-list: ${error}`);
-      crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-list", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-list", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -80,7 +81,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
 
 shipments.post("/shipment-details", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, shipmentId } = req.body;
+  const { companyId, userId, profile, shipmentId } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -100,18 +101,18 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
 
     logGreen(`Detalle de envío obtenido correctamente`);
-    crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/shipment-details", true);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/shipment-details", true);
     res
       .status(200)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en shipment-details: ${error}`);
-      crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/shipment-details", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/shipment-details", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en shipment-details: ${error}`);
-      crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-details", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-details", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
@@ -124,7 +125,7 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
 shipments.post("/next-visit", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, shipmentId, dateYYYYMMDD } = req.body;
+  const { companyId, userId, profile, shipmentId, dateYYYYMMDD } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
@@ -150,11 +151,11 @@ shipments.post("/next-visit", verifyToken, async (req, res) => {
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en next-visit: ${error}`);
-      crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/next-visit", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/next-visit", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en next-visit: ${error}`);
-      crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-details", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-details", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {

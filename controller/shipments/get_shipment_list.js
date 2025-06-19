@@ -93,7 +93,7 @@ export async function shipmentList(
     e.destination_receiver_phone,
     ROUND(e.destination_latitude, 8) as lat,
     ROUND(e.destination_longitude, 8) AS lng,
-    ei.valor,
+    ei.valor as logisticainversa,
     e.destination_comments,
     edd.destination_comments AS destination_commentsEDD,
     rp.orden,
@@ -155,13 +155,9 @@ export async function shipmentList(
     const rows = await executeQuery(dbConnection, query, []);
     const lista = [];
     for (const row of rows) {
-
-      logCyan(
-        `Procesando envío: ${row.didEnvio}, estado: ${row.estado}, cliente: ${row.didCliente}`
-      );
       const lat = row.lat !== "0" ? row.lat : "0";
       const long = row.lng !== "0" ? row.lng : "0";
-      const logisticainversa = row.valor !== null;
+      const logisticainversa = row.logisticainversa != null;
       const estadoAsignacionVal = row.estadoAsignacion || 0;
       const monto = row.monto_total_a_cobrar || 0;
       const nombre = clientes[row.didCliente]

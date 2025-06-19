@@ -158,7 +158,6 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
     const company = await getCompanyById(companyId);
     const result = await verifyStartedRoute(company, userId);
 
-    logGreen(`Verificación de ruta iniciada: ${result}`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/verify-started-route", true);
     res.status(200).json({
       body: result,

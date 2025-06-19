@@ -7,6 +7,7 @@ import { getSettlementShipmentDetails } from '../controller/settlements/get_sett
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
+import { crearLog } from '../src/funciones/crear_log.js';
 
 const settlements = Router();
 
