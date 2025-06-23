@@ -95,7 +95,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
   }
 });
 
-qr.post("/get-shipment-id", verifyToken, async (req, res) => {
+qr.post("/get-shipment-id", async (req, res) => {
   const startTime = performance.now();
   let { companyId, userId, profile, dataQr } = req.body;
   try {
