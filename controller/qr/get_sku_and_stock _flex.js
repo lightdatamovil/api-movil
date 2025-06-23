@@ -1,89 +1,32 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
-import { logCyan, logRed, logYellow } from "../../src/funciones/logsCustom.js";
-import CustomException from "../../classes/custom_exception.js";
+import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { getItemsFromMLByShipmentId } from "../../src/funciones/getItemsFromMLByShipmentId.js";
-import { getOrderFromML } from "../../src/funciones/getOrderFromML.js";
+import { getShipmentFromMLByTracking, getTitleAndImageFromMLByTracking, } from "../../src/funciones/getItemsFromMLByShipmentId.js";
 
 export async function getSkuAndStockFlex(company, dataQr) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
-
     try {
-        const tracking = dataQr["id"];
+        const token = await getTokenMLconMasParametros(3, 28, company.did);
+        const shipment = await getShipmentFromMLByTracking(dataQr.id, token);
 
+        // Generas un array de promesas que ya incluye title e image
+        const itemsConDatos = await Promise.all(
+            shipment.shipping_items.map(async ({ id, quantity }) => {
+                const { title, thumbnail } = await getTitleAndImageFromMLByTracking(id, token);
+                return {
+                    id,
+                    cantidad: quantity,
+                    title,
+                    image: thumbnail
+                };
+            })
+        );
 
-
-        const queryData = `SELECT ml_venta_id, ml_pack_id FROM envios WHERE superado = 0 AND elim = 52 AND ml_shipment_id = ?`;
-        const resultData = await executeQuery(dbConnection, queryData, [tracking]);
-
-        if (!resultData || resultData.length === 0) {
-            return { message: "No se encontró el envío", success: false };
-        }
-        const idNumber = (resultData[0].ml_pack_id ?? resultData[0].ml_venta_id);
-
-        const queryDidOrden = `SELECT did, didCliente, armado FROM ordenes WHERE superado = 0 AND elim = 0 AND number = ?`;
-        const resultDidOrden = await executeQuery(dbConnection, queryDidOrden, [idNumber]);
-
-        if (resultDidOrden.length === 0) {
-            return { message: "No se encontró ninguna orden", success: false };
-        }
-
-        if (resultDidOrden[0].armado == 1) {
-            return { message: "La orden ya fue armada", success: false };
-        }
-
-        const didOrden = resultDidOrden[0].did;
-
-
-        const listaItemApp = [];
-
-        const senderId = dataQr["sender_id"];
-
-        const q = "SELECT did, didCliente FROM clientes_cuentas WHERE ML_id_vendedor = ? AND superado = 0 AND elim = 0";
-        const result = await executeQuery(dbConnection, q, [senderId]);
-
-        const token = await getTokenMLconMasParametros(result[0].didCliente, result[0].did, company.did);
-
-        const items = await getItemsFromMLByShipmentId(tracking, token);
-        for (let i = 0; i < items.length; i++) {
-            const itemML = items[i];
-
-            const order = await getOrderFromML(itemML.order_id, token);
-            const cantidadML = order.order_items[0].quantity;
-            for (let index = 0; index < order.order_items.length; index++) {
-                const element = order.order_items[index].item;
-                const sellerSKUFromML = element.seller_sku;
-                const titleFromML = element.title;
-                const queryTodo = `
-                    SELECT descripcion, ean, did as didProducto, url_imagen, sku
-                    FROM fulfillment_productos
-                    WHERE sku = ? AND superado = 0 AND elim = 0 AND didCliente = ?
-                `;
-                const resultTodo = await executeQuery(dbConnection, queryTodo, [sellerSKUFromML, result[0].didCliente]);
-                listaItemApp.push({
-
-                    did: didOrden,
-                    didProducto: resultTodo.length === 0 ? null : resultTodo[0].didProducto,
-                    codigo: sellerSKUFromML,
-                    title: titleFromML,
-                    descripcion: resultTodo.length === 0 ? null : resultTodo[0].descripcion,
-                    ean: resultTodo.length === 0 ? null : resultTodo[0].ean,
-                    cantidad: cantidadML,
-                    url_imagen: resultTodo.length === 0 ? null : resultTodo[0].url_imagen,
-                    alertada: resultTodo.length === 0 ? true : resultTodo[0].didProducto === null
-                });
-            }
-        }
-
-        return { body: listaItemApp, message: "Datos obtenidos correctamente", success: true };
+        return {
+            body: itemsConDatos,
+            message: "Datos obtenidos correctamente",
+            success: true
+        };
     } catch (error) {
         logRed(`Error en getSkuAndStockFlex: ${error.stack}`);
         return { message: error.message, success: false };
-    }
-    finally {
-        dbConnection.end();
     }
 }

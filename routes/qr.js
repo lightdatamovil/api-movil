@@ -4,7 +4,6 @@ import { getCompanyById } from "../db.js";
 import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
-import { getSkuAndStockNoFlex as getSkuAndStockNoFlex } from "../controller/qr/get_sku_and_stock_no_flex.js";
 import { armado } from "../controller/qr/armado.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
 import { logGreen, logPurple, logRed, logYellow } from "../src/funciones/logsCustom.js";
@@ -243,13 +242,7 @@ qr.post("/sku", verifyToken, async (req, res) => {
     dataQr = parseIfJson(dataQr);
 
     const company = await getCompanyById(companyId);
-    const isLocal = dataQr.hasOwnProperty("local");
-    let result;
-    if (isLocal) {
-      result = await getSkuAndStockNoFlex(company, dataQr);
-    } else {
-      result = await getSkuAndStockFlex(company, dataQr);
-    }
+    let result = await getSkuAndStockFlex(company, dataQr);
 
     logGreen(`SKU y cantidad de ítems obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/sku", true);
