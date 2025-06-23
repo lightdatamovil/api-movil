@@ -84,7 +84,7 @@ export async function login(username, password, company) {
       userHouses.push({
         id: 0,
         name: "Casa",
-        address: userAddress.direccion,
+        abreviation: "casa",
         latitude: userHomeLatitude,
         longitude: userHomeLongitude,
       });
