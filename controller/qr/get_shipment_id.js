@@ -1,6 +1,6 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getShipmentIdFromQr(dataQr, company) {
@@ -26,11 +26,11 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
-            const mlShipmentId = dataQr.id;
             if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
+                logCyan(`getShipmentIdFromQr: Empresa 211, no se encontró sender_id en el QR, usando didCliente 301 para buscar el envío`);
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 
-                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [mlShipmentId], true);
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr], true);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
@@ -41,6 +41,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
                 shipmentId = resultQueryEnvios[0].did;
             } else {
+                const mlShipmentId = dataQr.id;
                 const sellerId = dataQr.sender_id;
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
 
