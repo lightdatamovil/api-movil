@@ -77,9 +77,8 @@ export async function login(username, password, company) {
       userHomeLongitude = userAddress.lng;
     }
 
-    const userHouses = [
+    const userHouses = [];
 
-    ];
     if (userHomeLatitude && userHomeLongitude) {
       userHouses.push({
         id: 0,
@@ -99,7 +98,7 @@ export async function login(username, password, company) {
       phone: user.telefono,
       token,
       houses: userHouses,
-      version: "1.0.72",
+      version: "1.0.73",
     };
   } catch (error) {
     logRed(`Error en login: ${error.stack}`);
