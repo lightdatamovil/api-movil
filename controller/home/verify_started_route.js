@@ -1,6 +1,6 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig, executeQuery, connectionsPools } from '../../db.js';
+import { connectionsPools } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
+import CustomException from '../../classes/custom_exception.js';
 
 export async function verifyStartedRoute(company, userId) {
     const pool = connectionsPools[company.did];
