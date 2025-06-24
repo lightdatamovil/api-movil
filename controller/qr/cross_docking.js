@@ -2,6 +2,7 @@ import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany }
 import mysql2 from 'mysql2';
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';
+import { getShipmentIdFromQr } from "../../controller/qr/get_shipment_id.js";
 
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
@@ -9,7 +10,7 @@ export async function crossDocking(dataQr, company) {
     dbConnection.connect();
 
     try {
-        let shipmentId = await getShipmentIdFromQr(dataQr, company.did);
+        let shipmentId = await getShipmentIdFromQr(dataQr, company);
         let queryWhereId = '';
         const isLocal = dataQr.hasOwnProperty("local");
 
