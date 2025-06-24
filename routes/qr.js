@@ -78,7 +78,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/cross-docking", true);
     res
       .status(200)
-      .json({ body: response, message: "Datos obtenidos correctamente" });
+      .json({ body: response, message: "Datos obtenidos correctamente", success: true });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en cross-docking: ${error}`);
