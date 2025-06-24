@@ -4,6 +4,7 @@ import {
   getClientsByCompany,
   getDriversByCompany,
   connectionsPools,
+  executeQueryFromPool,
 } from "../../db.js";
 import mysql2 from "mysql2";
 import { logCyan, logRed } from "../../src/funciones/logsCustom.js";

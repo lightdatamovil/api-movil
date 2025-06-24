@@ -1,4 +1,4 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany, connectionsPools } from "../../db.js";
+import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany, connectionsPools, executeQueryFromPool } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';

@@ -1,4 +1,4 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery, executeQueryFromPool } from "../../db.js";
 import mysql2 from 'mysql2';
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";

@@ -1,4 +1,4 @@
-import { connectionsPools, executeQuery, getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from '../../db.js';
 import mysql2 from 'mysql2';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
