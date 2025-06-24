@@ -1,13 +1,11 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany } from "../../db.js";
+import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany, connectionsPools } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';
 import { getShipmentIdFromQr } from "../../controller/qr/get_shipment_id.js";
 
 export async function crossDocking(dataQr, company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const pool = connectionsPools[company.did];
 
     try {
         let shipmentId = await getShipmentIdFromQr(dataQr, company);
@@ -35,7 +33,7 @@ export async function crossDocking(dataQr, company) {
             ${queryWhereId}
             LIMIT 1
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, []);
+        const envioData = await executeQueryFromPool(pool, queryEnvios, []);
 
         if (envioData.length === 0) {
             throw new CustomException({
@@ -46,9 +44,9 @@ export async function crossDocking(dataQr, company) {
 
         const row = envioData[0];
 
-        const clients = await getClientsByCompany(dbConnection, company.did);
+        const clients = await getClientsByCompany(pool, company.did);
 
-        const zones = await getZonesByCompany(dbConnection, company.did);
+        const zones = await getZonesByCompany(pool, company.did);
 
         return {
             shipmentState: row.shipmentState,
@@ -60,7 +58,5 @@ export async function crossDocking(dataQr, company) {
     } catch (error) {
         logRed(`Error en crossDocking: ${error.stack}`);
         throw error;
-    } finally {
-        dbConnection.end();
     }
 }

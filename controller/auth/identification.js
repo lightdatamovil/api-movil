@@ -3,16 +3,15 @@ import { logRed, logYellow } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { executeQuery, getProdDbConfig } from '../../db.js';
 import mysql2 from 'mysql2';
+import { connect } from 'amqplib';
 
 export async function identification(company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    let pool = connectionsPools[company.did];
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
     const depotQuery =
         "SELECT id, latitud, longitud, nombre, cod  FROM `depositos`";
-    const resultsFromDepotQuery = await executeQuery(
-        dbConnection,
+    const resultsFromDepotQuery = await executeQueryFromPool(
+        pool,
         depotQuery,
         [],
     );
@@ -57,7 +56,5 @@ export async function identification(company) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

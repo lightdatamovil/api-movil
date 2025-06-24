@@ -1,11 +1,9 @@
 import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQueryFromPool, getProdDbConfig } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function getCollectList(company, userId, from, to) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const pool = connectionsPools[company.did];
 
     try {
         const query = `
@@ -15,7 +13,7 @@ export async function getCollectList(company, userId, from, to) {
             GROUP BY fecha
             `;
 
-        const results = await executeQuery(dbConnection, query, [userId, from, to]);
+        const results = await executeQueryFromPool(pool, query, [userId, from, to]);
 
         const collectList = results.map(row => ({ fecha: row.fecha, total: row.total }));
 
@@ -29,7 +27,5 @@ export async function getCollectList(company, userId, from, to) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

@@ -1,18 +1,16 @@
 import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQueryFromPool, getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const pool = connectionsPools[company.did];
 
     try {
         let didAsuperar = 0;
 
-        const rows = await executeQuery(
-            dbConnection,
+        const rows = await executeQueryFromPool(
+            pool,
             "SELECT did FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND didChofer = ?",
             [userId]
         );
@@ -26,21 +24,21 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
 
         didAsuperar = rows[0].did;
 
-        await executeQuery(
-            dbConnection,
+        await executeQueryFromPool(
+            pool,
             "UPDATE colecta_ruta SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ? LIMIT 1",
             [didAsuperar]
         );
 
-        await executeQuery(
-            dbConnection,
+        await executeQueryFromPool(
+            pool,
             "UPDATE colecta_ruta_paradas SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuta = ?",
             [didAsuperar]
         );
 
         // TODO: Que significa este 2??
-        const result = await executeQuery(
-            dbConnection,
+        const result = await executeQueryFromPool(
+            pool,
             "INSERT INTO colecta_ruta (desde, fecha, fechaOperativa, didChofer, quien, dataRuta) VALUES (?, ?, ?, ?, ?, ?)",
             [2, dateYYYYMMDD, dateYYYYMMDD, userId, userId, JSON.stringify(additionalRouteData)]
         );
@@ -55,8 +53,8 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
         }
 
         const insertParadas = orders.map(({ orden, cliente, ordenLlegada }) =>
-            executeQuery(
-                dbConnection,
+            executeQueryFromPool(
+                pool,
                 "INSERT INTO colecta_ruta_paradas (didRuta, didCliente, orden, demora, fecha_colectado, quien) VALUES (?, ?, ?, ?, ?, ?)",
                 [newId, cliente, orden, ordenLlegada, dateYYYYMMDD, userId]
             )
@@ -75,7 +73,5 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

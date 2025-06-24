@@ -1,18 +1,16 @@
 import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
+import { executeQueryFromPool, getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function getRoute(company, userId, dateYYYYMMDD) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const pool = connectionsPools[company.did];
 
     try {
         let hasRoute, routeId, additionalRouteData, client = null;
 
         const routeQuery = "SELECT id, did, dataRuta FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND fecha = ? AND didChofer = ?";
-        const routeResult = await executeQuery(dbConnection, routeQuery, [dateYYYYMMDD, userId]);
+        const routeResult = await executeQueryFromPool(pool, routeQuery, [dateYYYYMMDD, userId]);
 
         if (routeResult.length > 0) {
             const dataRoute = JSON.parse(routeResult[0].dataRuta);
@@ -32,7 +30,7 @@ export async function getRoute(company, userId, dateYYYYMMDD) {
                 LEFT JOIN clientes_direcciones AS cld ON cld.superado = 0 AND cld.elim = 0 AND cld.cliente = CRP.didCliente
                 WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ? ORDER BY CRP.orden ASC;
             `;
-            const stopsResult = await executeQuery(dbConnection, stopsQuery, [Adata.didRuta]);
+            const stopsResult = await executeQueryFromPool(pool, stopsQuery, [Adata.didRuta]);
 
             client = stopsResult.map(row => ({
                 orden: row.orden ? Number(row.orden) : null,
@@ -53,7 +51,7 @@ export async function getRoute(company, userId, dateYYYYMMDD) {
                 LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND cd.cliente = c.did
                 WHERE ca.fecha LIKE ? AND ca.superado = 0 AND ca.elim = 0 AND ca.didChofer = ? GROUP BY ca.didCliente;
             `;
-            const assignmentResult = await executeQuery(dbConnection, assignmentQuery, [dateYYYYMMDD, userId]);
+            const assignmentResult = await executeQueryFromPool(pool, assignmentQuery, [dateYYYYMMDD, userId]);
 
             client = assignmentResult.map(row => ({
                 orden: null,
@@ -85,7 +83,5 @@ export async function getRoute(company, userId, dateYYYYMMDD) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

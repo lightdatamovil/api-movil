@@ -1,17 +1,15 @@
-import { executeQuery, getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQuery, getProdDbConfig } from '../../db.js';
 import mysql2 from 'mysql2';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function nextDeliver(company, shipmentId, dateYYYYMMDD, userId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const pool = connectionsPools[company.did];
 
     try {
         const query = "INSERT INTO proximas_entregas (didEnvio, fecha, quien) VALUES (?, ?, ?)";
 
-        await executeQuery(dbConnection, query, [shipmentId, dateYYYYMMDD, userId]);
+        await executeQueryFromPool(pool, query, [shipmentId, dateYYYYMMDD, userId]);
     } catch (error) {
         logRed(`Error en nextDeliver: ${error.stack} `);
 
@@ -23,7 +21,5 @@ export async function nextDeliver(company, shipmentId, dateYYYYMMDD, userId) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

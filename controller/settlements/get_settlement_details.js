@@ -1,19 +1,17 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany } from "../../db.js";
+import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig, getZonesByCompany } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getSettlementDetails(company, settlementId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const pool = connectionsPools[company.did];
 
     try {
         const zones = await getZonesByCompany(company.did);
 
         const queryLines = "SELECT idlineas FROM liquidaciones WHERE superado=0 AND elim=0 AND did = ?";
 
-        const resultQueryLine = await executeQuery(dbConnection, queryLines, [settlementId]);
+        const resultQueryLine = await executeQueryFromPool(pool, queryLines, [settlementId]);
 
         if (resultQueryLine.length === 0) {
             throw new CustomException({
@@ -31,7 +29,7 @@ export async function getSettlementDetails(company, settlementId) {
                  JOIN costos_envios AS ce ON ce.elim = 0 AND ce.superado = 0 AND ce.didEnvio = e.did
                  WHERE eh.id IN(${idLine})`;
 
-        const results = await executeQuery(dbConnection, sql, []);
+        const results = await executeQueryFromPool(pool, sql, []);
 
         return results.map(row => ({
             total: row.chofer * 1,
@@ -51,7 +49,5 @@ export async function getSettlementDetails(company, settlementId) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

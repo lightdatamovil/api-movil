@@ -3,6 +3,7 @@ import {
   getProdDbConfig,
   getClientsByCompany,
   getDriversByCompany,
+  connectionsPools,
 } from "../../db.js";
 import mysql2 from "mysql2";
 import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
@@ -17,13 +18,11 @@ export async function shipmentList(
   isAssignedToday,
   date
 ) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
+  const pool = connectionsPools[company.did];
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
-    const rows = await executeQuery(dbConnection, query, [userId]);
+    const rows = await executeQueryFromPool(pool, query, [userId]);
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
@@ -40,8 +39,8 @@ export async function shipmentList(
   try {
     const hoy = date || new Date().toISOString().split("T")[0];
     // Obtener clientes y choferes
-    const clientes = await getClientsByCompany(dbConnection, company.did);
-    const drivers = await getDriversByCompany(dbConnection, company.did);
+    const clientes = await getClientsByCompany(pool, company.did);
+    const drivers = await getDriversByCompany(pool, company.did);
 
     // Variables para personalizar la consulta según el perfil
     let sqlchoferruteo = "";
@@ -152,7 +151,7 @@ export async function shipmentList(
     ORDER BY rp.orden ASC
     `;
 
-    const rows = await executeQuery(dbConnection, query, []);
+    const rows = await executeQueryFromPool(pool, query, []);
     const lista = [];
     for (const row of rows) {
       const lat = row.lat !== "0" ? row.lat : "0";
@@ -211,7 +210,5 @@ export async function shipmentList(
       message: error.message,
       stack: error.stack,
     });
-  } finally {
-    dbConnection.end();
   }
 }

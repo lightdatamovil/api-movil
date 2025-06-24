@@ -5,9 +5,7 @@ import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect()
+    const pool = connectionsPools[company.did];
 
     try {
 
@@ -31,7 +29,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
 
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
-        await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
+        await executeQueryFromPool(pool, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
         return {
             message: "Imagen subida correctamente",
 
@@ -46,7 +44,5 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

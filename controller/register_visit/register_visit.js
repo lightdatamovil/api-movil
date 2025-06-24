@@ -1,9 +1,10 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery, executeQueryFromPool } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
+import { connect } from "amqplib";
 
 export async function registerVisit(
   company,
@@ -17,16 +18,13 @@ export async function registerVisit(
   observation,
   date
 ) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
-
+  const pool = connectionsPools[company.did];
   try {
     const queryEnviosHistorial =
       "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
 
-    const estadoActualRows = await executeQuery(
-      dbConnection,
+    const estadoActualRows = await executeQueryFromPool(
+      pool,
       queryEnviosHistorial,
       [shipmentId]
     );
@@ -55,7 +53,7 @@ export async function registerVisit(
       const queryEnvios =
         "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
-      const envioRows = await executeQuery(dbConnection, queryEnvios, [
+      const envioRows = await executeQueryFromPool(pool, queryEnvios, [
         shipmentId,
       ]);
 
@@ -63,8 +61,8 @@ export async function registerVisit(
         const queryMLShipment =
           "SELECT ml_shipment_id FROM envios WHERE superado = 0 AND elim = 0 AND did = ? LIMIT 1";
 
-        const mlshipmentRows = await executeQuery(
-          dbConnection,
+        const mlshipmentRows = await executeQueryFromPool(
+          pool,
           queryMLShipment,
           [shipmentId]
         );
@@ -94,12 +92,12 @@ export async function registerVisit(
     const queryRuteoParadas =
       "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
 
-    await executeQuery(dbConnection, queryRuteoParadas, [shipmentId]);
+    await executeQueryFromPool(pool, queryRuteoParadas, [shipmentId]);
 
     const queryRuteo =
       "SELECT didRuteo FROM ruteo_paradas WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
 
-    const rutaRows = await executeQuery(dbConnection, queryRuteo, [shipmentId]);
+    const rutaRows = await executeQueryFromPool(pool, queryRuteo, [shipmentId]);
 
     if (rutaRows.length > 0) {
       const didRuta = rutaRows[0].didRuteo;
@@ -107,11 +105,7 @@ export async function registerVisit(
       const queryRuteoParadas =
         "SELECT didPaquete, cerrado FROM ruteo_paradas WHERE superado = 0 AND elim = 0 AND didRuteo = ?";
 
-      const enviosRutaRows = await executeQuery(
-        dbConnection,
-        queryRuteoParadas,
-        [didRuta]
-      );
+      const enviosRutaRows = await executeQueryFromPool(pool, queryRuteoParadas, [didRuta]);
 
       const cierroRuta = enviosRutaRows.every((envio) => envio.cerrado === 1);
 
@@ -119,14 +113,14 @@ export async function registerVisit(
         const queryRuteo =
           "UPDATE ruteo SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ?";
 
-        await executeQuery(dbConnection, queryRuteo, [didRuta]);
+        await executeQueryFromPool(pool, queryRuteo, [didRuta]);
       }
     }
 
     const queryEnviosRecibe =
       "INSERT INTO envios_recibe (didEnvio, dni, nombre, ilat, ilong, quien) VALUES (?, ?, ?, ?, ?, ?)";
 
-    await executeQuery(dbConnection, queryEnviosRecibe, [
+    await executeQueryFromPool(pool, queryEnviosRecibe, [
       shipmentId,
       recieverDNI,
       recieverName,
@@ -138,7 +132,7 @@ export async function registerVisit(
     const queryEnvios =
       "SELECT choferAsignado, estado_envio FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
-    const choferRows = await executeQuery(dbConnection, queryEnvios, [
+    const choferRows = await executeQueryFromPool(pool, queryEnvios, [
       shipmentId,
     ]);
 
@@ -155,8 +149,8 @@ export async function registerVisit(
       now.setHours(now.getHours() - 3);
       date = now.toISOString().slice(0, 19).replace('T', ' ');
     }
-    const historialResult = await executeQuery(
-      dbConnection,
+    const historialResult = await executeQueryFromPool(
+      pool,
       queryInsertEnviosHistorial,
       [shipmentId, shipmentState, assignedDriverId, date, userId]
     );
@@ -182,15 +176,15 @@ export async function registerVisit(
     ];
 
     for (const { query, values } of updates) {
-      await executeQuery(dbConnection, query, values);
+      await executeQueryFromPool(pool, query, values);
     }
 
     if (observation) {
       const queryInsertObservaciones =
         "INSERT INTO envios_observaciones (didEnvio, observacion, quien) VALUES (?, ?, ?)";
 
-      const obsResult = await executeQuery(
-        dbConnection,
+      const obsResult = await executeQueryFromPool(
+        pool,
         queryInsertObservaciones,
         [shipmentId, observation, userId]
       );
@@ -198,7 +192,7 @@ export async function registerVisit(
       const queryUpdateEnviosObservaciones =
         "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
 
-      await executeQuery(dbConnection, queryUpdateEnviosObservaciones, [
+      await executeQueryFromPool(pool, queryUpdateEnviosObservaciones, [
         shipmentId,
         obsResult.insertId,
       ]);
@@ -218,8 +212,6 @@ export async function registerVisit(
       message: error.message,
       stack: error.stack,
     });
-  } finally {
-    dbConnection.end();
   }
 }
 

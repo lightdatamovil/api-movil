@@ -173,7 +173,7 @@ export async function getCompanyByCode(companyCode) {
     }
 }
 
-async function loadAccountList(dbConnection, companyId, senderId) {
+async function loadAccountList(pool, companyId, senderId) {
     try {
         const querySelectClientesCuentas = `
             SELECT did, didCliente, ML_id_vendedor 
@@ -181,7 +181,7 @@ async function loadAccountList(dbConnection, companyId, senderId) {
             WHERE superado = 0 AND elim = 0 AND tipoCuenta = 1 AND ML_id_vendedor != ''
         `;
 
-        const result = await executeQuery(dbConnection, querySelectClientesCuentas);
+        const result = await executeQueryFromPool(pool, querySelectClientesCuentas);
 
         if (!accountList[companyId]) {
             accountList[companyId] = {};
@@ -207,10 +207,10 @@ async function loadAccountList(dbConnection, companyId, senderId) {
     }
 }
 
-export async function getAccountBySenderId(dbConnection, companyId, senderId) {
+export async function getAccountBySenderId(pool, companyId, senderId) {
     try {
         if (accountList === undefined || accountList === null || Object.keys(accountList).length === 0 || !accountList[companyId]) {
-            await loadAccountList(dbConnection, companyId, senderId);
+            await loadAccountList(pool, companyId, senderId);
         }
 
         const account = accountList[companyId][senderId];
@@ -222,14 +222,14 @@ export async function getAccountBySenderId(dbConnection, companyId, senderId) {
     }
 }
 
-async function loadClients(dbConnection, companyId) {
+async function loadClients(pool, companyId) {
     if (!clientList[companyId]) {
         clientList[companyId] = {}
     }
 
     try {
         const queryUsers = "SELECT * FROM clientes";
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+        const resultQueryUsers = await executeQueryFromPool(pool, queryUsers, []);
 
         resultQueryUsers.forEach(row => {
             const client = row.did;
@@ -251,13 +251,13 @@ async function loadClients(dbConnection, companyId) {
     }
 }
 
-export async function getClientsByCompany(dbConnection, companyId) {
+export async function getClientsByCompany(pool, companyId) {
     try {
         let companyClients = clientList[companyId];
 
         if (companyClients == undefined || Object.keys(clientList).length === 0) {
             try {
-                await loadClients(dbConnection, companyId);
+                await loadClients(pool, companyId);
 
                 companyClients = clientList[companyId];
             } catch (error) {
@@ -273,14 +273,14 @@ export async function getClientsByCompany(dbConnection, companyId) {
     }
 }
 
-async function loadZones(dbConnection, companyId) {
+async function loadZones(pool, companyId) {
     if (!zoneList[companyId]) {
         zoneList[companyId] = {}
     }
 
     try {
         const queryZones = "SELECT * FROM envios_zonas";
-        const resultZones = await executeQuery(dbConnection, queryZones, []);
+        const resultZones = await executeQueryFromPool(pool, queryZones, []);
 
         resultZones.forEach(row => {
             const zone = row.did;
@@ -306,13 +306,13 @@ async function loadZones(dbConnection, companyId) {
     }
 }
 
-export async function getZonesByCompany(dbConnection, companyId) {
+export async function getZonesByCompany(pool, companyId) {
     try {
         let companyZones = zoneList[companyId];
 
         if (companyZones == undefined || Object.keys(zoneList).length === 0) {
             try {
-                await loadZones(dbConnection, companyId);
+                await loadZones(pool, companyId);
 
                 companyZones = zoneList[companyId];
             } catch (error) {
@@ -328,7 +328,7 @@ export async function getZonesByCompany(dbConnection, companyId) {
     }
 }
 
-async function loadDrivers(dbConnection, companyId) {
+async function loadDrivers(pool, companyId) {
     if (!driverList[companyId]) {
         driverList[companyId] = {}
     }
@@ -345,7 +345,7 @@ async function loadDrivers(dbConnection, companyId) {
             AND sistema_usuarios.superado = 0
         `;
 
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+        const resultQueryUsers = await executeQueryFromPool(pool, queryUsers, []);
 
         for (let i = 0; i < resultQueryUsers.length; i++) {
             const row = resultQueryUsers[i];
@@ -369,13 +369,13 @@ async function loadDrivers(dbConnection, companyId) {
     }
 }
 
-export async function getDriversByCompany(dbConnection, companyId) {
+export async function getDriversByCompany(pool, companyId) {
     try {
         let companyDrivers = driverList[companyId];
 
         if (companyDrivers == undefined || Object.keys(driverList).length === 0) {
             try {
-                await loadDrivers(dbConnection, companyId);
+                await loadDrivers(pool, companyId);
 
                 companyDrivers = driverList[companyId];
             } catch (error) {

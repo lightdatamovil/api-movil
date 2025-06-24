@@ -4,9 +4,7 @@ import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getSettlementShipmentDetails(company, shipmentId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const pool = connectionsPools[company.did];
 
     try {
         const zones = await getZonesByCompany(company.did);
@@ -22,7 +20,7 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
         LEFT JOIN envios_direcciones_destino AS edd ON(edd.elim = 0 AND edd.superado = 0 AND edd.didEnvio = e.did) 
         WHERE e.superado = 0 AND e.elim = 0 AND e.did = ? `;
 
-        const resultados = await executeQuery(dbConnection, sql, [shipmentId]);
+        const resultados = await executeQueryFromPool(pool, sql, [shipmentId]);
 
         if (resultados.length > 0) {
             const row = resultados[0];
@@ -55,7 +53,5 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }
