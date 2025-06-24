@@ -1,6 +1,6 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
-import { logRed, logYellow } from './src/funciones/logsCustom.js';
+import { logBlue, logRed, logYellow } from './src/funciones/logsCustom.js';
 import mysql2 from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
@@ -26,6 +26,7 @@ let accountList = {};
 let driverList = {};
 let zoneList = {};
 let clientList = {};
+export let connectionsPools = {};
 
 export function getDbConfig(companyId) {
     return {
@@ -77,8 +78,7 @@ export async function updateRedis(empresaId, envioId, choferId) {
 
     await redisClient.set('DWRTE', JSON.stringify(DWRTE));
 }
-
-async function loadCompaniesFromRedis() {
+export async function loadCompaniesFromRedis() {
     try {
         const companiesListString = await redisClient.get('empresasData');
 
@@ -89,7 +89,38 @@ async function loadCompaniesFromRedis() {
         throw error;
     }
 }
+export async function loadConnectionsPools() {
+    try {
+        logYellow(`Cargando conexiones a las bases de datos de las compañías...`);
+        if (Object.keys(companiesList).length === 0) {
+            try {
+                await loadCompaniesFromRedis();
+            } catch (error) {
+                logRed(`Error al cargar compañías desde Redis: ${error.stack}`);
+                throw error;
+            }
+        }
+        companiesList = Object.values(companiesList);
+        companiesList.map(company => {
+            const pool = mysql2.createPool({
+                host: "bhsmysql1.lightdata.com.ar",
+                user: company.dbuser,
+                password: company.dbpass,
+                database: company.dbname,
+                port: 3306,
+                waitForConnections: true,
+                connectionLimit: 10,
+                queueLimit: 0
+            });
+            connectionsPools[company.id] = pool;
+        });
+        logBlue(`${JSON.stringify(Object.keys(connectionsPools))} conexiones a las bases de datos de las compañías cargadas.`);
 
+    } catch (error) {
+        logRed(`Error en loadConnectionsPools: ${error.stack}`);
+        throw error;
+    }
+}
 export async function getCompanyById(companyId) {
     try {
         let company = companiesList[companyId];
@@ -387,4 +418,46 @@ export async function executeQuery(connection, query, values, log) {
         logRed(`Error en executeQuery: ${error.stack}`);
         throw error;
     }
+}
+export async function executeQueryFromPool(pool, query, values = [], log = false) {
+    // Formateamos para loggear el SQL con valores
+    const formattedQuery = mysql2.format(query, values);
+
+    return new Promise((resolve, reject) => {
+        // Pedimos una conexión del pool
+        pool.getConnection((connErr, connection) => {
+            if (connErr) {
+                logRed(`Error obteniendo conexión del pool: ${connErr.message}`);
+                return reject(connErr);
+            }
+
+            if (log) {
+                logYellow(`Ejecutando query: ${formattedQuery}`);
+            }
+
+            // Ejecutamos la query
+            connection.query(formattedQuery, (queryErr, results) => {
+                // Liberamos la conexión para que vuelva al pool
+                connection.release();
+
+                if (queryErr) {
+                    if (log) {
+                        logRed(`Error en executeQuery: ${queryErr.message} en query: ${formattedQuery}`);
+                    }
+                    return reject(queryErr);
+                }
+
+                if (log) {
+                    logYellow(
+                        `Query ejecutada con éxito: ${formattedQuery} - Resultados: ${JSON.stringify(results)}`
+                    );
+                }
+                resolve(results);
+            });
+        });
+    }).catch(error => {
+        // En caso de algún otro fallo
+        logRed(`Error en executeQuery: ${error.stack}`);
+        throw error;
+    });
 }

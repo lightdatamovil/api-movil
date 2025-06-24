@@ -1,5 +1,5 @@
 import mysql2 from "mysql2";
-import { executeQuery, getProdDbConfig } from "../../db.js";
+import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
@@ -11,10 +11,8 @@ function generateToken(userId, idEmpresa, perfil) {
   return jwt.sign(payload, "ruteate", options);
 }
 
-export async function login(username, password, company) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
+export async function login(username, password, company, startTime) {
+  let pool = connectionsPools[company.did];
 
   try {
 
@@ -37,10 +35,10 @@ export async function login(username, password, company) {
     JOIN sistema_usuarios_accesos as a on (a.elim=0 and a.superado=0 and a.usuario = u.did)
     WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
 
-    const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
+    const resultsFromUserQuery = await executeQueryFromPool(pool, userQuery, [
       username,
     ]);
-
+    logYellow(`Tiempo de ejecución de la consulta de usuario: ${performance.now() - startTime} ms`);
     if (resultsFromUserQuery.length === 0) {
       throw new CustomException({
         title: "Usuario inválido",
@@ -110,7 +108,5 @@ export async function login(username, password, company) {
       message: error.message,
       stack: error.stack,
     });
-  } finally {
-    dbConnection.end();
   }
 }

@@ -10,7 +10,7 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { getCompanyById, redisClient } from './db.js';
+import { getCompanyById, loadCompaniesFromRedis, loadConnectionsPools, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 import { getUrlsDev } from './src/funciones/urlsdev.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
@@ -89,7 +89,8 @@ if (cluster.isMaster) {
     (async () => {
         try {
             await redisClient.connect();
-
+            await loadCompaniesFromRedis();
+            await loadConnectionsPools();
             app.use('/api/auth', auth);
             app.use('/api/accounts', accounts);
             app.use('/api/shipments', shipments);

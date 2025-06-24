@@ -8,6 +8,7 @@ import { whatsappMessagesList } from '../controller/auth/whatsappMessagesList.js
 import { logGreen, logPurple, logRed, logYellow } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
+import { start } from 'repl';
 
 const auth = Router();
 
@@ -100,7 +101,7 @@ auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
     try {
         const company = await getCompanyById(companyId);
         logYellow(`${performance.now() - startTime} ms traje company`);
-        const result = await whatsappMessagesList(company);
+        const result = await whatsappMessagesList(company, startTime);
         crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(result), "/whatsapp-message-list", true);
         res.status(200).json({ body: result, message: "Mensajes traidos correctamente" });
     } catch (error) {
