@@ -90,10 +90,12 @@ auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
     }
 
     const { companyId } = req.body;
-
+    logYellow(`Tiempo de ejecución: ${performance.now() - startTime} ms - Inicio de whatsapp-message-list`);
     try {
         const company = await getCompanyById(companyId);
-        const result = await whatsappMessagesList(company);
+        logYellow(`${performance.now() - startTime} ms traje company`);
+        const result = await whatsappMessagesList(company, startTime);
+        logYellow(`Tiempo de ejecución: ${performance.now() - startTime} ms`);
 
         res.status(200).json({ body: result, message: "Mensajes traidos correctamente" });
     } catch (error) {
