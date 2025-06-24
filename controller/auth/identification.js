@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { logRed, logYellow } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
-import { executeQuery, executeQueryFromPool, getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from '../../db.js';
 import mysql2 from 'mysql2';
 import { connect } from 'amqplib';
 
