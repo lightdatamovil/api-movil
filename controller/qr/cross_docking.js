@@ -36,13 +36,13 @@ export async function crossDocking(dataQr, company) {
             }
             queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
-            queryWhereId = `WHERE e.superado = 0 AND e.elim = 0 AND e.ml_shipment_id = ${shipmentId}`;
             if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
                 shipmentId = dataQr;
             } else {
                 shipmentId = dataQr.id;
 
             }
+            queryWhereId = `WHERE e.superado = 0 AND e.elim = 0 AND e.ml_shipment_id = ${shipmentId}`;
         }
 
         const queryEnvios = `
@@ -63,7 +63,7 @@ LIMIT 1
 
        
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, []);
+        const envioData = await executeQuery(dbConnection, queryEnvios, [], true);
 
         if (envioData.length === 0) {
             throw new CustomException({
