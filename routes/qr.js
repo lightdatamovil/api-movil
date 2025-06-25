@@ -199,13 +199,13 @@ qr.post("/enter-flex", async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    const result = await enterFlex(company, dataQr, userId, profile);
+    await enterFlex(company, dataQr, userId, profile);
 
     logGreen(`Enter flex ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/enter-flex", true);
     res
       .status(200)
-      .json({ body: result, message: "Datos obtenidos correctamente" });
+      .json({ message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en enter-flex: ${error}`);
