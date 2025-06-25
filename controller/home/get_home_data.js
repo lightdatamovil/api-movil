@@ -1,6 +1,6 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
-import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
@@ -22,9 +22,6 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
       });
     }
   }
-  logCyan(
-    `Obteniendo datos de inicio para companyId: ${company.did}, userId: ${userId}, profile: ${profile}, dateYYYYMMDD: ${dateYYYYMMDD}`
-  );
   try {
     const estadosPendientes = {
       20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],

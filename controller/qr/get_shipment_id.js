@@ -1,6 +1,6 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getShipmentIdFromQr(dataQr, company) {
@@ -27,7 +27,6 @@ export async function getShipmentIdFromQr(dataQr, company) {
             }
         } else {
             if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
-                logCyan(`getShipmentIdFromQr: Empresa 211, no se encontró sender_id en el QR, usando didCliente 301 para buscar el envío`);
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 
                 const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr], true);

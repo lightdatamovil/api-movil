@@ -1,7 +1,7 @@
 import mysql2 from 'mysql2';
 
 import { getProdDbConfig, executeQuery } from '../../db.js';
-import { logCyan, logRed } from '../../src/funciones/logsCustom.js';
+import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import MapConstants from '../../src/constants/map.js';
 
@@ -67,15 +67,12 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                     additionalRouteData.inicioEn = MapConstants.inicioEnUserLocation;
                 }
                 if (additionalRouteData.finalizoEn == 'dep') {
-                    logCyan(`Finalizó en depósito: dep`);
                     additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion * 1;
                 }
                 if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer') {
-                    logCyan(`Finalizó en casa: casaChofer`);
                     additionalRouteData.finalizoEn = MapConstants.inicioEnCasa;
                 }
                 if (additionalRouteData.finalizoEn == 'parada') {
-                    logCyan(`Finalizó en parada: parada`);
                     additionalRouteData.finalizoEn = MapConstants.finalizoEnShipment;
                 }
                 additionalRouteData.idDepositoComienzo = additionalRouteData.idDepositoComienzo * 1;
