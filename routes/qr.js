@@ -202,7 +202,7 @@ qr.post("/enter-flex", async (req, res) => {
     await enterFlex(company, dataQr, userId, profile);
 
     logGreen(`Enter flex ejecutado correctamente`);
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/enter-flex", true);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, { message: "exito" }, "/enter-flex", true);
     res
       .status(200)
       .json({ message: "Datos obtenidos correctamente" });
