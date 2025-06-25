@@ -2,7 +2,7 @@ import mysql2 from "mysql2";
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 function generateToken(userId, idEmpresa, perfil) {

@@ -1,7 +1,7 @@
 import mysql2 from 'mysql2';
 
 import { getProdDbConfig, executeQuery } from '../../db.js';
-import { logCyan, logRed, logYellow } from '../../src/funciones/logsCustom.js';
+import { logCyan, logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import MapConstants from '../../src/constants/map.js';
 

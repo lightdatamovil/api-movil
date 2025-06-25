@@ -1,6 +1,6 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
-import { logCyan, logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
@@ -193,7 +193,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
           const rowsPendientesOperador = await executeQuery(
             dbConnection,
             queryPendientes,
-            [], true
+            []
           );
           infoADevolver.pendings = rowsPendientesOperador.length;
           // En Camino, Cerrados y Entregados HOY para operador

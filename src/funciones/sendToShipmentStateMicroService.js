@@ -1,6 +1,6 @@
 import { connect } from 'amqplib';
 import dotenv from 'dotenv';
-import { logGreen, logRed, logYellow } from './logsCustom.js';
+import { logGreen, logRed } from './logsCustom.js';
 import { formatFechaUTC3 } from './formatFechaUTC3.js';
 
 dotenv.config({ path: process.env.ENV_FILE || '.env' });

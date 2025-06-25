@@ -1,9 +1,6 @@
 import axios from "axios";
-import { logYellow } from "./logsCustom.js";
 
 export async function getShipmentFromMLByTracking(shipmentId, accessToken) {
-    logYellow(`Fetching shipment details for ID: ${shipmentId}`);
-    logYellow(`Using access token: ${accessToken}`);
     if (!shipmentId || !accessToken) {
         throw new Error("Shipment ID and access token are required.");
     }

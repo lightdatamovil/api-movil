@@ -6,7 +6,7 @@ import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
 import { armado } from "../controller/qr/armado.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import { logGreen, logPurple, logRed, logYellow } from "../src/funciones/logsCustom.js";
+import { logGreen, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";

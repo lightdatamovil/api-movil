@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { logGreen, logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getToken } from '../../src/funciones/getTokenML.js';
 
