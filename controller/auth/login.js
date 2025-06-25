@@ -1,8 +1,7 @@
-import mysql2 from "mysql2";
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from "../../db.js";
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 function generateToken(userId, idEmpresa, perfil) {
@@ -15,7 +14,6 @@ export async function login(username, password, company, startTime) {
   let pool = connectionsPools[company.did];
 
   try {
-
     let userAddress = {};
 
     const userQuery = `SELECT
@@ -35,9 +33,7 @@ export async function login(username, password, company, startTime) {
     JOIN sistema_usuarios_accesos as a on (a.elim=0 and a.superado=0 and a.usuario = u.did)
     WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
 
-    const resultsFromUserQuery = await executeQueryFromPool(pool, userQuery, [
-      username,
-    ]);
+    const resultsFromUserQuery = await executeQueryFromPool(pool, userQuery, [username], true);
     logYellow(`Tiempo de ejecución de la consulta de usuario: ${performance.now() - startTime} ms`);
     if (resultsFromUserQuery.length === 0) {
       throw new CustomException({
@@ -55,16 +51,20 @@ export async function login(username, password, company, startTime) {
       });
     }
 
+    logCyan(`Tasd ms`);
+    logCyan(`${user.pass} vs ${password}`);
     const hashPassword = crypto
       .createHash("sha256")
       .update(password)
       .digest("hex");
+    logCyan(`${user.pass} vs ${hashPassword}`);
     if (user.pass !== hashPassword) {
       throw new CustomException({
         title: "Contraseña incorrecta",
         message: "La contraseña ingresada no coincide",
       });
     }
+    logCyan(`Taasdasdasdsd ms`);
 
     const token = generateToken(user.did, company.did, user.perfil);
 
@@ -86,6 +86,7 @@ export async function login(username, password, company, startTime) {
         longitude: userHomeLongitude,
       });
     }
+    logCyan(`Tiempo de ejecución de la consulta de casas: ${performance.now() - startTime} ms`);
     return {
       id: user.did,
       username: user.usuario,
@@ -99,7 +100,7 @@ export async function login(username, password, company, startTime) {
       version: "1.0.74",
     };
   } catch (error) {
-    logRed(`Error en login: ${error.stack}`);
+    logRed(`Error en login: ${error}`);
     if (error instanceof CustomException) {
       throw error;
     }

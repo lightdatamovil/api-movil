@@ -67,7 +67,7 @@ auth.post('/login', async (req, res) => {
 
         const company = await getCompanyById(companyId);
 
-        const result = await login(username, password, company);
+        const result = await login(username, password, company, startTime);
 
         logGreen(`Usuario logueado correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/login", true);
@@ -75,7 +75,7 @@ auth.post('/login', async (req, res) => {
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/login", false);
-            logRed(`Error 400 en login: ${error} `);
+            logRed(`Error 400 en login: ${JSON.stringify(error)} `);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/login", false);
