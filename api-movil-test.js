@@ -13,9 +13,10 @@ import collect from './routes/collect.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 import { getUrlsDev } from './src/funciones/urlsdev.js';
-import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
+import { logBlue, logCyan, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
-
+import os from "os";
+logCyan(`Hostname: ${os.hostname()}`);
 const numCPUs = 2;
 const PORT = 13500;
 
