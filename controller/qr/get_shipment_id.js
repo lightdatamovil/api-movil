@@ -38,7 +38,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
                     });
                 }
 
-                shipmentId = resultQueryEnvios[0].did;
+                shipmentId = `${resultQueryEnvios[0].did}`;
             } else {
                 const mlShipmentId = dataQr.id;
                 const sellerId = dataQr.sender_id;
