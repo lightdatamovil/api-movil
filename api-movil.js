@@ -17,7 +17,7 @@ import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
 
 const numCPUs = 2;
-const PORT = 13500;
+const PORT = 13000;
 
 if (cluster.isMaster) {
     logBlue(`Proceso master ${process.pid} ejecutándose...`);

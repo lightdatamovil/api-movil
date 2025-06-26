@@ -6,7 +6,7 @@ import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
 import { armado } from "../controller/qr/armado.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import { logGreen, logPurple, logRed, logYellow } from "../src/funciones/logsCustom.js";
+import { logGreen, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
@@ -199,13 +199,13 @@ qr.post("/enter-flex", async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    const result = await enterFlex(company, dataQr, userId, profile);
+    await enterFlex(company, dataQr, userId, profile);
 
     logGreen(`Enter flex ejecutado correctamente`);
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/enter-flex", true);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "exito" }), "/enter-flex", true);
     res
       .status(200)
-      .json({ body: result, message: "Datos obtenidos correctamente" });
+      .json({ message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en enter-flex: ${error}`);

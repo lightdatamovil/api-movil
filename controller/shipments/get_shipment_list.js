@@ -7,7 +7,7 @@ import {
   executeQueryFromPool,
 } from "../../db.js";
 import mysql2 from "mysql2";
-import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function shipmentList(
@@ -34,9 +34,7 @@ export async function shipmentList(
       });
     }
   }
-  logCyan(
-    `Obteniendo listado de paquetes para companyId: ${company.did}, userId: ${userId}, profile: ${profile}`
-  );
+
   try {
     const hoy = date || new Date().toISOString().split("T")[0];
     // Obtener clientes y choferes

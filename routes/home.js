@@ -7,7 +7,7 @@ import { finishRoute } from "../controller/home/finish_route.js";
 import { getHomeData } from "../controller/home/get_home_data.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
 import {
-  logCyan,
+
   logGreen,
   logPurple,
   logRed,

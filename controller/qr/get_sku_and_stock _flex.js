@@ -1,4 +1,4 @@
-import { logCyan, logRed } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getShipmentFromMLByTracking, getTitleAndImageFromMLByTracking, } from "../../src/funciones/getItemsFromMLByShipmentId.js";
 

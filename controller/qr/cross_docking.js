@@ -2,20 +2,46 @@ import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany, 
 import mysql2 from 'mysql2';
 import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';
-import { getShipmentIdFromQr } from "../../controller/qr/get_shipment_id.js";
 
 export async function crossDocking(dataQr, company) {
     const pool = connectionsPools[company.did];
 
     try {
-        let shipmentId = await getShipmentIdFromQr(dataQr, company);
+        let shipmentId;
         let queryWhereId = '';
         const isLocal = dataQr.hasOwnProperty("local");
 
         if (isLocal) {
+            shipmentId = dataQr.did;
+
+            if (company.did != dataQr.empresa) {
+                const queryEnviosExteriores = `
+                    SELECT didLocal
+                    FROM envios_exteriores
+                    WHERE didExterno = ?
+                    AND didEmpresa = ?
+                `;
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
+
+                if (resultQueryEnviosExteriores.length == 0) {
+                    throw new CustomException({
+                        title: "Error en crossDocking",
+                        message: "El envío no pertenece a la empresa"
+                    });
+                }
+
+                shipmentId = resultQueryEnviosExteriores[0];
+            }
             queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
-            queryWhereId = `WHERE e.superado = 0 AND e.elim = 0 AND e.ml_shipment_id = ${shipmentId}`;
+            if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
+                shipmentId = dataQr;
+                queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
+            } else {
+                shipmentId = dataQr.id;
+                queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = ${shipmentId}`;
+            }
+
         }
 
         const queryEnvios = `
