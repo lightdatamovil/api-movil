@@ -37,8 +37,8 @@ export async function getShipmentIdFromQr(dataQr, company) {
                         message: 'No se encontró el envío',
                     });
                 }
-
                 shipmentId = `${resultQueryEnvios[0].did}`;
+
             } else {
                 const mlShipmentId = dataQr.id;
                 const sellerId = dataQr.sender_id;
@@ -52,8 +52,8 @@ export async function getShipmentIdFromQr(dataQr, company) {
                         message: 'No se encontró el envío',
                     });
                 }
+                shipmentId = `${resultQueryEnvios[0].did}`;
 
-                shipmentId = resultQueryEnvios[0].did;
             }
 
         }

@@ -16,10 +16,10 @@ export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado
         }
 
         const sqlLog = `
-      INSERT INTO logs_v2
-        (empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+            INSERT INTO logs_v2
+                (empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
 
         // Siempre stringify para que el driver reciba un string
         const values = [
