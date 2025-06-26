@@ -11,7 +11,7 @@ export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado
         // Normaliza el endpoint (quita comillas sobrantes)
         const endpointClean = endpoint.replace(/"/g, '');
 
-        if (endpointClean === '/company-identification') {
+        if (endpointClean === '/company-identification' && exito == 1) {
             resultadoObj.image = 'Imagen eliminada por logs';
         }
 
