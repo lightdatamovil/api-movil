@@ -17,7 +17,7 @@ export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado
         if (endpointClean === '/company-identification' && exito == 1) {
             resultadoObj.image = 'Imagen eliminada por logs';
         }
-        if (endpointClean === '/upload-image' && exito == 1) {
+        if (endpointClean === '/upload-image' || endpointClean === '/change-profile-picture') {
             bodyObj.image = 'Imagen eliminada por logs';
         }
 
