@@ -42,9 +42,9 @@ export async function getShipmentIdFromQr(dataQr, company) {
             } else {
                 const mlShipmentId = dataQr.id;
                 const sellerId = dataQr.sender_id;
-                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ${mlShipmentId} AND ml_vendedor_id = ${sellerId}`;
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND ml_vendedor_id = ?`;
 
-                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, []);
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [mlShipmentId, sellerId]);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
