@@ -1,5 +1,4 @@
-import mysql2 from 'mysql2';
-import { connectionsPools, executeQueryFromPool, getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function getCollectList(companyId, userId, from, to) {
