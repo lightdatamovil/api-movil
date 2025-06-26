@@ -42,9 +42,8 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en register', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
         const result = await registerVisit(
-            company,
+            companyId,
             userId,
             shipmentId,
             recieverDNI,
@@ -92,8 +91,7 @@ registerVisitRoute.post('/upload-image', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en upload-image', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const response = await uploadImage(company, shipmentId, userId, shipmentState, image, lineId);
+        const response = await uploadImage(companyId, shipmentId, userId, shipmentState, image, lineId);
 
         logGreen(`Imagen subida correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/upload-image", true);

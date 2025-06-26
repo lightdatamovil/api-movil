@@ -1,11 +1,11 @@
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from "../../db.js";
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
 
-export async function enterFlex(company, dataQr, userId, profile) {
-    const pool = connectionsPools[company.did];
+export async function enterFlex(companyId, dataQr, userId, profile) {
+    const pool = connectionsPools[companyId];
 
     try {
         const mlShipmentId = dataQr.id;
@@ -82,8 +82,7 @@ export async function enterFlex(company, dataQr, userId, profile) {
                 shipmentState = 7;
             }
 
-            await sendToShipmentStateMicroService(company.did, userId, shipmentState, shipmentId);
-            // await setShipmentState(dbConnection, shipmentId, shipmentState, "");
+            await sendToShipmentStateMicroService(companyId, userId, shipmentState, shipmentId);
 
             if (profile === 3) {
                 await updateWhoPickedUp(pool, userId, shipmentId);

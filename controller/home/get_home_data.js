@@ -1,10 +1,9 @@
-import { getProdDbConfig, executeQuery, connectionsPools, executeQueryFromPool } from "../../db.js";
-import mysql2 from "mysql2";
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
-  const pool = connectionsPools[company.did];
+export async function getHomeData(companyId, userId, profile, dateYYYYMMDD) {
+  const pool = connectionsPools[companyId];
 
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
@@ -26,28 +25,28 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
       55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
       72: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 16, 18, 16],
       default: [0, 1, 2, 3, 6, 7, 10, 11, 12],
-    }[company.did] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
+    }[companyId] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
 
     const estadosEnCamino = {
       20: [2, 11, 12, 16],
       55: [2, 11, 12],
       72: [2, 11, 12],
       default: [2, 11, 12],
-    }[company.did] || [2, 11, 12];
+    }[companyId] || [2, 11, 12];
 
     const estadosCerradosHoy = {
       20: [5, 8, 9, 14, 17],
       55: [5, 8, 9, 14, 16],
       72: [5, 8, 9, 14],
       default: [5, 8, 9, 14],
-    }[company.did] || [5, 8, 9, 14];
+    }[companyId] || [5, 8, 9, 14];
 
     const estadosEntregadosHoy = {
       20: [5, 9, 17],
       55: [5, 9, 16],
       72: [5, 9],
       default: [5, 9],
-    }[company.did] || [5, 9];
+    }[companyId] || [5, 9];
 
     const infoADevolver = {
       assignedToday: 0,

@@ -1,10 +1,9 @@
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getShipmentIdFromQr(dataQr, company) {
-    const pool = connectionsPools[company.did];
+export async function getShipmentIdFromQr(dataQr, companyId) {
+    const pool = connectionsPools[companyId];
     try {
         let shipmentId;
 
@@ -13,9 +12,9 @@ export async function getShipmentIdFromQr(dataQr, company) {
         if (isLocal) {
             shipmentId = dataQr.did;
 
-            if (company.did != dataQr.empresa) {
+            if (companyId != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
-                const resultQueryEnviosExteriores = await executeQueryFromPool(pool, queryEnviosExteriores, [shipmentId, company.did]);
+                const resultQueryEnviosExteriores = await executeQueryFromPool(pool, queryEnviosExteriores, [shipmentId, companyId]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     return { message: "El envío no pertenece a la empresa", success: false };
@@ -24,7 +23,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
-            if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
+            if (companyId == 211 && !dataQr.hasOwnProperty("sender_id")) {
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 
                 const resultQueryEnvios = await executeQueryFromPool(pool, queryEnvios, [dataQr], true);

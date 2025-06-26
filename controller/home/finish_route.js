@@ -1,9 +1,8 @@
-import { getProdDbConfig, executeQuery, connectionsPools, executeQueryFromPool } from '../../db.js';
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function finishRoute(company, userId, dateYYYYMMDD) {
-    const pool = connectionsPools[company.did];
+export async function finishRoute(companyId, userId, dateYYYYMMDD) {
+    const pool = connectionsPools[companyId];
 
     const hour = dateYYYYMMDD.split(' ')[1];
 

@@ -1,11 +1,9 @@
-import mysql2 from 'mysql2';
-
-import { getProdDbConfig, executeQuery, executeQueryFromPool, connectionsPools } from '../../db.js';
+import { executeQueryFromPool, connectionsPools } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData) {
-    const pool = connectionsPools[company.did];
+export async function saveRoute(companyId, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData) {
+    const pool = connectionsPools[companyId];
 
     try {
         let routeId = 0;

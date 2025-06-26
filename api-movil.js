@@ -10,7 +10,7 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { getCompanyById, loadCompaniesFromRedis, loadConnectionsPools, redisClient } from './db.js';
+import { loadCompaniesFromRedis, loadConnectionsPools, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 import { getUrlsDev } from './src/funciones/urlsdev.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
@@ -64,9 +64,7 @@ if (cluster.isMaster) {
         const startTime = performance.now();
         const { companyId } = req.body;
 
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrls(company);
+        const urls = getUrls(companyId);
 
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
@@ -77,9 +75,7 @@ if (cluster.isMaster) {
         const startTime = performance.now();
         const { companyId } = req.body;
 
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrlsDev(company);
+        const urls = getUrlsDev(companyId);
 
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)

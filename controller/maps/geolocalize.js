@@ -1,11 +1,9 @@
-import mysql2 from 'mysql2';
-
-import { getProdDbConfig, executeQuery, connectionsPools, executeQueryFromPool } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function geolocalize(company, shipmentId, latitude, longitude) {
-    const pool = connectionsPools[company.did];
+export async function geolocalize(companyId, shipmentId, latitude, longitude) {
+    const pool = connectionsPools[companyId];
 
     try {
         const queryShipment = `SELECT did FROM envios WHERE did = ${shipmentId}`;

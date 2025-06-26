@@ -1,10 +1,9 @@
-import { getProdDbConfig, executeQuery, executeQueryFromPool, connectionsPools } from "../../db.js";
-import mysql2 from 'mysql2';
+import { executeQueryFromPool, connectionsPools } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function editUser(company, userId, email, phone) {
-    const pool = connectionsPools[company.did];
+export async function editUser(companyId, userId, email, phone) {
+    const pool = connectionsPools[companyId];
 
     try {
         const querySelectUsers = `SELECT * FROM sistema_usuarios WHERE superado=0 AND elim=0 AND did = ?`;

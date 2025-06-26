@@ -3,8 +3,8 @@ import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import MapConstants from '../../src/constants/map.js';
 
-export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
-    const pool = connectionsPools[company.did];
+export async function getRouteByUserId(companyId, userId, dateYYYYMMDD) {
+    const pool = connectionsPools[companyId];
 
     try {
         let shipments = [];

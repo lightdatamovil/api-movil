@@ -3,8 +3,8 @@ import { connectionsPools, getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function startCollectRoute(company) {
-    const pool = connectionsPools[company.did];
+export async function startCollectRoute(companyId) {
+    const pool = connectionsPools[companyId];
     try {
 
         return true;

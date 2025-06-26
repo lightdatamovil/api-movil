@@ -1,10 +1,9 @@
-import mysql2 from 'mysql2';
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) {
-    const pool = connectionsPools[company.did];
+    const pool = connectionsPools[companyId];
 
     const hour = dateYYYYMMDDHHSS.split(' ')[1];
     try {
@@ -44,7 +43,7 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
 
 
 
-            if ((company.did == 22 || company.did == 20) && enCaminoIds.length > 0) {
+            if ((companyId == 22 || companyId == 20) && enCaminoIds.length > 0) {
                 await fsetestadoMasivoDesde(pool, enCaminoIds, deviceFrom, dateYYYYMMDDHHSS, userId, 11);
             }
             if (pendientesIds.length > 0) {

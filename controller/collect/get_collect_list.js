@@ -2,8 +2,8 @@ import mysql2 from 'mysql2';
 import { connectionsPools, executeQueryFromPool, getProdDbConfig } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function getCollectList(company, userId, from, to) {
-    const pool = connectionsPools[company.did];
+export async function getCollectList(companyId, userId, from, to) {
+    const pool = connectionsPools[companyId];
 
     try {
         const query = `

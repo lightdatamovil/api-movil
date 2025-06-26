@@ -1,9 +1,8 @@
 import CustomException from "../../classes/custom_exception.js";
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 
-export async function armado(company, userId, dataEnvios, didCliente, fecha) {
-    const pool = connectionsPools[company.did];
+export async function armado(companyId, userId, dataEnvios, didCliente, fecha) {
+    const pool = connectionsPools[companyId];
 
     try {
         const [row1] = await executeQueryFromPool(pool, 'SELECT MAX(did) AS maxDid FROM fulfillment_movimientos_stock', []);

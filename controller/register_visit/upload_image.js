@@ -1,15 +1,13 @@
-import { getProdDbConfig, executeQuery, executeQueryFromPool, connectionsPools } from "../../db.js";
-import mysql2 from 'mysql2';
+import { executeQueryFromPool, connectionsPools } from "../../db.js";
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
-    const pool = connectionsPools[company.did];
+export async function uploadImage(companyId, shipmentId, userId, shipmentState, image, lineId) {
+    const pool = connectionsPools[companyId];
 
     try {
 
-        const companyId = company.did;
         const reqBody = { imagen: image, didenvio: shipmentId, quien: userId, idEmpresa: companyId };
         const server = 1;
         const url = 'https://files.lightdata.app/upload.php';

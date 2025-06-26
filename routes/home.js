@@ -34,8 +34,7 @@ home.post("/home", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
+    const result = await getHomeData(companyId, userId, profile, dateYYYYMMDD);
 
     logGreen(`Datos obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
@@ -75,8 +74,7 @@ home.post("/start-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
+    await startRoute(companyId, userId, dateYYYYMMDD, deviceFrom);
 
     logGreen(`Ruta comenzada exitosamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta comenzada exitosamente" }), "/start-route", true);
@@ -116,8 +114,7 @@ home.post("/end-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    await finishRoute(company, userId, dateYYYYMMDD);
+    await finishRoute(companyId, userId, dateYYYYMMDD);
 
     logGreen(`Ruta terminada exitosamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, "Ruta terminada exitosamente", "/end-route", true);
@@ -155,8 +152,7 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await verifyStartedRoute(company, userId);
+    const result = await verifyStartedRoute(companyId, userId);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/verify-started-route", true);
     res.status(200).json({

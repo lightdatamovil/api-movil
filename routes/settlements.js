@@ -25,8 +25,7 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en settlement-list', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const list = await getSettlementList(company, userId, from, to);
+        const list = await getSettlementList(companyId, userId, from, to);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-list", true);
         logGreen(`Listado de liquidaciones obtenido correctamente`);
         res.status(200).json({ body: list, message: 'Listado de liquidaciones obtenido correctamente' });
@@ -60,8 +59,7 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en settlement-details', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const details = await getSettlementDetails(company, settlementId);
+        const details = await getSettlementDetails(companyId, settlementId);
 
         logGreen(`Detalle de liquidación obtenido correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-details", true);
@@ -96,8 +94,7 @@ settlements.post('/settlement-shipment-details', verifyToken, async (req, res) =
             throw new CustomException({ title: 'Error en settlement-shipment-details', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const shipments = await getSettlementShipmentDetails(company, userId);
+        const shipments = await getSettlementShipmentDetails(companyId, userId);
 
         logGreen(`Detalle de envíos de liquidación obtenido correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-shipment-details", true);

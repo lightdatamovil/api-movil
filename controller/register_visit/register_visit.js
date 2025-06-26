@@ -1,13 +1,11 @@
-import { getProdDbConfig, executeQuery, executeQueryFromPool, connectionsPools } from "../../db.js";
-import mysql2 from "mysql2";
+import { executeQueryFromPool, connectionsPools } from "../../db.js";
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { connect } from "amqplib";
 
 export async function registerVisit(
-  company,
+  companyId,
   userId,
   shipmentId,
   recieverDNI,
@@ -15,10 +13,9 @@ export async function registerVisit(
   latitude,
   longitude,
   shipmentState,
-  observation,
-  date
+  observation
 ) {
-  const pool = connectionsPools[company.did];
+  const pool = connectionsPools[companyId];
   try {
     const queryEnviosHistorial =
       "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
@@ -48,7 +45,7 @@ export async function registerVisit(
     // Para wynflex si esta entregado
     if (
       currentShipmentState == 5 &&
-      (company.did == 72 || company.did == 125)
+      (companyId == 72 || companyId == 125)
     ) {
       const queryEnvios =
         "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
@@ -142,7 +139,7 @@ export async function registerVisit(
       "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, 'APP NUEVA', ?)";
     let date;
     const now = new Date();
-    if (company.did == 240) {
+    if (companyId == 240) {
       now.setHours(now.getHours() - 5);
       date = now.toISOString().slice(0, 19).replace('T', ' ');
     } else {

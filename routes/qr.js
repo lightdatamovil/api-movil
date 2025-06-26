@@ -29,8 +29,7 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await driverList(company);
+    const result = await driverList(companyId);
 
     logGreen(`Listado de choferes obtenido correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/driver-list", true);
@@ -71,8 +70,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
     }
 
     dataQr = parseIfJson(dataQr);
-    const company = await getCompanyById(companyId);
-    const response = await crossDocking(dataQr, company);
+    const response = await crossDocking(dataQr, companyId);
 
     logGreen(`Cross-docking completado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/cross-docking", true);
@@ -113,8 +111,7 @@ qr.post("/get-shipment-id", async (req, res) => {
     }
 
     dataQr = parseIfJson(dataQr);
-    const company = await getCompanyById(companyId);
-    const response = await getShipmentIdFromQr(dataQr, company);
+    const response = await getShipmentIdFromQr(dataQr, companyId);
 
     logGreen(`ID de envío obtenido correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/get-shipment-id", true);
@@ -198,8 +195,7 @@ qr.post("/enter-flex", async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    await enterFlex(company, dataQr, userId, profile);
+    await enterFlex(companyId, dataQr, userId, profile);
 
     logGreen(`Enter flex ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "exito" }), "/enter-flex", true);
@@ -241,8 +237,7 @@ qr.post("/sku", verifyToken, async (req, res) => {
 
     dataQr = parseIfJson(dataQr);
 
-    const company = await getCompanyById(companyId);
-    let result = await getSkuAndStockFlex(company, dataQr);
+    let result = await getSkuAndStockFlex(companyId, dataQr);
 
     logGreen(`SKU y cantidad de ítems obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/sku", true);
@@ -280,8 +275,7 @@ qr.post("/armado", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await armado(company, userId, dataEnvios, didCliente, fecha);
+    const result = await armado(companyId, userId, dataEnvios, didCliente, fecha);
 
     logGreen(`Armado ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/armado", true);

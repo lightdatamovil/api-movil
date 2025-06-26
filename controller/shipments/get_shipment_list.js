@@ -1,17 +1,14 @@
 import {
-  executeQuery,
-  getProdDbConfig,
   getClientsByCompany,
   getDriversByCompany,
   connectionsPools,
   executeQueryFromPool,
 } from "../../db.js";
-import mysql2 from "mysql2";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function shipmentList(
-  company,
+  companyId,
   userId,
   profile,
   from,
@@ -19,7 +16,7 @@ export async function shipmentList(
   isAssignedToday,
   date
 ) {
-  const pool = connectionsPools[company.did];
+  const pool = connectionsPools[companyId];
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
@@ -38,8 +35,8 @@ export async function shipmentList(
   try {
     const hoy = date || new Date().toISOString().split("T")[0];
     // Obtener clientes y choferes
-    const clientes = await getClientsByCompany(pool, company.did);
-    const drivers = await getDriversByCompany(pool, company.did);
+    const clientes = await getClientsByCompany(pool, companyId);
+    const drivers = await getDriversByCompany(pool, companyId);
 
     // Variables para personalizar la consulta según el perfil
     let sqlchoferruteo = "";
@@ -55,7 +52,7 @@ export async function shipmentList(
       sqlchoferruteo = ` AND r.didChofer = ${userId} `;
     }
 
-    if (company.did == 4) {
+    if (companyId == 4) {
       estadoAsignacion = "e.estadoAsignacion,";
     }
 
@@ -168,7 +165,7 @@ export async function shipmentList(
         row.estado_envio == 2 ||
         row.estado_envio == 11 ||
         row.estado_envio == 12 ||
-        (company.did == 20 && row.estado_envio == 16);
+        (companyId == 20 && row.estado_envio == 16);
       lista.push({
         didEnvio: row.didEnvio * 1,
         flex: row.flex * 1,

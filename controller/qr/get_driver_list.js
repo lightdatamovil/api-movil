@@ -1,9 +1,8 @@
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 
-export async function driverList(company) {
-    const pool = connectionsPools[company.did];
+export async function driverList(companyId) {
+    const pool = connectionsPools[companyId];
 
     try {
         var driverList = [];

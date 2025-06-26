@@ -2,8 +2,8 @@ import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function verifyStartedRoute(company, userId) {
-    const pool = connectionsPools[company.did];
+export async function verifyStartedRoute(companyId, userId) {
+    const pool = connectionsPools[companyId];
 
     try {
         const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;

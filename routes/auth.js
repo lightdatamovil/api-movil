@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { getCompanyById, getCompanyByCode } from '../db.js';
 import verifyToken from '../src/funciones/verifyToken.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { identification } from '../controller/auth/identification.js';
@@ -9,6 +8,7 @@ import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 import { start } from 'repl';
+import { getCompanyByCode } from '../db.js';
 
 const auth = Router();
 
@@ -50,7 +50,6 @@ auth.post('/company-identification', async (req, res) => {
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
     }
 });
-
 auth.post('/login', async (req, res) => {
     const startTime = performance.now();
 
@@ -65,9 +64,7 @@ auth.post('/login', async (req, res) => {
             });
         }
 
-        const company = await getCompanyById(companyId);
-
-        const result = await login(username, password, company, startTime);
+        const result = await login(username, password, companyId);
 
         logGreen(`Usuario logueado correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/login", true);
@@ -98,10 +95,11 @@ auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
 
     const { companyId } = req.body;
     try {
-        const company = await getCompanyById(companyId);
-        logYellow(`${performance.now() - startTime} ms traje company`);
-        const result = await whatsappMessagesList(company, startTime);
+
+        const result = await whatsappMessagesList(companyId);
+
         crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(result), "/whatsapp-message-list", true);
+
         res.status(200).json({ body: result, message: "Mensajes traidos correctamente" });
     } catch (error) {
         logRed(`Error en whatsapp - message - list: ${error.stack} `);

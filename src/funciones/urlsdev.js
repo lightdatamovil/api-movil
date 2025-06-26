@@ -1,5 +1,5 @@
 
-export function getUrlsDev(company) {
+export function getUrlsDev(companyId) {
     const urls = {
         /// HOME
         home: ["http://10.0.2.2:13000/api/home/home"],
@@ -65,7 +65,7 @@ export function getUrlsDev(company) {
         privacyPolicy: ["https://lightdata.app/privacyapp.html"],
     };
 
-    if (company != null && company.did == 4) {
+    if (companyId == 4) {
         /// ASIGNACION PROCOURRIER
         urls.assignment = ["https://asignaciones.lightdata.app/api/asignaciones-procourrier/asignar"];
         urls.unassignment = ["https://asignaciones.lightdata.app/api/asignaciones-procourrier/desasignar"];

@@ -1,10 +1,9 @@
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from '../../db.js';
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function nextDeliver(company, shipmentId, dateYYYYMMDD, userId) {
-    const pool = connectionsPools[company.did];
+export async function nextDeliver(companyId, shipmentId, dateYYYYMMDD, userId) {
+    const pool = connectionsPools[companyId];
 
     try {
         const query = "INSERT INTO proximas_entregas (didEnvio, fecha, quien) VALUES (?, ?, ?)";

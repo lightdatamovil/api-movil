@@ -46,9 +46,8 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
 
     //console.log(req.body, "pa chrisss");
 
-    const company = await getCompanyById(companyId);
     const result = await shipmentList(
-      company,
+      companyId,
       userId,
       profile,
       from,
@@ -96,8 +95,7 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await shipmentDetails(company, shipmentId, userId);
+    const result = await shipmentDetails(companyId, shipmentId, userId);
 
 
     logGreen(`Detalle de envío obtenido correctamente`);
@@ -140,8 +138,7 @@ shipments.post("/next-visit", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await nextDeliver(company, shipmentId, dateYYYYMMDD, userId);
+    const result = await nextDeliver(companyId, shipmentId, dateYYYYMMDD, userId);
 
     logGreen(`Próxima visita obtenida correctamente`);
     crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/next-visit", true);

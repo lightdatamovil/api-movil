@@ -1,4 +1,4 @@
-export function getUrls(company) {
+export function getUrls(companyId) {
   const urls = {
     /// HOME
     home: ["http://apimovil2.lightdata.app/api/home/home"],
@@ -105,6 +105,12 @@ export function getUrls(company) {
     /// PRIVACY POLICY
     privacyPolicy: ["https://lightdata.app/privacyapp.html"],
   };
+  if (companyId == 4) {
+    /// ASIGNACION PROCOURRIER
+    urls.assignment = ["https://asignaciones.lightdata.app/api/asignaciones-procourrier/asignar"];
+    urls.unassignment = ["https://asignaciones.lightdata.app/api/asignaciones-procourrier/desasignar"];
+  }
+
 
   return urls;
 }

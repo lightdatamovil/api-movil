@@ -1,10 +1,9 @@
-import { getProdDbConfig, executeQuery, connectionsPools, executeQueryFromPool } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function changePassword(company, userId, oldPassword, newPassword) {
-    const pool = connectionsPools[company.did];
+export async function changePassword(companyId, userId, oldPassword, newPassword) {
+    const pool = connectionsPools[companyId];
 
     try {
         const querySelectUsers = `SELECT * FROM sistema_usuarios WHERE superado = 0 AND elim = 0 AND did = ? `;

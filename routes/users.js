@@ -26,8 +26,7 @@ users.post('/edit-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en edit-user', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const result = await editUser(company, userId, email, phone);
+        const result = await editUser(companyId, userId, email, phone);
 
         logGreen(`Usuario editado correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/edit-user", true);
@@ -64,8 +63,7 @@ users.post('/change-password', verifyToken, async (req, res) => {
 
         const oldPasswordHash = createHash('sha256').update(oldPassword).digest('hex');
         const newPasswordHash = createHash('sha256').update(newPassword).digest('hex');
-        const company = await getCompanyById(companyId);
-        const result = await changePassword(company, userId, oldPasswordHash, newPasswordHash);
+        const result = await changePassword(companyId, userId, oldPasswordHash, newPasswordHash);
 
         logGreen(`Contraseña cambiada correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-password", true);
@@ -100,8 +98,7 @@ users.post('/change-profile-picture', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en change-profile-picture', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const result = await changeProfilePicture(company, userId, profile, image, dateYYYYMMDD);
+        const result = await changeProfilePicture(companyId, userId, profile, image, dateYYYYMMDD);
 
         logGreen(`Foto de perfil cambiada correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-profile-picture", true);

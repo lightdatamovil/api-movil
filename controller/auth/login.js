@@ -10,8 +10,9 @@ function generateToken(userId, idEmpresa, perfil) {
   return jwt.sign(payload, "ruteate", options);
 }
 
-export async function login(username, password, company, startTime) {
-  let pool = connectionsPools[company.did];
+export async function login(username, password, companyId) {
+  let pool = connectionsPools[companyId];
+  logYellow(`Iniciando sesión para el usuario: ${username} en la empresa: ${companyId}`);
 
   try {
     let userAddress = {};
@@ -34,7 +35,7 @@ export async function login(username, password, company, startTime) {
     WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
 
     const resultsFromUserQuery = await executeQueryFromPool(pool, userQuery, [username], true);
-    logYellow(`Tiempo de ejecución de la consulta de usuario: ${performance.now() - startTime} ms`);
+
     if (resultsFromUserQuery.length === 0) {
       throw new CustomException({
         title: "Usuario inválido",
@@ -43,7 +44,7 @@ export async function login(username, password, company, startTime) {
     }
 
     const user = resultsFromUserQuery[0];
-
+    logCyan(`${JSON.stringify(user)}`);
     if (user.bloqueado === 1) {
       throw new CustomException({
         title: "Acceso denegado",
@@ -51,22 +52,19 @@ export async function login(username, password, company, startTime) {
       });
     }
 
-    logCyan(`Tasd ms`);
-    logCyan(`${user.pass} vs ${password}`);
     const hashPassword = crypto
       .createHash("sha256")
       .update(password)
       .digest("hex");
-    logCyan(`${user.pass} vs ${hashPassword}`);
     if (user.pass !== hashPassword) {
       throw new CustomException({
         title: "Contraseña incorrecta",
         message: "La contraseña ingresada no coincide",
       });
     }
-    logCyan(`Taasdasdasdsd ms`);
 
-    const token = generateToken(user.did, company.did, user.perfil);
+
+    const token = generateToken(user.did, companyId.did, user.perfil);
 
     let userHomeLatitude, userHomeLongitude;
     if (user.direccion != "") {
@@ -86,14 +84,13 @@ export async function login(username, password, company, startTime) {
         longitude: userHomeLongitude,
       });
     }
-    logCyan(`Tiempo de ejecución de la consulta de casas: ${performance.now() - startTime} ms`);
     return {
       id: user.did,
       username: user.usuario,
       profile: user.perfil,
       email: user.email,
       profilePicture: "",
-      hasShipmentProductsQr: company.did == 200,
+      hasShipmentProductsQr: companyId.did == 200,
       phone: user.telefono,
       token,
       houses: userHouses,

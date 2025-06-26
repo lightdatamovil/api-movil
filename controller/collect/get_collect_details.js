@@ -3,8 +3,8 @@ import { connectionsPools, executeQueryFromPool, getProdDbConfig } from '../../d
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function getCollectDetails(company, dateYYYYMMDD) {
-    const pool = connectionsPools[company.did];
+export async function getCollectDetails(companyId, dateYYYYMMDD) {
+    const pool = connectionsPools[companyId];
 
     try {
         const clientesResult = await executeQueryFromPool(

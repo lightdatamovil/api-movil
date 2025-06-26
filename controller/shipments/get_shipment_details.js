@@ -1,10 +1,9 @@
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig } from '../../db.js';
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function shipmentDetails(company, shipmentId, userId) {
-    const pool = connectionsPools[company.did];
+export async function shipmentDetails(companyId, shipmentId, userId) {
+    const pool = connectionsPools[companyId];
 
     try {
         let shipmentData = await shipmentInformation(pool, shipmentId);

@@ -25,8 +25,7 @@ map.post('/get-route-by-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-route-by-user', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const result = await getRouteByUserId(company, userId, dateYYYYMMDD);
+        const result = await getRouteByUserId(companyId, userId, dateYYYYMMDD);
 
         logGreen(`Ruta de usuario obtenida correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/get-route-by-user", true);
@@ -61,8 +60,7 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en geolocalize', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        await geolocalize(company, shipmentId, latitude, longitude);
+        await geolocalize(companyId, shipmentId, latitude, longitude);
 
         logGreen(`Geolocalización registrada correctamente`);
 
@@ -99,9 +97,8 @@ map.post('/save-route', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en save-route', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
         await saveRoute(
-            company,
+            companyId,
             userId,
             dateYYYYMMDD,
             orders,

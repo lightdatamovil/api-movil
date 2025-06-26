@@ -1,13 +1,12 @@
-import { connectionsPools, executeQuery, executeQueryFromPool, getProdDbConfig, getZonesByCompany } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool, getZonesByCompany } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getSettlementShipmentDetails(company, shipmentId) {
-    const pool = connectionsPools[company.did];
+export async function getSettlementShipmentDetails(companyId, shipmentId) {
+    const pool = connectionsPools[companyId];
 
     try {
-        const zones = await getZonesByCompany(company.did);
+        const zones = await getZonesByCompany(companyId);
 
         const sql = `
         SELECT e.did, ce.chofer, e.estado_envio, e.flex, e.didEnvioZona,
