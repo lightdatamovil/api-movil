@@ -419,45 +419,19 @@ export async function executeQuery(connection, query, values, log) {
         throw error;
     }
 }
-export async function executeQueryFromPool(pool, query, values = [], log = false) {
-    // Formateamos para loggear el SQL con valores
+export function executeQueryFromPool(pool, query, values = [], log = false) {
     const formattedQuery = mysql2.format(query, values);
 
     return new Promise((resolve, reject) => {
-        // Pedimos una conexión del pool
-        pool.getConnection((connErr, connection) => {
-            if (connErr) {
-                logRed(`Error obteniendo conexión del pool: ${connErr.message}`);
-                return reject(connErr);
+        if (log) logYellow(`Ejecutando query: ${formattedQuery}`);
+
+        pool.query(formattedQuery, (err, results) => {
+            if (err) {
+                if (log) logRed(`Error en executeQuery: ${err.message} - ${formattedQuery}`);
+                return reject(err);
             }
-
-            if (log) {
-                logYellow(`Ejecutando query: ${formattedQuery}`);
-            }
-
-            // Ejecutamos la query
-            connection.query(formattedQuery, (queryErr, results) => {
-                // Liberamos la conexión para que vuelva al pool
-                connection.release();
-
-                if (queryErr) {
-                    if (log) {
-                        logRed(`Error en executeQuery: ${queryErr.message} en query: ${formattedQuery}`);
-                    }
-                    return reject(queryErr);
-                }
-
-                if (log) {
-                    logYellow(
-                        `Query ejecutada con éxito: ${formattedQuery} - Resultados: ${JSON.stringify(results)}`
-                    );
-                }
-                resolve(results);
-            });
+            if (log) logYellow(`Query ejecutada con éxito: ${formattedQuery}`);
+            resolve(results);
         });
-    }).catch(error => {
-        // En caso de algún otro fallo
-        logRed(`Error en executeQuery: ${error.stack}`);
-        throw error;
     });
 }
