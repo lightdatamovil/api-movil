@@ -6,12 +6,7 @@ import { startRoute } from "../controller/home/start_route.js";
 import { finishRoute } from "../controller/home/finish_route.js";
 import { getHomeData } from "../controller/home/get_home_data.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import {
-
-  logGreen,
-  logPurple,
-  logRed,
-} from "../src/funciones/logsCustom.js";
+import { logGreen, logOrange, logPurple, logRed, } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 
@@ -44,7 +39,7 @@ home.post("/home", verifyToken, async (req, res) => {
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en home: ${error}`);
+      logOrange(`Error 400 en home: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/home", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -85,7 +80,7 @@ home.post("/start-route", verifyToken, async (req, res) => {
       .json({ message: "La ruta ha comenzado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en start-route: ${error}`);
+      logOrange(`Error 400 en start-route: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/start-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -124,7 +119,7 @@ home.post("/end-route", verifyToken, async (req, res) => {
     res.status(200).json({ message: "La ruta ha terminado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en end-route: ${error}`);
+      logOrange(`Error 400 en end-route: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/end-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -165,7 +160,7 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
     });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en verify-started-route: ${error}`);
+      logOrange(`Error 400 en verify-started-route: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/verify-started-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {

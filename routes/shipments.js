@@ -5,7 +5,7 @@ import { nextDeliver } from "../controller/shipments/next_deliver.js";
 import { shipmentDetails } from "../controller/shipments/get_shipment_details.js";
 import { shipmentList } from "../controller/shipments/get_shipment_list.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import { logGreen, logPurple, logRed } from "../src/funciones/logsCustom.js";
+import { logGreen, logOrange, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 
@@ -65,7 +65,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en shipment-list: ${error}`);
+      logOrange(`Error 400 en shipment-list: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/shipment-list", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -107,7 +107,7 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en shipment-details: ${error}`);
+      logOrange(`Error 400 en shipment-details: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/shipment-details", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -150,7 +150,7 @@ shipments.post("/next-visit", verifyToken, async (req, res) => {
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en next-visit: ${error}`);
+      logOrange(`Error 400 en next-visit: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/next-visit", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {

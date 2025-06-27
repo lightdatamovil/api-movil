@@ -6,7 +6,7 @@ import { changePassword } from '../controller/user/change_password.js';
 import { changeProfilePicture } from '../controller/user/change_profile_picture.js';
 import { createHash } from 'crypto';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logOrange, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 
@@ -34,7 +34,7 @@ users.post('/edit-user', verifyToken, async (req, res) => {
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en edit-user: ${error}`);
+            logOrange(`Error 400 en edit-user: ${error}`);
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/edit-user", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -72,7 +72,7 @@ users.post('/change-password', verifyToken, async (req, res) => {
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en change-password: ${error}`);
+            logOrange(`Error 400 en change-password: ${error}`);
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/change-password", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -108,7 +108,7 @@ users.post('/change-profile-picture', verifyToken, async (req, res) => {
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en change-profile-picture: ${error}`);
+            logOrange(`Error 400 en change-profile-picture: ${error}`);
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/change-profile-picture", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {

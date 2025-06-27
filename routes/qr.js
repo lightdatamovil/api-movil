@@ -6,7 +6,7 @@ import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
 import { armado } from "../controller/qr/armado.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import { logGreen, logPurple, logRed } from "../src/funciones/logsCustom.js";
+import { logGreen, logOrange, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
@@ -39,7 +39,7 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en driver-list: ${error}`);
+      logOrange(`Error 400 en driver-list: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/driver-list", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -81,7 +81,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
       .json({ body: response, message: "Datos obtenidos correctamente", success: true });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en cross-docking: ${error}`);
+      logOrange(`Error 400 en cross-docking: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cross-docking", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -125,7 +125,7 @@ qr.post("/get-shipment-id", async (req, res) => {
     });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en get-shipment-id: ${error}`);
+      logOrange(`Error 400 en get-shipment-id: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-shipment-id", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -163,7 +163,7 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
       .json({ body: response, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en products-from-shipment: ${error}`);
+      logOrange(`Error 400 en products-from-shipment: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/products-from-shipment", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -208,7 +208,7 @@ qr.post("/enter-flex", async (req, res) => {
       .json({ message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en enter-flex: ${error}`);
+      logOrange(`Error 400 en enter-flex: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/enter-flex", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -249,7 +249,7 @@ qr.post("/sku", verifyToken, async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en sku: ${error}`);
+      logOrange(`Error 400 en sku: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/sku", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -292,7 +292,7 @@ qr.post("/armado", verifyToken, async (req, res) => {
     });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en armado: ${error}`);
+      logOrange(`Error 400 en armado: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/armado", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {

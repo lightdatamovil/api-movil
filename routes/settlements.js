@@ -5,7 +5,7 @@ import { getSettlementList } from '../controller/settlements/get_settlement_list
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logOrange, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 
@@ -32,7 +32,7 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
         res.status(200).json({ body: list, message: 'Listado de liquidaciones obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en settlement-list: ${error}`);
+            logOrange(`Error 400 en settlement-list: ${error}`);
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/settlement-list", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -68,7 +68,7 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
         res.status(200).json({ body: details, message: 'Detalle de liquidación obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en settlement-details: ${error}`);
+            logOrange(`Error 400 en settlement-details: ${error}`);
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/settlement-details", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -104,7 +104,7 @@ settlements.post('/settlement-shipment-details', verifyToken, async (req, res) =
         res.status(200).json({ body: shipments, message: 'Detalle de envíos de liquidación obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en settlement-shipment-details: ${error}`);
+            logOrange(`Error 400 en settlement-shipment-details: ${error}`);
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/settlement-shipment-details", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
