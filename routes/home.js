@@ -14,6 +14,7 @@ import {
 } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { crearLog } from "../src/funciones/crear_log.js";
+import { getHomeData2 } from "../controller/home/get_home_data2.js";
 
 const home = Router();
 
@@ -35,6 +36,46 @@ home.post("/home", verifyToken, async (req, res) => {
     }
 
     const result = await getHomeData(companyId, userId, profile, dateYYYYMMDD);
+
+    logGreen(`Datos obtenidos correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
+    res
+      .status(200)
+      .json({ body: result, message: "Datos obtenidos correctamente" });
+  } catch (error) {
+    if (error instanceof CustomException) {
+      logRed(`Error 400 en home: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/home", false);
+      res.status(400).json({ title: error.title, message: error.message });
+    } else {
+      logRed(`Error 500 en home: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/home", false);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+  } finally {
+    const endTime = performance.now();
+    logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
+  }
+});
+home.post("/home", verifyToken, async (req, res) => {
+  const startTime = performance.now();
+  const { companyId, userId, profile, dateYYYYMMDD } = req.body;
+  try {
+    const mensajeError = verifyParamaters(
+      req.body,
+      ["companyId", "userId", "profile", "dateYYYYMMDD"],
+      true
+    );
+    if (mensajeError) {
+      logRed(`Error en home: ${mensajeError}`);
+      throw new CustomException({
+        title: "Error en home",
+        message: mensajeError,
+      });
+    }
+
+    const company = await getCompanyById(companyId);
+    const result = await getHomeData2(company, userId, profile, dateYYYYMMDD);
 
     logGreen(`Datos obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
