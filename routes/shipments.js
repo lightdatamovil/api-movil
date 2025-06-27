@@ -43,9 +43,6 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
       });
     }
 
-
-    //console.log(req.body, "pa chrisss");
-
     const result = await shipmentList(
       companyId,
       userId,
