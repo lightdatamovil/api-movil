@@ -28,17 +28,6 @@ let zoneList = {};
 let clientList = {};
 export let connectionsPools = {};
 
-export function getDbConfig(companyId) {
-    return {
-        // host: "localhost",
-        host: "149.56.182.49",
-        user: "ue" + companyId,
-        password: "78451296",
-        database: "e" + companyId,
-        port: 44339
-    };
-}
-
 export const poolLocal = mysql2.createPool({
     host: "149.56.182.49",
     user: "ulog",
@@ -49,15 +38,6 @@ export const poolLocal = mysql2.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-
-export function getProdDbConfig(company) {
-    return {
-        host: "bhsmysql1.lightdata.com.ar",
-        user: company.dbuser,
-        password: company.dbpass,
-        database: company.dbname
-    };
-}
 
 export async function updateRedis(empresaId, envioId, choferId) {
     const DWRTE = await redisClient.get('DWRTE',);
@@ -90,36 +70,48 @@ export async function loadCompaniesFromRedis() {
     }
 }
 export async function loadConnectionsPools() {
-    try {
-        logYellow(`Cargando conexiones a las bases de datos de las compañías...`);
-        if (Object.keys(companiesList).length === 0) {
-            try {
-                await loadCompaniesFromRedis();
-            } catch (error) {
-                logRed(`Error al cargar compañías desde Redis: ${error.stack}`);
-                throw error;
-            }
-        }
-        companiesList = Object.values(companiesList);
-        companiesList.map(company => {
-            const pool = mysql2.createPool({
-                host: "bhsmysql1.lightdata.com.ar",
-                user: company.dbuser,
-                password: company.dbpass,
-                database: company.dbname,
-                port: 3306,
-                waitForConnections: true,
-                connectionLimit: 10,
-                queueLimit: 0
-            });
-            connectionsPools[company.id] = pool;
-        });
-        logBlue(`${JSON.stringify(Object.keys(connectionsPools))} conexiones a las bases de datos de las compañías cargadas.`);
+    logYellow('Cargando conexiones a las bases de datos de las compañías…');
 
-    } catch (error) {
-        logRed(`Error en loadConnectionsPools: ${error.stack}`);
-        throw error;
+    // 1) Cargar companiesList si está vacío
+    if (Object.keys(companiesList).length === 0) {
+        try {
+            await loadCompaniesFromRedis();
+        } catch (error) {
+            logRed(`Error al cargar compañías desde Redis: ${error.stack}`);
+            throw error;
+        }
     }
+
+    // 2) Transformar a array sin mutar el original
+    const companiesArray = Object.values(companiesList);
+
+    // 3) Cerrar y limpiar pools previos (si los hubiera)
+    for (const pool of Object.values(connectionsPools)) {
+        try {
+            await pool.promise().end();
+        } catch (e) {
+            logRed(`Error cerrando pool previo: ${e.message}`);
+        }
+    }
+    connectionsPools = {};
+
+    // 4) Crear un pool por cada compañía
+    companiesArray.forEach(company => {
+        connectionsPools[company.id] = mysql2.createPool({
+            host: 'bhsmysql1.lightdata.com.ar',
+            user: company.dbuser,
+            password: company.dbpass,
+            database: company.dbname,
+            port: 3306,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0
+        });
+    });
+
+    logBlue(
+        `Conexiones a las bases cargadas para empresas: ${Object.keys(connectionsPools).join(', ')}`
+    );
 }
 export async function getCompanyById(companyId) {
     try {
