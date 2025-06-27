@@ -28,6 +28,14 @@ let zoneList = {};
 let clientList = {};
 export let connectionsPools = {};
 
+export function getProdDbConfig(company) {
+    return {
+        host: "bhsmysql1.lightdata.com.ar",
+        user: company.dbuser,
+        password: company.dbpass,
+        database: company.dbname
+    };
+}
 export const poolLocal = mysql2.createPool({
     host: "149.56.182.49",
     user: "ulog",
