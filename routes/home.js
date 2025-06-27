@@ -57,7 +57,7 @@ home.post("/home", verifyToken, async (req, res) => {
     logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`);
   }
 });
-home.post("/home", verifyToken, async (req, res) => {
+home.post("/home2", verifyToken, async (req, res) => {
   const startTime = performance.now();
   const { companyId, userId, profile, dateYYYYMMDD } = req.body;
   try {
