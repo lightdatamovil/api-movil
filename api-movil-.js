@@ -12,13 +12,13 @@ import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
-import { getUrlsDev } from './src/funciones/urlsdev.js';
-import { logBlue, logCyan, logPurple, logRed } from './src/funciones/logsCustom.js';
+import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
-import os from "os";
-logCyan(`Hostname: ${os.hostname()}`);
+import dotenv from 'dotenv';
+
+dotenv.config({ path: process.env.ENV_FILE || ".env" });
 const numCPUs = 2;
-const PORT = 13500;
+const PORT = process.env.PORT;
 
 if (cluster.isMaster) {
     logBlue(`Proceso master ${process.pid} ejecutándose...`);
@@ -68,19 +68,6 @@ if (cluster.isMaster) {
         const company = await getCompanyById(companyId);
 
         const urls = getUrls(company);
-
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
-        res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
-    });
-
-    app.post('/api/get-urls-dev', async (req, res) => {
-        const startTime = performance.now();
-        const { companyId } = req.body;
-
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrlsDev(company);
 
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
