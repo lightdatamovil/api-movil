@@ -30,7 +30,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
             if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 
-                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr], true);
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr]);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
