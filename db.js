@@ -16,7 +16,7 @@ export const redisClient = redis.createClient({
     password: redisPassword,
 });
 
-redisClient.on('error', (err) => {
+redisClient.on('error', (error) => {
     logRed(`Error al conectar con Redis: ${error.stack}`);
 });
 
@@ -126,7 +126,7 @@ export async function getCompanyByCode(companyCode) {
         }
 
         for (const key in companiesList) {
-            if (companiesList.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(companiesList, key)) {
                 const currentCompany = companiesList[key];
                 if (String(currentCompany.codigo) === String(companyCode)) {
                     company = currentCompany;

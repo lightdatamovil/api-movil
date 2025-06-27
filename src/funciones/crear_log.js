@@ -1,5 +1,5 @@
 import { executeQuery, poolLocal } from "../../db.js";
-import { logCyan, logGreen, logRed } from "./logsCustom.js";
+import { logGreen, logRed } from "./logsCustom.js";
 
 export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito) {
     try {

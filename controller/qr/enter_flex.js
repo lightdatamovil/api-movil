@@ -115,68 +115,6 @@ export async function enterFlex(company, dataQr, userId, profile) {
         dbConnection.end();
     }
 }
-async function setShipmentState(dbConnection, shipmentId, shipmentState, userId) {
-    try {
-
-        const estadoActualQuery = `
-            SELECT estado FROM envios_historial 
-            WHERE didEnvio = ? AND superado = 0 AND elim = 0 
-            LIMIT 1
-            `;
-
-        const estadoActualResult = await executeQuery(dbConnection, estadoActualQuery, [shipmentId]);
-
-        const currentShipmentState = estadoActualResult.length ? estadoActualResult[0].estado : -1;
-
-        if (currentShipmentState !== shipmentState) {
-            const updateHistorialQuery = `
-                UPDATE envios_historial 
-                SET superado = 1 
-                WHERE superado = 0 AND elim = 0 AND didEnvio = ?
-            `;
-
-            await executeQuery(dbConnection, updateHistorialQuery, [shipmentId]);
-
-            const updateEnviosQuery = `
-                UPDATE envios 
-                SET estado_envio = ?
-            WHERE superado = 0 AND did = ?
-                `;
-
-            await executeQuery(dbConnection, updateEnviosQuery, [shipmentState, shipmentId]);
-
-            const operadorQuery = `
-                SELECT operador FROM envios_asignaciones 
-                WHERE didEnvio = ? AND superado = 0 AND elim = 0
-            `;
-
-            const operadorResult = await executeQuery(dbConnection, operadorQuery, [shipmentId]);
-
-            const driverId = operadorResult.length ? operadorResult[0].operador : 0;
-
-            const date = new Date().toISOString().slice(0, 19);
-
-            const insertHistorialQuery = `
-                INSERT INTO envios_historial(didEnvio, estado, quien, fecha, didCadete) 
-                VALUES(?, ?, ?, ?, ?)
-                `;
-
-            await executeQuery(dbConnection, insertHistorialQuery, [shipmentId, shipmentState, userId, date, driverId]);
-        }
-
-        return;
-    } catch (error) {
-        logRed(`Error en setShipmentState: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error poniendo estado al envío',
-            message: error.message,
-            stack: error.stack
-        });
-    }
-}
 
 async function setDispatchDate(dbConnection, clientId) {
     let closeHour = 16;

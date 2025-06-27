@@ -1,9 +1,9 @@
 import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
+import { executeQuery, getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function getCollectDetails(company, dateYYYYMMDD) {
+export async function getCollectDetails(company, dateYYYYMMDD, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();

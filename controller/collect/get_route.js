@@ -1,5 +1,5 @@
 import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
+import { executeQuery, getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
@@ -32,7 +32,7 @@ export async function getRoute(company, userId, dateYYYYMMDD) {
                 LEFT JOIN clientes_direcciones AS cld ON cld.superado = 0 AND cld.elim = 0 AND cld.cliente = CRP.didCliente
                 WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ? ORDER BY CRP.orden ASC;
             `;
-            const stopsResult = await executeQuery(dbConnection, stopsQuery, [Adata.didRuta]);
+            const stopsResult = await executeQuery(dbConnection, stopsQuery, [additionalRouteData.didRuta]);
 
             client = stopsResult.map(row => ({
                 orden: row.orden ? Number(row.orden) : null,

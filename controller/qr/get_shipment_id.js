@@ -10,7 +10,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
     try {
         let shipmentId;
 
-        const isLocal = dataQr.hasOwnProperty("local");
+        const isLocal = Object.prototype.hasOwnProperty.call(dataQr, "local");
 
         if (isLocal) {
             shipmentId = dataQr.did;
@@ -26,6 +26,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
+            // eslint-disable-next-line no-prototype-builtins
             if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 

@@ -13,7 +13,7 @@ const settlements = Router();
 
 settlements.post('/settlement-list', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, from, to } = req.body;
+    const { companyId, userId, profile, from, to } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -27,7 +27,7 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
 
         const company = await getCompanyById(companyId);
         const list = await getSettlementList(company, userId, from, to);
-        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-list", true);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(list), "/settlement-list", true);
         logGreen(`Listado de liquidaciones obtenido correctamente`);
         res.status(200).json({ body: list, message: 'Listado de liquidaciones obtenido correctamente' });
     } catch (error) {
@@ -48,7 +48,7 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
 
 settlements.post('/settlement-details', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, settlementId } = req.body;
+    const { companyId, userId, profile, settlementId } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -64,7 +64,7 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
         const details = await getSettlementDetails(company, settlementId);
 
         logGreen(`Detalle de liquidación obtenido correctamente`);
-        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-details", true);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(details), "/settlement-details", true);
         res.status(200).json({ body: details, message: 'Detalle de liquidación obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {
@@ -84,7 +84,7 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
 
 settlements.post('/settlement-shipment-details', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId } = req.body;
+    const { companyId, userId, profile } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
@@ -100,7 +100,7 @@ settlements.post('/settlement-shipment-details', verifyToken, async (req, res) =
         const shipments = await getSettlementShipmentDetails(company, userId);
 
         logGreen(`Detalle de envíos de liquidación obtenido correctamente`);
-        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-shipment-details", true);
+        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(shipments), "/settlement-shipment-details", true);
         res.status(200).json({ body: shipments, message: 'Detalle de envíos de liquidación obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {

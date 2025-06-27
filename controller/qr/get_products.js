@@ -35,7 +35,7 @@ export async function getProductsFromShipment(dataQr) {
                     for (const variant of Avariations) {
                         if (variant.id === variation_id) {
                             stock = variant.available_quantity;
-                            imagen = `https://http2.mlstatic.com/D_${variant.picture_ids[0]}-O.jpg` || '';
+                            imagen = `https://http2.mlstatic.com/D_${variant.picture_ids[0]}-O.jpg`;
                         }
                     }
                 } else {

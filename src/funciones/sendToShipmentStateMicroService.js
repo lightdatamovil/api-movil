@@ -25,7 +25,7 @@ export async function sendToShipmentStateMicroService(companyId, userId, estado,
             operacion: "ingresarFlex",
         };
 
-        channel.sendToQueue(QUEUE_ESTADOS, Buffer.from(JSON.stringify(message)), { persistent: true }, (err, ok) => {
+        channel.sendToQueue(QUEUE_ESTADOS, Buffer.from(JSON.stringify(message)), { persistent: true }, (err) => {
             if (err) {
                 logRed(`❌ Error al enviar el mensaje: ${err}`);
             } else {

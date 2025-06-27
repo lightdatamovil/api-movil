@@ -1,6 +1,6 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';
 
 export async function crossDocking(dataQr, company) {
@@ -11,7 +11,7 @@ export async function crossDocking(dataQr, company) {
     try {
         let shipmentId;
         let queryWhereId = '';
-        const isLocal = dataQr.hasOwnProperty("local");
+        const isLocal = Object.prototype.hasOwnProperty.call(dataQr, "local");
 
         if (isLocal) {
             shipmentId = dataQr.did;
@@ -36,7 +36,7 @@ export async function crossDocking(dataQr, company) {
             }
             queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
-            if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
+            if (company.did == 211 && !Object.prototype.hasOwnProperty.call(dataQr, "sender_id")) {
                 shipmentId = dataQr;
                 queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
             } else {
