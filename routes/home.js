@@ -78,18 +78,18 @@ home.post("/home2", verifyToken, async (req, res) => {
     const result = await getHomeData2(company, userId, profile, dateYYYYMMDD);
 
     logGreen(`Datos obtenidos correctamente`);
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home2", true);
     res
       .status(200)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       logRed(`Error 400 en home: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/home", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/home2", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
       logRed(`Error 500 en home: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/home", false);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/home2", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {
