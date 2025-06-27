@@ -69,7 +69,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                     additionalRouteData.inicioEn = MapConstants.inicioEnUserLocation;
                 }
                 if (additionalRouteData.finalizoEn == 'dep') {
-                    additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion * 1;
+                    additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion != null ? additionalRouteData.idDepositoFinalizacion * 1 : 1;
                 }
                 if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer') {
                     additionalRouteData.finalizoEn = MapConstants.inicioEnCasa;
