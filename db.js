@@ -4,19 +4,26 @@ import { logBlue, logRed, logYellow } from './src/funciones/logsCustom.js';
 import mysql2 from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
+/// Redis para obtener las empresas
 const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
 
-const hostApimovilDb = process.env.HOST_APIMOVIL_DB;
-const hostApimovilDbPort = process.env.HOST_APIMOVIL_DB_PORT;
+/// Base de datos de produccion
+const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
+const apimovilDBUser = process.env.APIMOVIL_DB_USER;
+const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
+const apimovilDBName = process.env.APIMOVIL_DB_NAME;
+const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
 
-const hostProductionDb = process.env.PRODUCTION_DB_HOST;
-const portProductionDb = process.env.PRODUCTION_DB_PORT;
-
+/// Usuario y contraseña para los logs de la base de datos de apimovil
 const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
 const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
 const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
+
+// Produccion
+const hostProductionDb = process.env.PRODUCTION_DB_HOST;
+const portProductionDb = process.env.PRODUCTION_DB_PORT;
 
 export const redisClient = redis.createClient({
     socket: {
@@ -39,11 +46,11 @@ let clientList = {};
 export let connectionsPools = {};
 
 export const poolLocal = mysql2.createPool({
-    host: hostApimovilDb,
+    host: apimovilDBHost,
     user: apimovilDbUserForLogs,
     password: apimovilDbPasswordForLogs,
     database: apimovilDbNameForLogs,
-    port: hostApimovilDbPort,
+    port: apimovilDBPort,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -104,7 +111,10 @@ export async function loadConnectionsPools() {
         }
     }
     connectionsPools = {};
-
+    // TODO: Cuando se use la db de apimovil aparte de para crear logs se deberia usar algo asi
+    // const apimovilDBUser = process.env.APIMOVIL_DB_USER;
+    // const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
+    // const apimovilDBName = process.env.APIMOVIL_DB_NAME;
     // 4) Crear un pool por cada compañía
     companiesArray.forEach(company => {
         connectionsPools[company.id] = mysql2.createPool({
