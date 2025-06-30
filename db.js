@@ -11,6 +11,7 @@ const redisPassword = process.env.REDIS_PASSWORD;
 
 /// Base de datos de produccion
 const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
+// TODO: Estan comentadas por la misma razon que la de abajo, cuando se use la db de apimovil aparte de para crear logs se deberia usar algo asi
 // const apimovilDBUser = process.env.APIMOVIL_DB_USER;
 // const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
 // const apimovilDBName = process.env.APIMOVIL_DB_NAME;
