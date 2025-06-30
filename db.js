@@ -24,7 +24,6 @@ const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
 const hostProductionDb = process.env.PRODUCTION_DB_HOST;
 const portProductionDb = process.env.PRODUCTION_DB_PORT;
 
-
 export const redisClient = redis.createClient({
     socket: {
         host: redisHost,
