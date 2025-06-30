@@ -87,6 +87,12 @@ export function getUrls(company) {
     collectSettlementDetails: [
       "http://apimovil2.lightdata.app/api/collect/get-collect-details",
     ],
+    sku: [
+      "http://apimovil2.lightdata.app/api/qr/sku",
+    ],
+    armado: [
+      "http://apimovil2.lightdata.app/api/qr/armado",
+    ],
 
     /// ACCOUNTS
     cuentas_listado: [
