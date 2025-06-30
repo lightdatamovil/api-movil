@@ -61,7 +61,7 @@ export async function crossDocking(dataQr, company) {
             ${queryWhereId}
             LIMIT 1
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, [], true);
+        const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
         if (envioData.length === 0) {
             throw new CustomException({
