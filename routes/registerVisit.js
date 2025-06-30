@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
-import { getCompanyById } from '../db.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
