@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
-import { getCompanyById } from '../db.js';
 import { accountList } from '../controller/accounts/accountList.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { logGreen, logOrange, logPurple, logRed } from '../src/funciones/logsCustom.js';
@@ -23,8 +22,7 @@ accounts.post('/account-list', verifyToken, async (req, res) => {
 			});
 		}
 
-		const company = await getCompanyById(companyId);
-		const result = await accountList(company, userId, profile);
+		const result = await accountList(companyId, userId, profile);
 
 		logGreen(`Lista de cuentas obtenida correctamente`);
 		crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/account-list", true);

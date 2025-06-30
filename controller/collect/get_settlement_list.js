@@ -1,12 +1,9 @@
-import mysql2 from 'mysql2';
-import { executeQuery, getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function getSettlementList(company, from, to) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getSettlementList(companyId, from, to) {
+    const pool = connectionsPools[companyId];
 
     try {
         const sql = `
@@ -17,7 +14,7 @@ export async function getSettlementList(company, from, to) {
             AND fecha BETWEEN ? AND ?
             `;
 
-        const result = await executeQuery(dbConnection, sql, [from, to]);
+        const result = await executeQueryFromPool(pool, sql, [from, to]);
 
         const settlementList = result.map(row => ({
             did: Number(row.did),
@@ -38,7 +35,5 @@ export async function getSettlementList(company, from, to) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

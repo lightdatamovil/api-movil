@@ -1,28 +1,24 @@
-import mysql2 from 'mysql2';
-
-import { getProdDbConfig, executeQuery } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function geolocalize(company, shipmentId, latitude, longitude) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function geolocalize(companyId, shipmentId, latitude, longitude) {
+    const pool = connectionsPools[companyId];
 
     try {
         const queryShipment = `SELECT did FROM envios WHERE did = ${shipmentId}`;
 
-        const resultQuery = await executeQuery(dbConnection, queryShipment);
+        const resultQuery = await executeQueryFromPool(pool, queryShipment);
 
         if (resultQuery.length > 0) {
 
             const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude}, destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
 
-            await executeQuery(dbConnection, queryUpdateShipment);
+            await executeQueryFromPool(pool, queryUpdateShipment);
 
             const queryUpdateAddress = `UPDATE envios_direcciones_destino SET latitud = ${latitude}, longitud = ${longitude}  WHERE didEnvio = ${shipmentId}`;
 
-            await executeQuery(dbConnection, queryUpdateAddress);
+            await executeQueryFromPool(pool, queryUpdateAddress);
 
             return;
         } else {
@@ -43,7 +39,5 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

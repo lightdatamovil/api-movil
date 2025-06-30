@@ -1,16 +1,13 @@
-import mysql2 from 'mysql2';
-import { executeQuery, getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function getSettlementDetails(company, settlementId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getSettlementDetails(companyId, settlementId) {
+    const pool = connectionsPools[companyId];
 
     try {
         const sql = "SELECT idlineas FROM colecta_liquidaciones WHERE superado = 0 AND elim = 0 AND did = ?";
-        const result = await executeQuery(dbConnection, sql, [settlementId]);
+        const result = await executeQueryFromPool(pool, sql, [settlementId]);
         const idlineas = result[0]?.idlineas;
 
         if (!idlineas) {
@@ -27,7 +24,7 @@ export async function getSettlementDetails(company, settlementId) {
             LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente
             WHERE eh.superado = 0 AND eh.elim = 0 AND eh.id IN (?);
         `;
-        const detalleResult = await executeQuery(dbConnection, sqlDetalle, [idlineas]);
+        const detalleResult = await executeQueryFromPool(pool, sqlDetalle, [idlineas]);
 
         const collectDetails = detalleResult.map(row => ({
             didEnvio: row.didEnvio,
@@ -47,7 +44,5 @@ export async function getSettlementDetails(company, settlementId) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

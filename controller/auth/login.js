@@ -1,8 +1,7 @@
-import mysql2 from "mysql2";
-import { executeQuery, getProdDbConfig } from "../../db.js";
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 function generateToken(userId, idEmpresa, perfil) {
@@ -11,13 +10,11 @@ function generateToken(userId, idEmpresa, perfil) {
   return jwt.sign(payload, "ruteate", options);
 }
 
-export async function login(username, password, company) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
+export async function login(username, password, companyId) {
+  let pool = connectionsPools[companyId];
+  logYellow(`Iniciando sesión para el usuario: ${username} en la empresa: ${companyId}`);
 
   try {
-
     let userAddress = {};
 
     const userQuery = `SELECT
@@ -37,9 +34,7 @@ export async function login(username, password, company) {
     JOIN sistema_usuarios_accesos as a on (a.elim=0 and a.superado=0 and a.usuario = u.did)
     WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
 
-    const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
-      username,
-    ]);
+    const resultsFromUserQuery = await executeQueryFromPool(pool, userQuery, [username], true);
 
     if (resultsFromUserQuery.length === 0) {
       throw new CustomException({
@@ -49,7 +44,7 @@ export async function login(username, password, company) {
     }
 
     const user = resultsFromUserQuery[0];
-
+    logCyan(`${JSON.stringify(user)}`);
     if (user.bloqueado === 1) {
       throw new CustomException({
         title: "Acceso denegado",
@@ -68,7 +63,8 @@ export async function login(username, password, company) {
       });
     }
 
-    const token = generateToken(user.did, company.did, user.perfil);
+
+    const token = generateToken(user.did, companyId.did, user.perfil);
 
     let userHomeLatitude, userHomeLongitude;
     if (user.direccion != "") {
@@ -94,14 +90,14 @@ export async function login(username, password, company) {
       profile: user.perfil,
       email: user.email,
       profilePicture: "",
-      hasShipmentProductsQr: company.did == 200,
+      hasShipmentProductsQr: companyId.did == 200,
       phone: user.telefono,
       token,
       houses: userHouses,
       version: "1.0.74",
     };
   } catch (error) {
-    logRed(`Error en login: ${error.stack}`);
+    logRed(`Error en login: ${error}`);
     if (error instanceof CustomException) {
       throw error;
     }
@@ -110,7 +106,5 @@ export async function login(username, password, company) {
       message: error.message,
       stack: error.stack,
     });
-  } finally {
-    dbConnection.end();
   }
 }

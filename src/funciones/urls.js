@@ -1,5 +1,5 @@
-
 import dotenv from 'dotenv';
+
 dotenv.config({ path: process.env.ENV_FILE || `.env` });
 const PORT = process.env.PORT;
 const LOCAL = process.env.LOCAL;

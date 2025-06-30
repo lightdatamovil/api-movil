@@ -1,17 +1,14 @@
 import CustomException from "../../classes/custom_exception.js";
-import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 
-export async function armado(company, userId, dataEnvios, didCliente, fecha) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function armado(companyId, userId, dataEnvios, didCliente, fecha) {
+    const pool = connectionsPools[companyId];
 
     try {
-        const [row1] = await executeQuery(dbConnection, 'SELECT MAX(did) AS maxDid FROM fulfillment_movimientos_stock', []);
+        const [row1] = await executeQueryFromPool(pool, 'SELECT MAX(did) AS maxDid FROM fulfillment_movimientos_stock', []);
         let maxDid = (row1.maxDid || 0) + 1;
 
-        const [row2] = await executeQuery(dbConnection, 'SELECT MAX(did) AS maxDidLinea FROM fulfillment_movimientos_stock_lineas', []);
+        const [row2] = await executeQueryFromPool(pool, 'SELECT MAX(did) AS maxDidLinea FROM fulfillment_movimientos_stock_lineas', []);
         let maxDidLinea = (row2.maxDidLinea || 0) + 1;
 
         const lineas = Array.isArray(dataEnvios) ? dataEnvios.length : 0;
@@ -21,15 +18,15 @@ export async function armado(company, userId, dataEnvios, didCliente, fecha) {
             const envioId = item.did;
             cantidad += Number(item.cantidad);
 
-            await executeQuery(
-                dbConnection, `UPDATE ordenes
+            await executeQueryFromPool(
+                pool, `UPDATE ordenes
          SET fecha_armado = NOW(), armado = 1, quien_armado = ?
          WHERE id = ? AND superado = 0 AND elim = 0`,
                 [userId, envioId]
             );
 
             const descuentoStr = `-${item.cantidad}`;
-            await executeQuery(dbConnection,
+            await executeQueryFromPool(pool,
                 `INSERT INTO fulfillment_movimientos_stock_lineas
          (did, didMovimiento, didProducto, tipo, cantidad, quien)
          VALUES (?, ?, ?, 0, ?, ?)`,
@@ -37,8 +34,8 @@ export async function armado(company, userId, dataEnvios, didCliente, fecha) {
             );
             maxDidLinea++;
 
-            const [envRow] = await executeQuery(
-                dbConnection, `SELECT didEnvio
+            const [envRow] = await executeQueryFromPool(
+                pool, `SELECT didEnvio
          FROM ordenes
          WHERE superado = 0 AND elim = 0 AND id = ?`,
                 [envioId]
@@ -46,8 +43,8 @@ export async function armado(company, userId, dataEnvios, didCliente, fecha) {
             const didEnvio = envRow ? envRow.didEnvio : 0;
 
             if (didEnvio && didEnvio !== 0) {
-                await executeQuery(
-                    dbConnection, `UPDATE envios
+                await executeQueryFromPool(
+                    pool, `UPDATE envios
            SET elim = 0
            WHERE did = ? AND superado = 0 AND elim = 52`,
                     [didEnvio]
@@ -55,8 +52,8 @@ export async function armado(company, userId, dataEnvios, didCliente, fecha) {
             }
         }
 
-        await executeQuery(
-            dbConnection, `INSERT INTO fulfillment_movimientos_stock
+        await executeQueryFromPool(
+            pool, `INSERT INTO fulfillment_movimientos_stock
          (did, didCliente, fecha, didConcepto, didArmado, observaciones, lineas, total, quien)
          VALUES (?, ?, ?, -1, ?, '', ?, ?, ?)`,
             [maxDid, didCliente, fecha, dataEnvios[dataEnvios.length - 1]?.did, lineas, cantidad, userId]
@@ -73,7 +70,5 @@ export async function armado(company, userId, dataEnvios, didCliente, fecha) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

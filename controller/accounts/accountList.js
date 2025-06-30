@@ -1,12 +1,9 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig, executeQuery } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function accountList(company, userId, profile) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function accountList(companyId, userId, profile) {
+    let pool = connectionsPools[companyId];
 
     try {
         const sqlduenio = profile == 2 ? " AND e.didCliente = " + userId : "";
@@ -15,7 +12,7 @@ export async function accountList(company, userId, profile) {
 
         const query = "SELECT id, did, tipoCuenta, dataCuenta, ML_user, ML_id_vendedor, tn_id, tn_url, woo_api,woo_secreto, woo_web, shop_url,shop_api, shop_api2, clientes_cuentas.data, pre_url, pre_api, vtex_url, vtex_key, vtex_token, ingreso_automatico, fala_key, fala_userid, jumpseller_login, jumpseller_token, fulfillment, me1, sync_woo, flexdata FROM `clientes_cuentas` WHERE didCliente = ?" + sqlduenio;
 
-        const results = await executeQuery(dbConnection, query, [userId]);
+        const results = await executeQueryFromPool(pool, query, [userId]);
 
         for (let i = 0; i < results.length; i++) {
             const row = results[i];
@@ -76,7 +73,5 @@ export async function accountList(company, userId, profile) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

@@ -1,12 +1,9 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getShipmentIdFromQr(dataQr, company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getShipmentIdFromQr(dataQr, companyId) {
+    const pool = connectionsPools[companyId];
     try {
         let shipmentId;
 
@@ -15,9 +12,9 @@ export async function getShipmentIdFromQr(dataQr, company) {
         if (isLocal) {
             shipmentId = dataQr.did;
 
-            if (company.did != dataQr.empresa) {
+            if (companyId != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
+                const resultQueryEnviosExteriores = await executeQueryFromPool(pool, queryEnviosExteriores, [shipmentId, companyId]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     return { message: "El envío no pertenece a la empresa", success: false };
@@ -26,11 +23,10 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
-            // eslint-disable-next-line no-prototype-builtins
-            if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
+            if (companyId == 211 && !Object.prototype.hasOwnProperty.call(dataQr, "sender_id")) {
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 
-                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr]);
+                const resultQueryEnvios = await executeQueryFromPool(pool, queryEnvios, [dataQr], true);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
@@ -45,7 +41,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 const sellerId = dataQr.sender_id;
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND ml_vendedor_id = ?`;
 
-                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [mlShipmentId, sellerId]);
+                const resultQueryEnvios = await executeQueryFromPool(pool, queryEnvios, [mlShipmentId, sellerId]);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
@@ -71,7 +67,5 @@ export async function getShipmentIdFromQr(dataQr, company) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

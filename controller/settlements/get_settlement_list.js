@@ -1,12 +1,9 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getSettlementList(company, userId, from, to) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getSettlementList(companyId, userId, from, to) {
+    const pool = connectionsPools[companyId];
 
     try {
         const dateFrom = new Date(from).toISOString().split('T')[0];
@@ -27,7 +24,7 @@ export async function getSettlementList(company, userId, from, to) {
             `${dateTo} 23:59:59`
         ];
 
-        const rows = await executeQuery(dbConnection, query, values);
+        const rows = await executeQueryFromPool(pool, query, values);
 
         return rows.map(row => ({
             total: row.total * 1,
@@ -46,7 +43,5 @@ export async function getSettlementList(company, userId, from, to) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

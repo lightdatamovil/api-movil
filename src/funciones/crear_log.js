@@ -1,4 +1,4 @@
-import { executeQuery, poolLocal } from "../../db.js";
+import { executeQueryFromPool, poolLocal } from "../../db.js";
 import { logGreen, logRed } from "./logsCustom.js";
 
 export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito) {
@@ -39,7 +39,7 @@ export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado
             exito ? 1 : 0
         ];
 
-        await executeQuery(poolLocal, sqlLog, values);
+        await executeQueryFromPool(poolLocal, sqlLog, values);
         logGreen(`Log creado: ${JSON.stringify(values)}`);
     } catch (error) {
         logRed(`Error en crearLog: ${error.stack}`);

@@ -1,17 +1,13 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
-import mysql2 from 'mysql2';
+import { executeQueryFromPool, connectionsPools } from "../../db.js";
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function uploadImage(company, shipmentId, userId, shipmentState, image, lineId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect()
+export async function uploadImage(companyId, shipmentId, userId, shipmentState, image, lineId) {
+    const pool = connectionsPools[companyId];
 
     try {
 
-        const companyId = company.did;
         const reqBody = { imagen: image, didenvio: shipmentId, quien: userId, idEmpresa: companyId };
         const server = 1;
         const url = 'https://files.lightdata.app/upload.php';
@@ -31,7 +27,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
 
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
-        await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
+        await executeQueryFromPool(pool, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
         return {
             message: "Imagen subida correctamente",
 
@@ -46,7 +42,5 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

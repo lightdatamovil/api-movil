@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
-import { getCompanyById } from '../db.js';
 import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
@@ -25,8 +24,7 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en settlement-list', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const list = await getSettlementList(company, userId, from, to);
+        const list = await getSettlementList(companyId, userId, from, to);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(list), "/settlement-list", true);
         logGreen(`Listado de liquidaciones obtenido correctamente`);
         res.status(200).json({ body: list, message: 'Listado de liquidaciones obtenido correctamente' });
@@ -60,8 +58,7 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en settlement-details', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const details = await getSettlementDetails(company, settlementId);
+        const details = await getSettlementDetails(companyId, settlementId);
 
         logGreen(`Detalle de liquidación obtenido correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(details), "/settlement-details", true);
@@ -96,8 +93,7 @@ settlements.post('/settlement-shipment-details', verifyToken, async (req, res) =
             throw new CustomException({ title: 'Error en settlement-shipment-details', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const shipments = await getSettlementShipmentDetails(company, userId);
+        const shipments = await getSettlementShipmentDetails(companyId, userId);
 
         logGreen(`Detalle de envíos de liquidación obtenido correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(shipments), "/settlement-shipment-details", true);
