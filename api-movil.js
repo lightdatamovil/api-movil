@@ -15,9 +15,12 @@ import { getUrls } from './src/funciones/urls.js';
 import { getUrlsDev } from './src/funciones/urlsdev.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 const numCPUs = 2;
-const PORT = 13000;
+const PORT = process.env.PORT;
 
 if (cluster.isMaster) {
     logBlue(`Proceso master ${process.pid} ejecutándose...`);

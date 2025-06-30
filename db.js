@@ -4,9 +4,26 @@ import { logRed, logYellow } from './src/funciones/logsCustom.js';
 import mysql2 from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
+/// Redis para obtener las empresas
 const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
+
+/// Base de datos de produccion
+const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
+const apimovilDBUser = process.env.APIMOVIL_DB_USER;
+const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
+const apimovilDBName = process.env.APIMOVIL_DB_NAME;
+const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
+
+/// Usuario y contraseña para los logs de la base de datos de apimovil
+const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
+const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
+const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
+
+const hostProductionDb = process.env.PRODUCTION_DB_HOST;
+const portProductionDb = process.env.PRODUCTION_DB_PORT;
+
 
 export const redisClient = redis.createClient({
     socket: {
@@ -16,7 +33,7 @@ export const redisClient = redis.createClient({
     password: redisPassword,
 });
 
-redisClient.on('error', (err) => {
+redisClient.on('error', (error) => {
     logRed(`Error al conectar con Redis: ${error.stack}`);
 });
 
@@ -29,21 +46,20 @@ let clientList = {};
 
 export function getDbConfig(companyId) {
     return {
-        // host: "localhost",
-        host: "149.56.182.49",
-        user: "ue" + companyId,
-        password: "78451296",
-        database: "e" + companyId,
-        port: 44339
+        host: apimovilDBHost,
+        user: apimovilDBUser + companyId,
+        password: apimovilDBPassword,
+        database: apimovilDBName + companyId,
+        port: apimovilDBPort
     };
 }
 
 export const poolLocal = mysql2.createPool({
-    host: "149.56.182.49",
-    user: "ulog",
-    password: "yusito23",
-    database: "data",
-    port: 44339,
+    host: apimovilDBHost,
+    user: apimovilDbUserForLogs,
+    password: apimovilDbPasswordForLogs,
+    database: apimovilDbNameForLogs,
+    port: apimovilDBPort,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -51,10 +67,11 @@ export const poolLocal = mysql2.createPool({
 
 export function getProdDbConfig(company) {
     return {
-        host: "bhsmysql1.lightdata.com.ar",
+        host: hostProductionDb,
         user: company.dbuser,
         password: company.dbpass,
-        database: company.dbname
+        database: company.dbname,
+        port: portProductionDb,
     };
 }
 
