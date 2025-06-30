@@ -11,9 +11,9 @@ const redisPassword = process.env.REDIS_PASSWORD;
 
 /// Base de datos de produccion
 const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
-const apimovilDBUser = process.env.APIMOVIL_DB_USER;
-const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
-const apimovilDBName = process.env.APIMOVIL_DB_NAME;
+// const apimovilDBUser = process.env.APIMOVIL_DB_USER;
+// const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
+// const apimovilDBName = process.env.APIMOVIL_DB_NAME;
 const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
 
 /// Usuario y contraseña para los logs de la base de datos de apimovil
