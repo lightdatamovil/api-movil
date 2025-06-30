@@ -21,6 +21,7 @@ const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
 const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
 const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
 
+// Produccion
 const hostProductionDb = process.env.PRODUCTION_DB_HOST;
 const portProductionDb = process.env.PRODUCTION_DB_PORT;
 
