@@ -5,7 +5,7 @@ const PORT = process.env.PORT;
 const LOCAL = process.env.LOCAL;
 
 export function getUrls() {
-  const urlBase = LOCAL
+  const urlBase = LOCAL == 'true'
     ? `http://10.0.0.2:${PORT}`
     : `http://apimovil2${PORT == 13000 ? '' : 'test'}.lightdata.app`;
 
