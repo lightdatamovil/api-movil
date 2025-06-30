@@ -8,12 +8,15 @@ const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
 
-const hostAsignacionesDb = process.env.HOST_ASIGNACIONES_DB;
-const hostAsignacionesDbPort = process.env.HOST_ASIGNACIONES_DB_PORT;
+const hostApimovilDb = process.env.HOST_APIMOVIL_DB;
+const hostApimovilDbPort = process.env.HOST_APIMOVIL_DB_PORT;
 
-const asignacionesDbUserForLogs = process.env.ASIGNACIONES_DB_USER_FOR_LOGS;
-const asignacionesDbPasswordForLogs = process.env.ASIGNACIONES_DB_PASSWORD_FOR_LOGS;
-const asignacionesDbNameForLogs = process.env.ASIGNACIONES_DB_NAME_FOR_LOGS;
+const hostProductionDb = process.env.PRODUCTION_DB_HOST;
+const portProductionDb = process.env.PRODUCTION_DB_PORT;
+
+const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
+const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
+const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
 
 export const redisClient = redis.createClient({
     socket: {
@@ -36,11 +39,11 @@ let clientList = {};
 export let connectionsPools = {};
 
 export const poolLocal = mysql2.createPool({
-    host: hostAsignacionesDb,
-    user: asignacionesDbUserForLogs,
-    password: asignacionesDbPasswordForLogs,
-    database: asignacionesDbNameForLogs,
-    port: hostAsignacionesDbPort,
+    host: hostApimovilDb,
+    user: apimovilDbUserForLogs,
+    password: apimovilDbPasswordForLogs,
+    database: apimovilDbNameForLogs,
+    port: hostApimovilDbPort,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -105,11 +108,11 @@ export async function loadConnectionsPools() {
     // 4) Crear un pool por cada compañía
     companiesArray.forEach(company => {
         connectionsPools[company.id] = mysql2.createPool({
-            host: 'bhsmysql1.lightdata.com.ar',
+            host: hostProductionDb,
             user: company.dbuser,
             password: company.dbpass,
             database: company.dbname,
-            port: 3306,
+            port: portProductionDb,
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0
