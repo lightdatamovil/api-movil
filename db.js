@@ -8,6 +8,18 @@ const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
 
+const hostAsignacionesDb = process.env.HOST_ASIGNACIONES_DB;
+const hostAsignacionesDbUser = process.env.HOST_ASIGNACIONES_DB_USER;
+const hostAsignacionesDbPassword = process.env.HOST_ASIGNACIONES_DB_PASSWORD;
+const hostAsignacionesDbName = process.env.HOST_ASIGNACIONES_DB_NAME;
+const hostAsignacionesDbPort = process.env.HOST_ASIGNACIONES_DB_PORT;
+
+const hostProductionDb = process.env.HOST_PRODUCTION_DB;
+
+const asignacionesDbUserForLogs = process.env.ASIGNACIONES_DB_USER_FOR_LOGS;
+const asignacionesDbPasswordForLogs = process.env.ASIGNACIONES_DB_PASSWORD_FOR_LOGS;
+const asignacionesDbNameForLogs = process.env.ASIGNACIONES_DB_NAME_FOR_LOGS;
+
 export const redisClient = redis.createClient({
     socket: {
         host: redisHost,
@@ -29,21 +41,20 @@ let clientList = {};
 
 export function getDbConfig(companyId) {
     return {
-        // host: "localhost",
-        host: "149.56.182.49",
-        user: "ue" + companyId,
-        password: "78451296",
-        database: "e" + companyId,
-        port: 44339
+        host: hostAsignacionesDb,
+        user: hostAsignacionesDbUser + companyId,
+        password: hostAsignacionesDbPassword,
+        database: hostAsignacionesDbName + companyId,
+        port: hostAsignacionesDbPort
     };
 }
 
 export const poolLocal = mysql2.createPool({
-    host: "149.56.182.49",
-    user: "ulog",
-    password: "yusito23",
-    database: "data",
-    port: 44339,
+    host: hostAsignacionesDb,
+    user: asignacionesDbUserForLogs,
+    password: asignacionesDbPasswordForLogs,
+    database: asignacionesDbNameForLogs,
+    port: hostAsignacionesDbPort,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -51,7 +62,7 @@ export const poolLocal = mysql2.createPool({
 
 export function getProdDbConfig(company) {
     return {
-        host: "bhsmysql1.lightdata.com.ar",
+        host: hostProductionDb,
         user: company.dbuser,
         password: company.dbpass,
         database: company.dbname
@@ -307,7 +318,7 @@ async function loadDrivers(dbConnection, companyId) {
             SELECT sistema_usuarios.did, sistema_usuarios.usuario 
             FROM sistema_usuarios_accesos
             INNER JOIN sistema_usuarios ON sistema_usuarios_accesos.did = sistema_usuarios.did
-            WHERE sistema_usuarios_accesos.perfil IN (3, 6)
+            WHERE sistema_usuarios_accesos.perfil IN(3, 6)
             AND sistema_usuarios_accesos.elim = 0
             AND sistema_usuarios_accesos.superado = 0
             AND sistema_usuarios.elim = 0

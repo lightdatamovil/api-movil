@@ -10,7 +10,7 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { getCompanyById, redisClient } from './db.js';
+import { redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
@@ -63,11 +63,8 @@ if (cluster.isMaster) {
 
     app.post('/api/get-urls', async (req, res) => {
         const startTime = performance.now();
-        const { companyId } = req.body;
 
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrls(company);
+        const urls = getUrls();
 
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)

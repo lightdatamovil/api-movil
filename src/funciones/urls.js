@@ -4,7 +4,7 @@ dotenv.config({ path: process.env.ENV_FILE || `.env` });
 const PORT = process.env.PORT;
 const LOCAL = process.env.LOCAL;
 
-export function getUrls(company) {
+export function getUrls() {
   const urlBase = LOCAL
     ? `http://10.0.0.2:${PORT}`
     : `http://apimovil2${PORT == 13000 ? '' : 'test'}.lightdata.app`;
@@ -74,10 +74,5 @@ export function getUrls(company) {
     privacyPolicy: [`https://lightdata.app/privacyapp.html`],
   };
 
-  if (company != null && company.did == 4) {
-    /// ASIGNACION PROCOURRIER
-    urls.assignment = [`https://asignaciones.lightdata.app/api/asignaciones-procourrier/asignar`];
-    urls.unassignment = [`https://asignaciones.lightdata.app/api/asignaciones-procourrier/desasignar`];
-  }
   return urls;
 }

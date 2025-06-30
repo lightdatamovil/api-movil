@@ -6,7 +6,7 @@ import { startRoute } from "../controller/home/start_route.js";
 import { finishRoute } from "../controller/home/finish_route.js";
 import { getHomeData } from "../controller/home/get_home_data.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import { logGreen, logOrange, logPurple, logRed, } from "../src/funciones/logsCustom.js";
+import { logGreen, logOrange, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 
@@ -21,6 +21,7 @@ home.post("/home", verifyToken, async (req, res) => {
       ["companyId", "userId", "profile", "dateYYYYMMDD"],
       true
     );
+
     if (mensajeError) {
       logRed(`Error en home: ${mensajeError}`);
       throw new CustomException({
@@ -30,6 +31,7 @@ home.post("/home", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
+
     const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
 
     logGreen(`Datos obtenidos correctamente`);
