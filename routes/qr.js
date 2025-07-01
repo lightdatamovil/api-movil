@@ -210,7 +210,7 @@ qr.post("/enter-flex", async (req, res) => {
     if (error instanceof CustomException) {
       logRed(`Error 400 en enter-flex: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/enter-flex", false);
-      res.status(400).json({ message: error.title, body: error.message });
+      res.status(400).json({ message: error.title, title: error.message });
     } else {
       logRed(`Error 500 en enter-flex: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/enter-flex", false);
