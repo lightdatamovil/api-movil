@@ -183,9 +183,30 @@ async function getImages(dbConnection, shipmentId) {
 
 async function shipmentInformation(dbConnection, shipmentId) {
     try {
-        const query = "SELECT e.did, e.flex, e.ml_shipment_id, e.didCliente, e.destination_latitude, e.destination_longitude, e.destination_shipping_zip_code, e.destination_city_name, e.ml_venta_id,e.destination_shipping_address_line, e.estado_envio, e.destination_comments, date_format (e.fecha_inicio,'%d/%m/%Y') AS fecha, e.destination_receiver_name, e.destination_receiver_phone, e.didCliente, e.choferAsignado, ec.valor AS monto_a_cobrar FROM envios AS e LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = " + shipmentId + ") WHERE e.did = " + shipmentId;
+        const query = `SELECT
+        e.did,
+        e.flex,
+        e.ml_shipment_id,
+        e.didCliente,
+        e.destination_latitude,
+        e.destination_longitude,
+        e.destination_shipping_zip_code,
+        e.destination_city_name,
+        e.ml_venta_id,
+        e.destination_shipping_address_line,
+        e.estado_envio,
+        e.destination_comments,
+        date_format (e.fecha_inicio,'%d/%m/%Y') AS fecha,
+        e.destination_receiver_name,
+        e.destination_receiver_phone,
+        e.didCliente,
+        e.choferAsignado,
+        ec.valor AS monto_a_cobrar
+        FROM envios AS e
+        LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = ? )
+        WHERE e.did = ? AND e.elim = 0 AND e.superado = 0`;
 
-        const results = await executeQuery(dbConnection, query, []);
+        const results = await executeQuery(dbConnection, query, [shipmentId, shipmentId]);
         if (results.length === 0) {
             throw new CustomException({
                 title: 'Error obteniendo información del envío',
