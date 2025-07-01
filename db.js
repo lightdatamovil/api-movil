@@ -9,7 +9,7 @@ const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
 
-/// Base de datos de produccion
+/// Base de datos de apimovil
 const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
 const apimovilDBUser = process.env.APIMOVIL_DB_USER;
 const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
