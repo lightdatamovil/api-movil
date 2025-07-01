@@ -1,40 +1,73 @@
 import { connect } from 'amqplib';
 import dotenv from 'dotenv';
-import { logGreen, logRed } from './logsCustom.js';
+import axios from 'axios';
+import { logGreen, logRed, logYellow } from './logsCustom.js';
 import { formatFechaUTC3 } from './formatFechaUTC3.js';
 
 dotenv.config({ path: process.env.ENV_FILE || '.env' });
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL;
 const QUEUE_ESTADOS = process.env.QUEUE_ESTADOS;
+const BACKUP_ENDPOINT = "https://serverestado.lightdata.app/estados";
 
-export async function sendToShipmentStateMicroService(companyId, userId, estado, shipmentId) {
+let connection = null;
+let channel = null;
+
+async function getChannel() {
+    if (channel) return channel;
+
     try {
-        const connection = await connect(RABBITMQ_URL);
-        const channel = await connection.createChannel();
+        connection = await connect(RABBITMQ_URL);
+        channel = await connection.createChannel();
         await channel.assertQueue(QUEUE_ESTADOS, { durable: true });
 
-        const message = {
-            didempresa: companyId,
-            didenvio: shipmentId,
-            estado: estado,
-            subestado: null,
-            estadoML: null,
-            fecha: formatFechaUTC3(),
-            quien: userId,
-            operacion: "ingresarFlex",
-        };
-
-        channel.sendToQueue(QUEUE_ESTADOS, Buffer.from(JSON.stringify(message)), { persistent: true }, (err, ok) => {
-            if (err) {
-                logRed(`❌ Error al enviar el mensaje: ${err}`);
-            } else {
-                logGreen('✅ Mensaje enviado correctamente al microservicio de estados');
+        process.on('exit', () => {
+            try {
+                if (channel) channel.close();
+                if (connection) connection.close();
+            } catch (e) {
+                // silencioso
             }
-            connection.close();
         });
-    } catch (error) {
-        logRed(`Error en sendToShipmentStateMicroService: ${error.stack}`);
-        throw error;
+
+        return channel;
+    } catch (err) {
+        logRed(`❌ Error al inicializar RabbitMQ: ${err.message}`);
+        throw err;
     }
-};
+}
+
+export async function sendToShipmentStateMicroService(companyId, userId, estado, shipmentId) {
+    const message = {
+        didempresa: companyId,
+        didenvio: shipmentId,
+        estado: estado,
+        subestado: null,
+        estadoML: null,
+        fecha: formatFechaUTC3(),
+        quien: userId,
+        operacion: "ingresarFlex",
+    };
+
+    try {
+        const ch = await getChannel();
+        const sent = ch.sendToQueue(QUEUE_ESTADOS, Buffer.from(JSON.stringify(message)), { persistent: true });
+
+        if (sent) {
+            logGreen('✅ Mensaje enviado correctamente al microservicio de estados');
+        } else {
+            logYellow('⚠️ No se pudo enviar el mensaje (buffer lleno)');
+            throw new Error('Buffer lleno en RabbitMQ');
+        }
+    } catch (error) {
+        logRed(`❌ Falló RabbitMQ, intentando fallback HTTP: ${error.message}`);
+
+        try {
+            const response = await axios.post(BACKUP_ENDPOINT, message);
+            logGreen(`✅ Enviado por HTTP con status ${response.status}`);
+        } catch (httpError) {
+            logRed(`❌ Falló también el envío por HTTP: ${httpError.message}`);
+            throw httpError;
+        }
+    }
+}
