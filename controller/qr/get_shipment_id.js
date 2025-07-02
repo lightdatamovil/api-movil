@@ -27,7 +27,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
             }
         } else {
             if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
-                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301 and superado = 0 AND elim = 0`;
 
                 const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr], true);
 
@@ -42,7 +42,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
             } else {
                 const mlShipmentId = dataQr.id;
                 const sellerId = dataQr.sender_id;
-                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND ml_vendedor_id = ?`;
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND ml_vendedor_id = ? and superado = 0 AND elim = 0`;
 
                 const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [mlShipmentId, sellerId]);
 
