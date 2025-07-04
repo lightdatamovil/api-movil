@@ -15,6 +15,7 @@ export async function registerVisit(
   shipmentState,
   observation,
   date,
+  appVersion,
 ) {
   const pool = connectionsPools[companyId];
   try {
@@ -137,12 +138,12 @@ export async function registerVisit(
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
 
     const queryInsertEnviosHistorial =
-      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, 'APP NUEVA', ?)";
+      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
 
     const historialResult = await executeQueryFromPool(
       pool,
       queryInsertEnviosHistorial,
-      [shipmentId, shipmentState, assignedDriverId, date, userId]
+      [shipmentId, shipmentState, assignedDriverId, date, appVersion, userId]
     );
 
     const idInsertado = historialResult.insertId;
