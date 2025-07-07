@@ -1,6 +1,5 @@
 import { Router } from "express";
 import verifyToken from "../src/funciones/verifyToken.js";
-import { getCompanyById } from "../db.js";
 import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
@@ -13,6 +12,7 @@ import { crossDocking } from "../controller/qr/cross_docking.js";
 import { getSkuAndStockFlex } from "../controller/qr/get_sku_and_stock _flex.js";
 import { parseIfJson } from "../src/funciones/isValidJson.js";
 import { crearLog } from "../src/funciones/crear_log.js";
+import { getCantidadAsignaciones } from "../controller/qr/get_cantidad_asignaciones.js";
 
 const qr = Router();
 
@@ -292,6 +292,47 @@ qr.post("/armado", verifyToken, async (req, res) => {
     } else {
       logRed(`Error 500 en armado: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/armado", false);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+  } finally {
+    const endTime = performance.now();
+    logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
+  }
+});
+qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
+  const startTime = performance.now();
+  const { companyId, userId, profile } = req.body;
+  try {
+    const mensajeError = verifyParamaters(
+      req.body,
+      [],
+      true
+    );
+    if (mensajeError) {
+      logRed(`Error en armado: ${mensajeError}`);
+      throw new CustomException({
+        title: "Error en armado",
+        message: mensajeError,
+      });
+    }
+
+    const result = await getCantidadAsignaciones(companyId, userId);
+
+    logGreen(`get-cantidad-asignaciones ejecutado correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
+    res.status(200).json({
+      body: result,
+      message: "Datos obtenidos correctamente",
+      success: true,
+    });
+  } catch (error) {
+    if (error instanceof CustomException) {
+      logOrange(`Error 400 en cantidad-asignaciones: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cantidad-asignaciones", false);
+      res.status(400).json({ title: error.title, message: error.message });
+    } else {
+      logRed(`Error 500 en cantidad-asignaciones: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/cantidad-asignaciones", false);
       res.status(500).json({ message: "Error interno del servidor" });
     }
   } finally {

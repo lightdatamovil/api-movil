@@ -10,7 +10,7 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { redisClient } from './db.js';
+import { loadCompaniesFromRedis, loadConnectionsPools, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
@@ -27,7 +27,7 @@ if (cluster.isMaster) {
         cluster.fork();
     }
 
-    cluster.on('exit', (worker, code, signal) => {
+    cluster.on('exit', (worker) => {
         logBlue(`Worker ${worker.process.pid} murió, reiniciando...`);
         cluster.fork();
     });
@@ -74,6 +74,8 @@ if (cluster.isMaster) {
     (async () => {
         try {
             await redisClient.connect();
+            await loadCompaniesFromRedis();
+            await loadConnectionsPools();
 
             app.use('/api/auth', auth);
             app.use('/api/accounts', accounts);
