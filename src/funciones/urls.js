@@ -61,6 +61,7 @@ export function getUrls() {
     collectSettlementDetails: [`${urlBase}/api/collect/get-collect-details`],
     sku: [`${urlBase}/api/qr/sku`],
     armado: [`${urlBase}/api/qr/armado`],
+    numberOfAssignments: [`${urlBase}/api/qr/cantidad-asignaciones`],
     /// ACCOUNTS
     cuentas_listado: [`${urlBase}/api/accounts/account-list`],
     cuentas_alta: [`https://lightdata.app/g/instalation/responseDetalleCuenta.php`],
