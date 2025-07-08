@@ -14,7 +14,7 @@ export async function getShipmentIdFromQr(dataQr, companyId) {
 
             if (companyId != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
-                const resultQueryEnviosExteriores = await executeQueryFromPool(pool, queryEnviosExteriores, [shipmentId, dataQr.empresa], true);
+                const resultQueryEnviosExteriores = await executeQueryFromPool(pool, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     return { message: "El envío no pertenece a la empresa", success: false };
@@ -26,7 +26,7 @@ export async function getShipmentIdFromQr(dataQr, companyId) {
             if (companyId == 211 && !Object.prototype.hasOwnProperty.call(dataQr, "sender_id")) {
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301`;
 
-                const resultQueryEnvios = await executeQueryFromPool(pool, queryEnvios, [dataQr], true);
+                const resultQueryEnvios = await executeQueryFromPool(pool, queryEnvios, [dataQr]);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
