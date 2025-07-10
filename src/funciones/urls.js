@@ -94,6 +94,8 @@ export function getUrls(company) {
       "http://apimovil2.lightdata.app/api/qr/armado",
     ],
 
+    numberOfAssignments: [`${urlBase}/api/qr/cantidad-asignaciones`],
+
     /// ACCOUNTS
     cuentas_listado: [
       "http://apimovil2.lightdata.app/api/accounts/account-list",

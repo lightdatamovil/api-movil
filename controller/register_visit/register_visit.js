@@ -15,7 +15,8 @@ export async function registerVisit(
   longitude,
   shipmentState,
   observation,
-  date
+  date,
+  appVersion,
 ) {
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
@@ -144,11 +145,11 @@ export async function registerVisit(
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
 
     const queryInsertEnviosHistorial =
-      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, 'APP NUEVA', ?)";
+      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
     const historialResult = await executeQuery(
       dbConnection,
       queryInsertEnviosHistorial,
-      [shipmentId, shipmentState, assignedDriverId, date, userId]
+      [shipmentId, shipmentState, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId]
     );
 
     const idInsertado = historialResult.insertId;

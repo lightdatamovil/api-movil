@@ -24,6 +24,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
         shipmentState,
         observation,
         date,
+        appVersion,
     } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
@@ -54,6 +55,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
             shipmentState,
             observation,
             date,
+            appVersion,
         );
 
         logGreen(`Visita registrada correctamente`);
