@@ -1,17 +1,15 @@
-import mysql2 from "mysql2";
-import { executeQuery, getProdDbConfig } from "../../db.js";
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function whatsappMessagesList(company, startTime) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
+export async function whatsappMessagesList(companyId) {
+  let pool = connectionsPools[companyId];
 
   try {
     const queryTexts =
       "SELECT texto FROM `mensajeria_app` WHERE superado = 0 ORDER BY tipo ASC;";
-    const results = await executeQuery(dbConnection, queryTexts, []);
+    const results = await executeQueryFromPool(pool, queryTexts, []);
+
     return results.map((row) => row.texto);
   } catch (error) {
     logRed(`Error en whatsappMessagesList: ${error.stack}`);
@@ -23,7 +21,6 @@ export async function whatsappMessagesList(company, startTime) {
       message: error.message,
       stack: error.stack,
     });
-  } finally {
-    dbConnection.end();
   }
 }
+

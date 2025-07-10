@@ -1,16 +1,13 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
-import mysql2 from 'mysql2';
+import { executeQueryFromPool, connectionsPools } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function editUser(company, userId, email, phone) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function editUser(companyId, userId, email, phone) {
+    const pool = connectionsPools[companyId];
 
     try {
         const querySelectUsers = `SELECT * FROM sistema_usuarios WHERE superado=0 AND elim=0 AND did = ?`;
-        const resultSelectUsers = await executeQuery(dbConnection, querySelectUsers, [userId]);
+        const resultSelectUsers = await executeQueryFromPool(pool, querySelectUsers, [userId]);
 
         if (resultSelectUsers.length === 0) {
             throw new CustomException({
@@ -32,11 +29,11 @@ export async function editUser(company, userId, email, phone) {
             userData.identificador, userData.direccion, userData.inicio_ruta, userData.lista_de_precios
         ];
 
-        const resultInsert = await executeQuery(dbConnection, insertQuery, insertValues);
+        const resultInsert = await executeQueryFromPool(pool, insertQuery, insertValues);
         const insertedId = resultInsert.insertId;
 
         const updateQuery = `UPDATE sistema_usuarios SET superado=1 WHERE superado=0 AND elim=0 AND did = ? AND id != ?`;
-        await executeQuery(dbConnection, updateQuery, [userId, insertedId]);
+        await executeQueryFromPool(pool, updateQuery, [userId, insertedId]);
 
         return;
     } catch (error) {
@@ -50,7 +47,5 @@ export async function editUser(company, userId, email, phone) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

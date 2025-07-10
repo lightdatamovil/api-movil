@@ -1,115 +1,79 @@
-export function getUrls(company) {
+import dotenv from 'dotenv';
+
+dotenv.config({ path: process.env.ENV_FILE || `.env` });
+const PORT = process.env.PORT;
+const LOCAL = process.env.LOCAL;
+
+export function getUrls() {
+  const urlBase = LOCAL == 'true'
+    ? `http://10.0.0.2:${PORT}`
+    : `http://apimovil2${PORT == 13000 ? '' : 'test'}.lightdata.app`;
+
   const urls = {
     /// HOME
-    home: ["http://apimovil2.lightdata.app/api/home/home"],
-    startRoute: ["http://apimovil2.lightdata.app/api/home/start-route"],
-    endRoute: ["http://apimovil2.lightdata.app/api/home/end-route"],
-    verifyStartedRoute: [
-      "http://apimovil2.lightdata.app/api/home/verify-started-route",
-    ],
+    home: [`${urlBase}/api/home/home`],
+    startRoute: [`${urlBase}/api/home/start-route`],
+    endRoute: [`${urlBase}/api/home/end-route`],
+    verifyStartedRoute: [`${urlBase}/api/home/verify-started-route`],
 
     /// SHIPMENT-LIST
-    shipmentList: [
-      "http://apimovil2.lightdata.app/api/shipments/shipment-list",
-    ],
-    shipmentDetails: [
-      "http://apimovil2.lightdata.app/api/shipments/shipment-details",
-    ],
-    nextToDeliver: ["http://apimovil2.lightdata.app/api/shipments/next-visit"],
+    shipmentList: [`${urlBase}/api/shipments/shipment-list`],
+    shipmentDetails: [`${urlBase}/api/shipments/shipment-details`],
+    nextToDeliver: [`${urlBase}/api/shipments/next-visit`],
 
-    registerVisit: [
-      "http://apimovil2.lightdata.app/api/register-visit/register",
-    ],
-    saveImage: [
-      "http://apimovil2.lightdata.app/api/register-visit/upload-image",
-    ],
+    registerVisit: [`${urlBase}/api/register-visit/register`],
+    saveImage: [`${urlBase}/api/register-visit/upload-image`],
 
     /// SETTLEMENTS
-    settlementList: [
-      "http://apimovil2.lightdata.app/api/settlements/get-settlement-list",
-    ],
-    settlementDetails: [
-      "http://apimovil2.lightdata.app/api/settlements/get-settlement-details",
-    ],
-    settlementShipmentDetails: [
-      "http://apimovil2.lightdata.app/api/settlements/settlement-shipment-details",
-    ],
+    settlementList: [`${urlBase}/api/settlements/get-settlement-list`],
+    settlementDetails: [`${urlBase}/api/settlements/get-settlement-details`],
+    settlementShipmentDetails: [`${urlBase}/api/settlements/settlement-shipment-details`],
 
     /// MAP
-    geolocalize: ["http://apimovil2.lightdata.app/api/map/geolocalize"],
-    getRoute: ["http://apimovil2.lightdata.app/api/map/get-route-by-user"],
-    saveRoute: ["http://apimovil2.lightdata.app/api/map/save-route"],
+    geolocalize: [`${urlBase}/api/map/geolocalize`],
+    getRoute: [`${urlBase}/api/map/get-route-by-user`],
+    saveRoute: [`${urlBase}/api/map/save-route`],
 
     /// QR
-    driverList: ["http://apimovil2.lightdata.app/api/qr/driver-list"],
-    readQr: ["http://apimovil2.lightdata.app/api/qr/get-shipment-id"],
-    crossdocking: ["http://apimovil2.lightdata.app/api/qr/cross-docking"],
-    enterFlex: ["http://apimovil2.lightdata.app/api/qr/enter-flex"],
-    colecta: ["https://colecta.lightdata.app/api/colecta"],
-    aplanta: ["https://aplanta.lightdata.app/api/aplanta"],
-    assignment: ["https://asignaciones.lightdata.app/api/asignaciones/asignar"],
-    unassignment: [
-      "https://asignaciones.lightdata.app/api/asignaciones/desasignar",
-    ],
-    productsFromShipment: [
-      "http://apimovil2.lightdata.app/api/qr/products-from-shipment",
-    ],
+    driverList: [`${urlBase}/api/qr/driver-list`],
+    readQr: [`${urlBase}/api/qr/get-shipment-id`],
+    crossdocking: [`${urlBase}/api/qr/cross-docking`],
+    enterFlex: [`${urlBase}/api/qr/enter-flex`],
+    colecta: [`https://colecta.lightdata.app/api/colecta`],
+    aplanta: [`https://aplanta.lightdata.app/api/aplanta`],
+    assignment: [`https://asignaciones.lightdata.app/api/asignaciones/asignar`],
+    unassignment: [`https://asignaciones.lightdata.app/api/asignaciones/desasignar`],
+    productsFromShipment: [`${urlBase}/api/qr/products-from-shipment`],
 
     /// PROFILE
-    changePassword: [
-      "http://apimovil2.lightdata.app/api/users/change-password",
-    ],
-    editUser: ["http://apimovil2.lightdata.app/api/users/edit-user"],
-    changeProfilePicture: [
-      "http://apimovil2.lightdata.app/api/users/change-profile-picture",
-    ],
+    changePassword: [`${urlBase}/api/users/change-password`],
+    editUser: [`${urlBase}/api/users/edit-user`],
+    changeProfilePicture: [`${urlBase}/api/users/change-profile-picture`],
 
     /// COLLECT MODULE
-    collectGetRoute: [
-      "http://apimovil2.lightdata.app/api/collect/get-collect-details",
-    ],
-    collectStartRoute: [
-      "http://apimovil2.lightdata.app/api/collect/start-route",
-    ],
-    collectSaveRoute: ["http://apimovil2.lightdata.app/api/collect/save-route"],
-    collectDetails: [
-      "http://apimovil2.lightdata.app/api/collect/get-collect-details",
-    ],
-    collectClientDetails: [
-      "http://apimovil2.lightdata.app/api/collect/get-collect-details",
-    ],
-    collectList: [
-      "http://apimovil2.lightdata.app/api/collect/get-collect-list",
-    ],
-    collectSettlementList: [
-      "http://apimovil2.lightdata.app/api/collect/get-collect-details",
-    ],
-    collectSettlementDetails: [
-      "http://apimovil2.lightdata.app/api/collect/get-collect-details",
-    ],
-    sku: [
-      "http://apimovil2.lightdata.app/api/qr/sku",
-    ],
-    armado: [
-      "http://apimovil2.lightdata.app/api/qr/armado",
-    ],
-
+    collectGetRoute: [`${urlBase}/api/collect/get-collect-details`],
+    collectStartRoute: [`${urlBase}/api/collect/start-route`],
+    collectSaveRoute: [`${urlBase}/api/collect/save-route`],
+    collectDetails: [`${urlBase}/api/collect/get-collect-details`],
+    collectClientDetails: [`${urlBase}/api/collect/get-collect-details`],
+    collectList: [`${urlBase}/api/collect/get-collect-list`],
+    collectSettlementList: [`${urlBase}/api/collect/get-collect-details`],
+    collectSettlementDetails: [`${urlBase}/api/collect/get-collect-details`],
+    sku: [`${urlBase}/api/qr/sku`],
+    armado: [`${urlBase}/api/qr/armado`],
+    numberOfAssignments: [`${urlBase}/api/qr/cantidad-asignaciones`],
     /// ACCOUNTS
-    cuentas_listado: [
-      "http://apimovil2.lightdata.app/api/accounts/account-list",
-    ],
-    cuentas_alta: [
-      "https://lightdata.app/g/instalation/responseDetalleCuenta.php",
-    ],
+    cuentas_listado: [`${urlBase}/api/accounts/account-list`],
+    cuentas_alta: [`https://lightdata.app/g/instalation/responseDetalleCuenta.php`],
 
     /// BACKGPS
-    backgps: ["https://backgps.lightdata.app/backgps"],
+    backgps: [`https://backgps.lightdata.app/backgps`],
 
     /// WSP
-    wsp: ["http://apimovil2.lightdata.app/api/auth/whatsapp-message-list"],
+    wsp: [`${urlBase}/api/auth/whatsapp-message-list`],
 
     /// PRIVACY POLICY
-    privacyPolicy: ["https://lightdata.app/privacyapp.html"],
+    privacyPolicy: [`https://lightdata.app/privacyapp.html`],
   };
 
   return urls;

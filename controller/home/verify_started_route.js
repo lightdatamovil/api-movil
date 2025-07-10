@@ -1,16 +1,14 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig, executeQuery } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
+import CustomException from '../../classes/custom_exception.js';
 
-export async function verifyStartedRoute(company, userId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function verifyStartedRoute(companyId, userId) {
+    const pool = connectionsPools[companyId];
 
     try {
         const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
 
-        const resultQueryCadetesMovimientos = await executeQuery(dbConnection, sqlCadetesMovimientos, [userId]);
+        const resultQueryCadetesMovimientos = await executeQueryFromPool(pool, sqlCadetesMovimientos, [userId]);
 
         if (resultQueryCadetesMovimientos.length === 0) {
             return false;
@@ -27,7 +25,5 @@ export async function verifyStartedRoute(company, userId) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

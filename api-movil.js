@@ -10,15 +10,13 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { getCompanyById, redisClient } from './db.js';
+import { loadCompaniesFromRedis, loadConnectionsPools, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
-import { getUrlsDev } from './src/funciones/urlsdev.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
-
 const numCPUs = 2;
 const PORT = process.env.PORT;
 
@@ -29,7 +27,7 @@ if (cluster.isMaster) {
         cluster.fork();
     }
 
-    cluster.on('exit', (worker, code, signal) => {
+    cluster.on('exit', (worker) => {
         logBlue(`Worker ${worker.process.pid} murió, reiniciando...`);
         cluster.fork();
     });
@@ -65,24 +63,8 @@ if (cluster.isMaster) {
 
     app.post('/api/get-urls', async (req, res) => {
         const startTime = performance.now();
-        const { companyId } = req.body;
 
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrls(company);
-
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
-        res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
-    });
-
-    app.post('/api/get-urls-dev', async (req, res) => {
-        const startTime = performance.now();
-        const { companyId } = req.body;
-
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrlsDev(company);
+        const urls = getUrls();
 
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
@@ -92,6 +74,8 @@ if (cluster.isMaster) {
     (async () => {
         try {
             await redisClient.connect();
+            await loadCompaniesFromRedis();
+            await loadConnectionsPools();
 
             app.use('/api/auth', auth);
             app.use('/api/accounts', accounts);

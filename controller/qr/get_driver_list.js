@@ -1,11 +1,8 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 
-export async function driverList(company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function driverList(companyId) {
+    const pool = connectionsPools[companyId];
 
     try {
         var driverList = [];
@@ -17,7 +14,7 @@ export async function driverList(company) {
             ORDER BY nombre ASC
             `;
 
-        const results = await executeQuery(dbConnection, query, []);
+        const results = await executeQueryFromPool(pool, query, []);
 
         for (let i = 0; i < results.length; i++) {
             const row = results[i];
@@ -34,7 +31,5 @@ export async function driverList(company) {
     } catch (error) {
         logRed(`Error en driverList: ${error.stack}`);
         throw error;
-    } finally {
-        dbConnection.end();
     }
 }

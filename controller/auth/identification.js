@@ -1,18 +1,15 @@
 import axios from 'axios';
-import { logRed } from '../../src/funciones/logsCustom.js';
+import { logRed, logYellow } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
-import { executeQuery, getProdDbConfig } from '../../db.js';
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 
 export async function identification(company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    let pool = connectionsPools[company.did];
     const imageUrl = company.url + "/app-assets/images/logo/logo.png";
     const depotQuery =
         "SELECT id, latitud, longitud, nombre, cod  FROM `depositos`";
-    const resultsFromDepotQuery = await executeQuery(
-        dbConnection,
+    const resultsFromDepotQuery = await executeQueryFromPool(
+        pool,
         depotQuery,
         [],
     );
@@ -22,9 +19,21 @@ export async function identification(company) {
             const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
             const imageBuffer = Buffer.from(response.data, 'binary');
             imageBase64 = imageBuffer.toString('base64');
+            // eslint-disable-next-line no-unused-vars
         } catch (error) {
             imageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8v+d+AAAAWElEQVRIDbXBAQEAAAABIP6PzgpV+QUwbGR2rqlzdkcNoiCqk73A0B9H5KLVmr4YdTiO8gaCGg8VmYWqJf2zxeI1icT24tFS0hDJ01gg7LMEx6qI3SCqA6Uq8gRJbAqioBgCRH0CpvI0dpjlGr6hQJYtsDRS0BQ==';
         }
+        const hasAditionalPay = [];
+        logYellow(`Identificación de empresa: ${company.empresa} (ID: ${company.did})`);
+        const basicPlans = [8, 27, 22, 33, 16, 37, 41];
+        const depots = resultsFromDepotQuery.map(depot => ({
+            id: depot.id,
+            name: depot.nombre,
+            latitude: depot.latitud,
+            longitude: depot.longitud,
+            abreviation: 'dep',
+        }));
+        const hasMultiDepot = hasAditionalPay.includes(company.did * 1) || !basicPlans.includes(company.plan * 1);
         const result = {
             id: company.did * 1,
             plan: company.plan * 1,
@@ -35,13 +44,7 @@ export async function identification(company) {
             colectaPro: false,
             obligatoryImageOnRegisterVisit: company.did == 108,
             obligatoryDniAndNameOnRegisterVisit: company.did == 97,
-            depots: resultsFromDepotQuery.map(depot => ({
-                id: depot.id,
-                name: depot.nombre,
-                latitude: depot.latitud,
-                longitude: depot.longitud,
-                abreviation: 'dep',
-            })),
+            depots: hasMultiDepot ? depots : depots[0],
             image: imageBase64,
         };
 
@@ -57,7 +60,5 @@ export async function identification(company) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

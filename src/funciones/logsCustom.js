@@ -1,5 +1,3 @@
-import os from "os";
-
 // const isLocal = os.hostname() != "asignaciones";
 
 const isLocal = true;
@@ -42,6 +40,14 @@ export function logPurple(message) {
 export function logCyan(message) {
     if (isLocal) {
         console.log(`\x1b[36m%s\x1b[0m`, `💎 ${message}
+--------------------------------------------------`);
+    }
+}
+
+export function logOrange(message) {
+    if (isLocal) {
+        // ANSI code 38;5;208 es un tono naranja
+        console.log(`\x1b[38;5;208m%s\x1b[0m`, `🟧 ${message}
 --------------------------------------------------`);
     }
 }

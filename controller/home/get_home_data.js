@@ -1,17 +1,14 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
-import mysql2 from "mysql2";
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
+export async function getHomeData(companyId, userId, profile, dateYYYYMMDD) {
+  const pool = connectionsPools[companyId];
 
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
-    const rows = await executeQuery(dbConnection, query, [userId]);
+    const rows = await executeQueryFromPool(pool, query, [userId]);
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
@@ -28,28 +25,28 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
       55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
       72: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 16, 18, 16],
       default: [0, 1, 2, 3, 6, 7, 10, 11, 12],
-    }[company.did] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
+    }[companyId] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
 
     const estadosEnCamino = {
       20: [2, 11, 12, 16],
       55: [2, 11, 12],
       72: [2, 11, 12],
       default: [2, 11, 12],
-    }[company.did] || [2, 11, 12];
+    }[companyId] || [2, 11, 12];
 
     const estadosCerradosHoy = {
       20: [5, 8, 9, 14, 17],
       55: [5, 8, 9, 14, 16],
       72: [5, 8, 9, 14],
       default: [5, 8, 9, 14],
-    }[company.did] || [5, 8, 9, 14];
+    }[companyId] || [5, 8, 9, 14];
 
     const estadosEntregadosHoy = {
       20: [5, 9, 17],
       55: [5, 9, 16],
       72: [5, 9],
       default: [5, 9],
-    }[company.did] || [5, 9];
+    }[companyId] || [5, 9];
 
     const infoADevolver = {
       assignedToday: 0,
@@ -59,7 +56,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
       deliveredToday: 0,
     };
     async function fetchCount(query) {
-      const rows = await executeQuery(dbConnection, query, []);
+      const rows = await executeQueryFromPool(pool, query, []);
       return rows && rows.length ? parseInt(rows[0].total, 10) : 0;
     }
 
@@ -92,8 +89,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
                     AND eh.estado IN (${estadosPendientes})
                 `;
-          const rowsPendientes = await executeQuery(
-            dbConnection,
+          const rowsPendientes = await executeQueryFromPool(
+            pool,
             queryPendientes,
             []
           );
@@ -110,8 +107,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND superado = 0 
                     AND DATE(fecha) = CURDATE()
                 `;
-          const rowsHistorial = await executeQuery(
-            dbConnection,
+          const rowsHistorial = await executeQueryFromPool(
+            pool,
             queryHistorial,
             []
           );
@@ -144,8 +141,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND e.didCliente = sua.codigo_empleado
                 `;
 
-          const rowsCE = await executeQuery(
-            dbConnection,
+          const rowsCE = await executeQueryFromPool(
+            pool,
             queryCerradosYEntregados,
             []
           );
@@ -187,8 +184,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.estado IN (${estadosPendientes})
                     GROUP BY eh.didEnvio
                 `;
-          const rowsPendientesOperador = await executeQuery(
-            dbConnection,
+          const rowsPendientesOperador = await executeQueryFromPool(
+            pool,
             queryPendientes,
             []
           );
@@ -205,8 +202,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND didCadete = ${userId}
                     AND DATE(fecha) = CURDATE()
                 `;
-          const rowsHistorialOperador = await executeQuery(
-            dbConnection,
+          const rowsHistorialOperador = await executeQueryFromPool(
+            pool,
             queryHistorial,
             []
           );
@@ -237,7 +234,5 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
       message: error.message,
       stack: error.stack,
     });
-  } finally {
-    dbConnection.end();
   }
 }

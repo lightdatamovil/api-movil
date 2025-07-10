@@ -1,16 +1,13 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function getCollectDetails(company, dateYYYYMMDD) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getCollectDetails(companyId, dateYYYYMMDD, userId) {
+    const pool = connectionsPools[companyId];
 
     try {
-        const clientesResult = await executeQuery(
-            dbConnection,
+        const clientesResult = await executeQueryFromPool(
+            pool,
             "SELECT did, nombre_fantasia FROM clientes WHERE superado=0 AND elim=0"
         );
 
@@ -20,8 +17,8 @@ export async function getCollectDetails(company, dateYYYYMMDD) {
             Aclientes[row.did] = row.nombre_fantasia;
         });
 
-        const enviosResult = await executeQuery(
-            dbConnection,
+        const enviosResult = await executeQueryFromPool(
+            pool,
             `SELECT didCliente, didEnvio 
              FROM colecta_asignacion 
              WHERE superado = 0 AND elim = 0 AND didChofer = ? AND fecha = ? `,
@@ -56,7 +53,5 @@ export async function getCollectDetails(company, dateYYYYMMDD) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
     }
 }

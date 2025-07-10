@@ -1,29 +1,26 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany } from "../../db.js";
-import mysql2 from 'mysql2';
+import { getZonesByCompany, getClientsByCompany, connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';
 
-export async function crossDocking(dataQr, company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function crossDocking(dataQr, companyId) {
+    const pool = connectionsPools[companyId];
 
     try {
         let shipmentId;
         let queryWhereId = '';
-        const isLocal = dataQr.hasOwnProperty("local");
+        const isLocal = Object.prototype.hasOwnProperty.call(dataQr, "local");
 
         if (isLocal) {
             shipmentId = dataQr.did;
 
-            if (company.did != dataQr.empresa) {
+            if (companyId != dataQr.empresa) {
                 const queryEnviosExteriores = `
                     SELECT didLocal
                     FROM envios_exteriores
                     WHERE didExterno = ?
                     AND didEmpresa = ?
                 `;
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
+                const resultQueryEnviosExteriores = await executeQueryFromPool(pool, queryEnviosExteriores, [shipmentId, companyId]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     throw new CustomException({
@@ -36,7 +33,7 @@ export async function crossDocking(dataQr, company) {
             }
             queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
-            if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
+            if (companyId == 211 && !Object.prototype.hasOwnProperty.call(dataQr, "sender_id")) {
                 shipmentId = dataQr;
                 queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
             } else {
@@ -61,7 +58,7 @@ export async function crossDocking(dataQr, company) {
             ${queryWhereId}
             LIMIT 1
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, []);
+        const envioData = await executeQueryFromPool(pool, queryEnvios, []);
 
         if (envioData.length === 0) {
             throw new CustomException({
@@ -72,9 +69,9 @@ export async function crossDocking(dataQr, company) {
 
         const row = envioData[0];
 
-        const clients = await getClientsByCompany(dbConnection, company.did);
+        const clients = await getClientsByCompany(pool, companyId);
 
-        const zones = await getZonesByCompany(dbConnection, company.did);
+        const zones = await getZonesByCompany(pool, companyId);
 
         return {
             shipmentState: row.shipmentState,
@@ -86,7 +83,5 @@ export async function crossDocking(dataQr, company) {
     } catch (error) {
         logRed(`Error en crossDocking: ${error.stack}`);
         throw error;
-    } finally {
-        dbConnection.end();
     }
 }

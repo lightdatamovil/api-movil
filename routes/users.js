@@ -6,7 +6,7 @@ import { changePassword } from '../controller/user/change_password.js';
 import { changeProfilePicture } from '../controller/user/change_profile_picture.js';
 import { createHash } from 'crypto';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logOrange, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 
@@ -26,15 +26,14 @@ users.post('/edit-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en edit-user', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const result = await editUser(company, userId, email, phone);
+        const result = await editUser(companyId, userId, email, phone);
 
         logGreen(`Usuario editado correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/edit-user", true);
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en edit-user: ${error}`);
+            logOrange(`Error 400 en edit-user: ${error}`);
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/edit-user", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -64,15 +63,14 @@ users.post('/change-password', verifyToken, async (req, res) => {
 
         const oldPasswordHash = createHash('sha256').update(oldPassword).digest('hex');
         const newPasswordHash = createHash('sha256').update(newPassword).digest('hex');
-        const company = await getCompanyById(companyId);
-        const result = await changePassword(company, userId, oldPasswordHash, newPasswordHash);
+        const result = await changePassword(companyId, userId, oldPasswordHash, newPasswordHash);
 
         logGreen(`Contraseña cambiada correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-password", true);
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en change-password: ${error}`);
+            logOrange(`Error 400 en change-password: ${error}`);
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/change-password", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -100,15 +98,14 @@ users.post('/change-profile-picture', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en change-profile-picture', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const result = await changeProfilePicture(company, userId, profile, image, dateYYYYMMDD);
+        const result = await changeProfilePicture(companyId, userId, profile, image, dateYYYYMMDD);
 
         logGreen(`Foto de perfil cambiada correctamente`);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-profile-picture", true);
         res.status(200).json({ body: result, message: "Datos insertados correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en change-profile-picture: ${error}`);
+            logOrange(`Error 400 en change-profile-picture: ${error}`);
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/change-profile-picture", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {

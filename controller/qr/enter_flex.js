@@ -1,13 +1,10 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from 'mysql2';
+import { connectionsPools, executeQueryFromPool } from "../../db.js";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
 
-export async function enterFlex(company, dataQr, userId, profile) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function enterFlex(companyId, dataQr, userId, profile) {
+    const pool = connectionsPools[companyId];
 
     try {
         const mlShipmentId = dataQr.id;
@@ -23,7 +20,7 @@ export async function enterFlex(company, dataQr, userId, profile) {
             ORDER BY didCliente ASC
             `;
 
-        const clientResult = await executeQuery(dbConnection, clienteQuery, [mlSellerId]);
+        const clientResult = await executeQueryFromPool(pool, clienteQuery, [mlSellerId]);
 
         if (clientResult.length > 0) {
             clientId = clientResult[0].didCliente;
@@ -40,12 +37,12 @@ export async function enterFlex(company, dataQr, userId, profile) {
             WHERE superado = 0 AND elim = 0 AND ml_shipment_id = ? AND ml_vendedor_id = ?
             `;
 
-        const envioResult = await executeQuery(dbConnection, envioQuery, [mlShipmentId, mlSellerId]);
+        const envioResult = await executeQueryFromPool(pool, envioQuery, [mlShipmentId, mlSellerId]);
 
         let isLoaded = envioResult.length > 0;
 
         const nowInHours = new Date().getHours();
-        const fecha_despacho = await setDispatchDate(dbConnection, clientId, nowInHours);
+        const fecha_despacho = await setDispatchDate(pool, clientId, nowInHours);
         const fecha_inicio = new Date().toISOString().slice(0, 19).replace("T", " ");
 
         if (!isLoaded) {
@@ -58,7 +55,7 @@ export async function enterFlex(company, dataQr, userId, profile) {
                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
 
-            const insertResult = await executeQuery(dbConnection, insertEnvioQuery, [
+            const insertResult = await executeQueryFromPool(pool, insertEnvioQuery, [
                 shipmentId, mlShipmentId, mlSellerId, clientId, userId, '', fecha_despacho, accountId, JSON.stringify(dataQr), fecha_inicio, fechaunix
             ]);
 
@@ -76,7 +73,7 @@ export async function enterFlex(company, dataQr, userId, profile) {
             WHERE superado = 0 AND elim = 0 AND id = ? AND ml_vendedor_id = ? AND ml_shipment_id = ?
                 LIMIT 1
             `;
-            await executeQuery(dbConnection, updateEnvioQuery, [shipmentId, shipmentId, mlSellerId, mlShipmentId]);
+            await executeQueryFromPool(pool, updateEnvioQuery, [shipmentId, shipmentId, mlSellerId, mlShipmentId]);
 
             let shipmentState = 0;
 
@@ -84,11 +81,10 @@ export async function enterFlex(company, dataQr, userId, profile) {
                 shipmentState = 7;
             }
 
-            await sendToShipmentStateMicroService(company.did, userId, shipmentState, shipmentId);
-            // await setShipmentState(dbConnection, shipmentId, shipmentState, "");
+            await sendToShipmentStateMicroService(companyId, userId, shipmentState, shipmentId);
 
             if (profile === 3) {
-                await updateWhoPickedUp(dbConnection, userId, shipmentId);
+                await updateWhoPickedUp(pool, userId, shipmentId);
             }
 
             return;
@@ -111,79 +107,15 @@ export async function enterFlex(company, dataQr, userId, profile) {
             message: error.message,
             stack: error.stack
         });
-    } finally {
-        dbConnection.end();
-    }
-}
-async function setShipmentState(dbConnection, shipmentId, shipmentState, userId) {
-    try {
-
-        const estadoActualQuery = `
-            SELECT estado FROM envios_historial 
-            WHERE didEnvio = ? AND superado = 0 AND elim = 0 
-            LIMIT 1
-            `;
-
-        const estadoActualResult = await executeQuery(dbConnection, estadoActualQuery, [shipmentId]);
-
-        const currentShipmentState = estadoActualResult.length ? estadoActualResult[0].estado : -1;
-
-        if (currentShipmentState !== shipmentState) {
-            const updateHistorialQuery = `
-                UPDATE envios_historial 
-                SET superado = 1 
-                WHERE superado = 0 AND elim = 0 AND didEnvio = ?
-            `;
-
-            await executeQuery(dbConnection, updateHistorialQuery, [shipmentId]);
-
-            const updateEnviosQuery = `
-                UPDATE envios 
-                SET estado_envio = ?
-            WHERE superado = 0 AND did = ?
-                `;
-
-            await executeQuery(dbConnection, updateEnviosQuery, [shipmentState, shipmentId]);
-
-            const operadorQuery = `
-                SELECT operador FROM envios_asignaciones 
-                WHERE didEnvio = ? AND superado = 0 AND elim = 0
-            `;
-
-            const operadorResult = await executeQuery(dbConnection, operadorQuery, [shipmentId]);
-
-            const driverId = operadorResult.length ? operadorResult[0].operador : 0;
-
-            const date = new Date().toISOString().slice(0, 19);
-
-            const insertHistorialQuery = `
-                INSERT INTO envios_historial(didEnvio, estado, quien, fecha, didCadete) 
-                VALUES(?, ?, ?, ?, ?)
-                `;
-
-            await executeQuery(dbConnection, insertHistorialQuery, [shipmentId, shipmentState, userId, date, driverId]);
-        }
-
-        return;
-    } catch (error) {
-        logRed(`Error en setShipmentState: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error poniendo estado al envío',
-            message: error.message,
-            stack: error.stack
-        });
     }
 }
 
-async function setDispatchDate(dbConnection, clientId) {
+async function setDispatchDate(pool, clientId) {
     let closeHour = 16;
 
     try {
-        const configRows = await executeQuery(
-            dbConnection,
+        const configRows = await executeQueryFromPool(
+            pool,
             "SELECT config FROM `sistema_config` WHERE superado=0 AND elim=0",
             []
         );
@@ -196,8 +128,8 @@ async function setDispatchDate(dbConnection, clientId) {
             }
         }
 
-        const clienteRows = await executeQuery(
-            dbConnection,
+        const clienteRows = await executeQueryFromPool(
+            pool,
             "SELECT hora FROM `clientes_cierre_ingreso` WHERE superado=0 AND elim=0 AND didcliente = ? LIMIT 1",
             [clientId]
         );
@@ -231,7 +163,7 @@ async function setDispatchDate(dbConnection, clientId) {
     }
 }
 
-async function updateWhoPickedUp(dbConnection, userId, driverId) {
+async function updateWhoPickedUp(pool, userId, driverId) {
     try {
         const now = new Date().toISOString().slice(0, 19).replace("T", " ");
 
@@ -241,7 +173,7 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
             WHERE superado = 0 AND elim = 0 AND did = ?
                 `;
 
-        await executeQuery(dbConnection, query, [userId, now, driverId]);
+        await executeQueryFromPool(pool, query, [userId, now, driverId]);
 
     } catch (error) {
         logRed(`Error en updateWhoPickedUp: ${error.stack}`);

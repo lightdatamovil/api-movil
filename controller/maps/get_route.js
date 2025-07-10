@@ -1,14 +1,10 @@
-import mysql2 from 'mysql2';
-
-import { getProdDbConfig, executeQuery } from '../../db.js';
+import { connectionsPools, executeQueryFromPool } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import MapConstants from '../../src/constants/map.js';
 
-export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getRouteByUserId(companyId, userId, dateYYYYMMDD) {
+    const pool = connectionsPools[companyId];
 
     try {
         let shipments = [];
@@ -16,7 +12,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
         let additionalRouteData;
 
         const rutaQuery = "SELECT id FROM `ruteo` WHERE superado=0 AND elim=0 AND fechaOperativa = ? AND didChofer = ?";
-        const rutaResult = await executeQuery(dbConnection, rutaQuery, [dateYYYYMMDD, userId]);
+        const rutaResult = await executeQueryFromPool(pool, rutaQuery, [dateYYYYMMDD, userId]);
 
         if (rutaResult.length > 0) {
             const getRouteShipmentsQuery = `
@@ -34,7 +30,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                 WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,9,10,12)
                 ORDER BY RP.orden ASC`;
 
-            const getRouteShipmentsQueryResult = await executeQuery(dbConnection, getRouteShipmentsQuery, [userId, userId]);
+            const getRouteShipmentsQueryResult = await executeQueryFromPool(pool, getRouteShipmentsQuery, [userId, userId]);
 
             for (let row of getRouteShipmentsQueryResult) {
                 let latitude = row.destination_latitude ? parseFloat(row.destination_latitude) : null;
@@ -93,7 +89,7 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
                 WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,9,10,12) and e.autofecha >= now() - interval 3 day 
                 ORDER BY ea.orden ASC`;
 
-            const shipmentsWithoutOrderResult = await executeQuery(dbConnection, shipmentsWithoutOrderQuery, [userId]);
+            const shipmentsWithoutOrderResult = await executeQueryFromPool(pool, shipmentsWithoutOrderQuery, [userId]);
 
             for (let row of shipmentsWithoutOrderResult) {
                 let latitude = row.destination_latitude ? parseFloat(row.destination_latitude) : null;
@@ -130,8 +126,5 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
             message: error.message,
             stack: error.stack
         });
-    }
-    finally {
-        dbConnection.end();
     }
 }

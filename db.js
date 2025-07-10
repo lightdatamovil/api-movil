@@ -1,6 +1,6 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
-import { logRed, logYellow } from './src/funciones/logsCustom.js';
+import { logBlue, logRed, logYellow } from './src/funciones/logsCustom.js';
 import mysql2 from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
@@ -9,11 +9,12 @@ const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
 
-/// Base de datos de apimovil
+/// Base de datos de produccion
 const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
-const apimovilDBUser = process.env.APIMOVIL_DB_USER;
-const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
-const apimovilDBName = process.env.APIMOVIL_DB_NAME;
+// TODO: Estan comentadas por la misma razon que la de abajo, cuando se use la db de apimovil aparte de para crear logs se deberia usar algo asi
+// const apimovilDBUser = process.env.APIMOVIL_DB_USER;
+// const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
+// const apimovilDBName = process.env.APIMOVIL_DB_NAME;
 const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
 
 /// Usuario y contraseña para los logs de la base de datos de apimovil
@@ -43,16 +44,7 @@ let accountList = {};
 let driverList = {};
 let zoneList = {};
 let clientList = {};
-
-export function getDbConfig(companyId) {
-    return {
-        host: apimovilDBHost,
-        user: apimovilDBUser + companyId,
-        password: apimovilDBPassword,
-        database: apimovilDBName + companyId,
-        port: apimovilDBPort
-    };
-}
+export let connectionsPools = {};
 
 export const poolLocal = mysql2.createPool({
     host: apimovilDBHost,
@@ -64,16 +56,6 @@ export const poolLocal = mysql2.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-
-export function getProdDbConfig(company) {
-    return {
-        host: hostProductionDb,
-        user: company.dbuser,
-        password: company.dbpass,
-        database: company.dbname,
-        port: portProductionDb,
-    };
-}
 
 export async function updateRedis(empresaId, envioId, choferId) {
     const DWRTE = await redisClient.get('DWRTE',);
@@ -94,8 +76,7 @@ export async function updateRedis(empresaId, envioId, choferId) {
 
     await redisClient.set('DWRTE', JSON.stringify(DWRTE));
 }
-
-async function loadCompaniesFromRedis() {
+export async function loadCompaniesFromRedis() {
     try {
         const companiesListString = await redisClient.get('empresasData');
 
@@ -106,7 +87,53 @@ async function loadCompaniesFromRedis() {
         throw error;
     }
 }
+export async function loadConnectionsPools() {
+    logYellow('Cargando conexiones a las bases de datos de las compañías…');
 
+    // 1) Cargar companiesList si está vacío
+    if (Object.keys(companiesList).length === 0) {
+        try {
+            await loadCompaniesFromRedis();
+        } catch (error) {
+            logRed(`Error al cargar compañías desde Redis: ${error.stack}`);
+            throw error;
+        }
+    }
+
+    // 2) Transformar a array sin mutar el original
+    const companiesArray = Object.values(companiesList);
+
+    // 3) Cerrar y limpiar pools previos (si los hubiera)
+    for (const pool of Object.values(connectionsPools)) {
+        try {
+            await pool.promise().end();
+        } catch (e) {
+            logRed(`Error cerrando pool previo: ${e.message}`);
+        }
+    }
+    connectionsPools = {};
+    // TODO: Cuando se use la db de apimovil aparte de para crear logs se deberia usar algo asi
+    // const apimovilDBUser = process.env.APIMOVIL_DB_USER;
+    // const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
+    // const apimovilDBName = process.env.APIMOVIL_DB_NAME;
+    // 4) Crear un pool por cada compañía
+    companiesArray.forEach(company => {
+        connectionsPools[company.id] = mysql2.createPool({
+            host: hostProductionDb,
+            user: company.dbuser,
+            password: company.dbpass,
+            database: company.dbname,
+            port: portProductionDb,
+            waitForConnections: true,
+            connectionLimit: 10,
+            queueLimit: 0
+        });
+    });
+
+    logBlue(
+        `Conexiones a las bases cargadas para empresas: ${Object.keys(connectionsPools).join(', ')}`
+    );
+}
 export async function getCompanyById(companyId) {
     try {
         let company = companiesList[companyId];
@@ -143,7 +170,7 @@ export async function getCompanyByCode(companyCode) {
         }
 
         for (const key in companiesList) {
-            if (companiesList.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(companiesList, key)) {
                 const currentCompany = companiesList[key];
                 if (String(currentCompany.codigo) === String(companyCode)) {
                     company = currentCompany;
@@ -159,7 +186,7 @@ export async function getCompanyByCode(companyCode) {
     }
 }
 
-async function loadAccountList(dbConnection, companyId, senderId) {
+async function loadAccountList(pool, companyId, senderId) {
     try {
         const querySelectClientesCuentas = `
             SELECT did, didCliente, ML_id_vendedor 
@@ -167,7 +194,7 @@ async function loadAccountList(dbConnection, companyId, senderId) {
             WHERE superado = 0 AND elim = 0 AND tipoCuenta = 1 AND ML_id_vendedor != ''
         `;
 
-        const result = await executeQuery(dbConnection, querySelectClientesCuentas);
+        const result = await executeQueryFromPool(pool, querySelectClientesCuentas);
 
         if (!accountList[companyId]) {
             accountList[companyId] = {};
@@ -193,10 +220,10 @@ async function loadAccountList(dbConnection, companyId, senderId) {
     }
 }
 
-export async function getAccountBySenderId(dbConnection, companyId, senderId) {
+export async function getAccountBySenderId(pool, companyId, senderId) {
     try {
         if (accountList === undefined || accountList === null || Object.keys(accountList).length === 0 || !accountList[companyId]) {
-            await loadAccountList(dbConnection, companyId, senderId);
+            await loadAccountList(pool, companyId, senderId);
         }
 
         const account = accountList[companyId][senderId];
@@ -208,14 +235,14 @@ export async function getAccountBySenderId(dbConnection, companyId, senderId) {
     }
 }
 
-async function loadClients(dbConnection, companyId) {
+async function loadClients(pool, companyId) {
     if (!clientList[companyId]) {
         clientList[companyId] = {}
     }
 
     try {
         const queryUsers = "SELECT * FROM clientes";
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+        const resultQueryUsers = await executeQueryFromPool(pool, queryUsers, []);
 
         resultQueryUsers.forEach(row => {
             const client = row.did;
@@ -237,13 +264,13 @@ async function loadClients(dbConnection, companyId) {
     }
 }
 
-export async function getClientsByCompany(dbConnection, companyId) {
+export async function getClientsByCompany(pool, companyId) {
     try {
         let companyClients = clientList[companyId];
 
         if (companyClients == undefined || Object.keys(clientList).length === 0) {
             try {
-                await loadClients(dbConnection, companyId);
+                await loadClients(pool, companyId);
 
                 companyClients = clientList[companyId];
             } catch (error) {
@@ -259,14 +286,14 @@ export async function getClientsByCompany(dbConnection, companyId) {
     }
 }
 
-async function loadZones(dbConnection, companyId) {
+async function loadZones(pool, companyId) {
     if (!zoneList[companyId]) {
         zoneList[companyId] = {}
     }
 
     try {
         const queryZones = "SELECT * FROM envios_zonas";
-        const resultZones = await executeQuery(dbConnection, queryZones, []);
+        const resultZones = await executeQueryFromPool(pool, queryZones, []);
 
         resultZones.forEach(row => {
             const zone = row.did;
@@ -292,13 +319,13 @@ async function loadZones(dbConnection, companyId) {
     }
 }
 
-export async function getZonesByCompany(dbConnection, companyId) {
+export async function getZonesByCompany(pool, companyId) {
     try {
         let companyZones = zoneList[companyId];
 
         if (companyZones == undefined || Object.keys(zoneList).length === 0) {
             try {
-                await loadZones(dbConnection, companyId);
+                await loadZones(pool, companyId);
 
                 companyZones = zoneList[companyId];
             } catch (error) {
@@ -314,7 +341,7 @@ export async function getZonesByCompany(dbConnection, companyId) {
     }
 }
 
-async function loadDrivers(dbConnection, companyId) {
+async function loadDrivers(pool, companyId) {
     if (!driverList[companyId]) {
         driverList[companyId] = {}
     }
@@ -324,14 +351,14 @@ async function loadDrivers(dbConnection, companyId) {
             SELECT sistema_usuarios.did, sistema_usuarios.usuario 
             FROM sistema_usuarios_accesos
             INNER JOIN sistema_usuarios ON sistema_usuarios_accesos.did = sistema_usuarios.did
-            WHERE sistema_usuarios_accesos.perfil IN (3, 6)
+            WHERE sistema_usuarios_accesos.perfil IN(3, 6)
             AND sistema_usuarios_accesos.elim = 0
             AND sistema_usuarios_accesos.superado = 0
             AND sistema_usuarios.elim = 0
             AND sistema_usuarios.superado = 0
         `;
 
-        const resultQueryUsers = await executeQuery(dbConnection, queryUsers, []);
+        const resultQueryUsers = await executeQueryFromPool(pool, queryUsers, []);
 
         for (let i = 0; i < resultQueryUsers.length; i++) {
             const row = resultQueryUsers[i];
@@ -355,13 +382,13 @@ async function loadDrivers(dbConnection, companyId) {
     }
 }
 
-export async function getDriversByCompany(dbConnection, companyId) {
+export async function getDriversByCompany(pool, companyId) {
     try {
         let companyDrivers = driverList[companyId];
 
         if (companyDrivers == undefined || Object.keys(driverList).length === 0) {
             try {
-                await loadDrivers(dbConnection, companyId);
+                await loadDrivers(pool, companyId);
 
                 companyDrivers = driverList[companyId];
             } catch (error) {
@@ -404,4 +431,20 @@ export async function executeQuery(connection, query, values, log) {
         logRed(`Error en executeQuery: ${error.stack}`);
         throw error;
     }
+}
+export function executeQueryFromPool(pool, query, values = [], log = false) {
+    const formattedQuery = mysql2.format(query, values);
+
+    return new Promise((resolve, reject) => {
+        if (log) logYellow(`Ejecutando query: ${formattedQuery}`);
+
+        pool.query(formattedQuery, (err, results) => {
+            if (err) {
+                if (log) logRed(`Error en executeQuery: ${err.message} - ${formattedQuery}`);
+                return reject(err);
+            }
+            if (log) logYellow(`Query ejecutada con éxito: ${formattedQuery}`);
+            resolve(results);
+        });
+    });
 }

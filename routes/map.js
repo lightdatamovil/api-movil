@@ -5,7 +5,7 @@ import { getRouteByUserId } from '../controller/maps/get_route.js';
 import { geolocalize } from '../controller/maps/geolocalize.js';
 import { saveRoute } from '../controller/maps/save_route.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
+import { logGreen, logOrange, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 
@@ -25,15 +25,14 @@ map.post('/get-route-by-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-route-by-user', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        const result = await getRouteByUserId(company, userId, dateYYYYMMDD);
+        const result = await getRouteByUserId(companyId, userId, dateYYYYMMDD);
 
         logGreen(`Ruta de usuario obtenida correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/get-route-by-user", true);
         res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en get-route-by-user: ${error}`);
+            logOrange(`Error 400 en get-route-by-user: ${error}`);
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-route-by-user", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -61,8 +60,7 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en geolocalize', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
-        await geolocalize(company, shipmentId, latitude, longitude);
+        await geolocalize(companyId, shipmentId, latitude, longitude);
 
         logGreen(`Geolocalización registrada correctamente`);
 
@@ -71,7 +69,7 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
         res.status(200).json(result);
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en geolocalize: ${error}`);
+            logOrange(`Error 400 en geolocalize: ${error}`);
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/geolocalize", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {
@@ -99,9 +97,8 @@ map.post('/save-route', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en save-route', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
         await saveRoute(
-            company,
+            companyId,
             userId,
             dateYYYYMMDD,
             orders,
@@ -115,7 +112,7 @@ map.post('/save-route', verifyToken, async (req, res) => {
         res.status(200).json({ message: "Ruta guardada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
-            logRed(`Error 400 en save-route: ${error}`);
+            logOrange(`Error 400 en save-route: ${error}`);
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/save-route", false);
             res.status(400).json({ title: error.title, message: error.message });
         } else {

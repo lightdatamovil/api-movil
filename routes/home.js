@@ -1,17 +1,11 @@
 import { Router } from "express";
 import verifyToken from "../src/funciones/verifyToken.js";
-import { getCompanyById } from "../db.js";
 import { verifyStartedRoute } from "../controller/home/verify_started_route.js";
 import { startRoute } from "../controller/home/start_route.js";
 import { finishRoute } from "../controller/home/finish_route.js";
 import { getHomeData } from "../controller/home/get_home_data.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import {
-
-  logGreen,
-  logPurple,
-  logRed,
-} from "../src/funciones/logsCustom.js";
+import { logGreen, logOrange, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 
@@ -26,6 +20,7 @@ home.post("/home", verifyToken, async (req, res) => {
       ["companyId", "userId", "profile", "dateYYYYMMDD"],
       true
     );
+
     if (mensajeError) {
       logRed(`Error en home: ${mensajeError}`);
       throw new CustomException({
@@ -34,8 +29,7 @@ home.post("/home", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
+    const result = await getHomeData(companyId, userId, profile, dateYYYYMMDD);
 
     logGreen(`Datos obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
@@ -44,7 +38,7 @@ home.post("/home", verifyToken, async (req, res) => {
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en home: ${error}`);
+      logOrange(`Error 400 en home: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/home", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -75,8 +69,7 @@ home.post("/start-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
+    await startRoute(companyId, userId, dateYYYYMMDD, deviceFrom);
 
     logGreen(`Ruta comenzada exitosamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta comenzada exitosamente" }), "/start-route", true);
@@ -85,7 +78,7 @@ home.post("/start-route", verifyToken, async (req, res) => {
       .json({ message: "La ruta ha comenzado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en start-route: ${error}`);
+      logOrange(`Error 400 en start-route: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/start-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -116,15 +109,14 @@ home.post("/end-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    await finishRoute(company, userId, dateYYYYMMDD);
+    await finishRoute(companyId, userId, dateYYYYMMDD);
 
     logGreen(`Ruta terminada exitosamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, "Ruta terminada exitosamente", "/end-route", true);
     res.status(200).json({ message: "La ruta ha terminado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en end-route: ${error}`);
+      logOrange(`Error 400 en end-route: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/end-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {
@@ -155,8 +147,7 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
-    const result = await verifyStartedRoute(company, userId);
+    const result = await verifyStartedRoute(companyId, userId);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/verify-started-route", true);
     res.status(200).json({
@@ -165,7 +156,7 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
     });
   } catch (error) {
     if (error instanceof CustomException) {
-      logRed(`Error 400 en verify-started-route: ${error}`);
+      logOrange(`Error 400 en verify-started-route: ${error}`);
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/verify-started-route", false);
       res.status(400).json({ title: error.title, message: error.message });
     } else {

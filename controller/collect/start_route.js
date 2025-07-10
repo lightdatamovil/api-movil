@@ -1,12 +1,9 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
+import { connectionsPools } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function startCollectRoute(company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function startCollectRoute(companyId) {
+    const pool = connectionsPools[companyId];
     try {
 
         return true;
