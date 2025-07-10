@@ -1,7 +1,7 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
 import { logBlue, logRed, logYellow } from './src/funciones/logsCustom.js';
-import mysql2 from 'mysql2';
+import mysql2 from 'mysql2/promise';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 /// Redis para obtener las empresas
@@ -56,7 +56,17 @@ export const poolLocal = mysql2.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-
+export async function closeAllPools() {
+    try {
+        // poolLocal
+        await poolLocal.end();
+        // pools dinámicos
+        await Promise.all(Object.values(connectionsPools).map(p => p.end()));
+        connectionsPools = {};
+    } catch (err) {
+        logRed(`Error cerrando pools: ${err.message}`);
+    }
+}
 export async function updateRedis(empresaId, envioId, choferId) {
     const DWRTE = await redisClient.get('DWRTE',);
     const empresaKey = `e.${empresaId}`;
@@ -432,19 +442,14 @@ export async function executeQuery(connection, query, values, log) {
         throw error;
     }
 }
-export function executeQueryFromPool(pool, query, values = [], log = false) {
-    const formattedQuery = mysql2.format(query, values);
-
-    return new Promise((resolve, reject) => {
-        if (log) logYellow(`Ejecutando query: ${formattedQuery}`);
-
-        pool.query(formattedQuery, (err, results) => {
-            if (err) {
-                if (log) logRed(`Error en executeQuery: ${err.message} - ${formattedQuery}`);
-                return reject(err);
-            }
-            if (log) logYellow(`Query ejecutada con éxito: ${formattedQuery}`);
-            resolve(results);
-        });
-    });
+export async function executeQueryFromPool(pool, query, values = [], log = false) {
+    try {
+        if (log) logYellow(`Ejecutando query: ${query} — valores: ${JSON.stringify(values)}`);
+        const [rows] = await pool.query(query, values);
+        if (log) logYellow(`Query exitosa: ${query}`);
+        return rows;
+    } catch (err) {
+        if (log) logRed(`Error en query: ${err.message}`);
+        throw err;
+    }
 }
