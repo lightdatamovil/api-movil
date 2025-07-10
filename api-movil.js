@@ -12,7 +12,6 @@ import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
-import { getUrlsDev } from './src/funciones/urlsdev.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -76,18 +75,6 @@ if (cluster.isMaster) {
         res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
     });
 
-    app.post('/api/get-urls-dev', async (req, res) => {
-        const startTime = performance.now();
-        const { companyId } = req.body;
-
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrlsDev(company);
-
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
-        res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
-    });
 
     (async () => {
         try {
