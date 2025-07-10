@@ -201,7 +201,7 @@ async function shipmentInformation(pool, shipmentId) {
         LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = ? )
         WHERE e.did = ? AND e.elim = 0 AND e.superado = 0`;
 
-        const results = await executeQueryFromPool(pool, query, []);
+        const results = await executeQueryFromPool(pool, query, [shipmentId, shipmentId]);
         if (results.length === 0) {
             throw new CustomException({
                 title: 'Error obteniendo información del envío',
