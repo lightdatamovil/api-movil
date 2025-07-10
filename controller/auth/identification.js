@@ -44,7 +44,6 @@ export async function identification(company) {
                 abreviation: 'dep',
             })),
 
-            depots: hasMultiDepot ? depots : depots[0],
             image: imageBase64,
         };
 
