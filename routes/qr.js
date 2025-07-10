@@ -305,5 +305,45 @@ qr.post("/armado", verifyToken, async (req, res) => {
     logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
   }
 });
+qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
+  const startTime = performance.now();
+  const { companyId, userId, profile } = req.body;
+  try {
+    const mensajeError = verifyParamaters(
+      req.body,
+      [],
+      true
+    );
+    if (mensajeError) {
+      logRed(`Error en armado: ${mensajeError}`);
+      throw new CustomException({
+        title: "Error en armado",
+        message: mensajeError,
+      });
+    }
 
+    const result = await getCantidadAsignaciones(companyId, userId);
+
+    logGreen(`get-cantidad-asignaciones ejecutado correctamente`);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
+    res.status(200).json({
+      body: result,
+      message: "Datos obtenidos correctamente",
+      success: true,
+    });
+  } catch (error) {
+    if (error instanceof CustomException) {
+      logOrange(`Error 400 en cantidad-asignaciones: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cantidad-asignaciones", false);
+      res.status(400).json({ title: error.title, message: error.message });
+    } else {
+      logRed(`Error 500 en cantidad-asignaciones: ${error}`);
+      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/cantidad-asignaciones", false);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+  } finally {
+    const endTime = performance.now();
+    logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
+  }
+});
 export default qr;
