@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { logYellow } from './logsCustom.js';
 
 dotenv.config({ path: process.env.ENV_FILE || `.env` });
 const PORT = process.env.PORT;
@@ -8,7 +9,7 @@ export function getUrls() {
   const urlBase = LOCAL == 'true'
     ? `http://10.0.0.2:${PORT}`
     : `http://apimovil2${PORT == 13000 ? '' : 'test'}.lightdata.app`;
-
+  logYellow(`URL Base: ${urlBase}`);
   const urls = {
     /// HOME
     home: [`${urlBase}/api/home/home`],
