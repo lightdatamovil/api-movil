@@ -103,7 +103,7 @@ if (cluster.isMaster) {
             app.use('/api/map', map);
             app.use("/api/collect", collect)
             app.use("/api/register-visit", registerVisitRoute)
-
+            ///
             app.listen(PORT, '0.0.0.0', () => {
                 logBlue(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
             });
