@@ -324,7 +324,7 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    const result = await getCantidadAsignaciones(company, userId);
+    const result = await getCantidadAsignaciones(company, userId, profile);
 
     logGreen(`get-cantidad-asignaciones ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
