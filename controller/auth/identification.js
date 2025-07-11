@@ -46,7 +46,6 @@ export async function identification(company) {
             obligatoryImageOnRegisterVisit: company.did == 108,
             obligatoryDniAndNameOnRegisterVisit: company.did == 97,
             depots: hasMultiDepot ? depots : [depots[0]],
-
             image: imageBase64,
         };
 
