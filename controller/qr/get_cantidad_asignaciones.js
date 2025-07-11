@@ -1,7 +1,8 @@
-import { executeQuery } from "../../db.js";
+import { executeQuery, getProdDbConfig } from "../../db.js";
+import mysql2 from "mysql2";
 
-export async function getCantidadAsignaciones(companyId, userId) {
-    const dbConfig = getProdDbConfig(companyId);
+export async function getCantidadAsignaciones(company, userId) {
+    const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
     try {

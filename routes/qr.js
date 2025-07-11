@@ -13,6 +13,7 @@ import { crossDocking } from "../controller/qr/cross_docking.js";
 import { getSkuAndStockFlex } from "../controller/qr/get_sku_and_stock _flex.js";
 import { parseIfJson } from "../src/funciones/isValidJson.js";
 import { crearLog } from "../src/funciones/crear_log.js";
+import { getCantidadAsignaciones } from "../controller/qr/get_cantidad_asignaciones.js";
 
 const qr = Router();
 
@@ -322,7 +323,8 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
       });
     }
 
-    const result = await getCantidadAsignaciones(companyId, userId);
+    const company = await getCompanyById(companyId);
+    const result = await getCantidadAsignaciones(company, userId);
 
     logGreen(`get-cantidad-asignaciones ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
