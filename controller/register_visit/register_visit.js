@@ -39,14 +39,14 @@ export async function registerVisit(
       });
     }
 
-    if (estadoActualRows.length > 0 && estadoActualRows[0].estado == 8) {
+    const currentShipmentState = estadoActualRows[0].estado;
+
+    if (estadoActualRows.length > 0 && currentShipmentState == 8) {
       throw new CustomException({
         title: "El envío ya fue entregado o cancelado",
         message: "El envío ya fue entregado o cancelado",
       });
     }
-
-    const currentShipmentState = estadoActualRows[0].estado;
 
     // Para wynflex si esta entregado
     if (
@@ -144,12 +144,14 @@ export async function registerVisit(
 
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
 
+    const estadoInsert = currentShipmentState == 6 ? 10 : shipmentState;
+
     const queryInsertEnviosHistorial =
       "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
     const historialResult = await executeQuery(
       dbConnection,
       queryInsertEnviosHistorial,
-      [shipmentId, shipmentState, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId]
+      [shipmentId, estadoInsert, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId]
     );
 
     const idInsertado = historialResult.insertId;
@@ -197,7 +199,7 @@ export async function registerVisit(
 
     return {
       lineId: idInsertado,
-      shipmentState: shipmentState,
+      shipmentState: estadoInsert,
     };
   } catch (error) {
     logRed(`Error in register visit: ${error.stack}`);
