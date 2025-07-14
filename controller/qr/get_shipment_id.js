@@ -26,10 +26,10 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
-            if (company.did == 211 && !dataQr.hasOwnProperty("sender_id")) {
-                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = 301 and superado = 0 AND elim = 0`;
+            if ((company.did == 211 || company.did == 20) && !dataQr.hasOwnProperty("sender_id")) {
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
 
-                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr], true);
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr, company.did == 20 ? 215 : 301], true);
 
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
