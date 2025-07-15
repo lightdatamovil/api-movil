@@ -52,7 +52,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
                         message: 'No se encontró el envío',
                     });
                 }
-                shipmentId = resultQueryEnviosExteriores[0].didLocal;
+                shipmentId = resultQueryEnvios[0].did;
 
             }
 
