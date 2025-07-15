@@ -23,7 +23,7 @@ export async function crossDocking(dataQr, company) {
                     WHERE didExterno = ?
                     AND didEmpresa = ?
                 `;
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, company.did]);
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     throw new CustomException({
@@ -32,7 +32,8 @@ export async function crossDocking(dataQr, company) {
                     });
                 }
 
-                shipmentId = resultQueryEnviosExteriores[0];
+                shipmentId = resultQueryEnviosExteriores[0].didLocal;
+
             }
             queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
