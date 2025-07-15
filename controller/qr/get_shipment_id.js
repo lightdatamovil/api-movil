@@ -17,7 +17,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
             if (company.did != dataQr.empresa) {
                 const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa], true);
+                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
 
                 if (resultQueryEnviosExteriores.length == 0) {
                     return { message: "El envío no pertenece a la empresa", success: false };
