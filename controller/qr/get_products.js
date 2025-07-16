@@ -2,8 +2,13 @@ import axios from 'axios';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getToken } from '../../src/funciones/getTokenML.js';
+import { executeQuery, getProdDbConfig } from '../../db.js';
+import mysql2 from 'mysql2';
 
-export async function getProductsFromShipment(dataQr) {
+export async function getProductsFromShipment(company, dataQr) {
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
     try {
         const shipmentId = dataQr.id;
 
@@ -12,7 +17,6 @@ export async function getProductsFromShipment(dataQr) {
         const token = await getToken(senderid);
 
         const Ashipment = await getShipmentDetails(shipmentId, token);
-
         if (Ashipment.receiver_id) {
             const Aventa = await getSaleDetails(Ashipment.order_id, token);
             const Aorder_items = Aventa.order_items || [];
@@ -43,8 +47,17 @@ export async function getProductsFromShipment(dataQr) {
                     imagen = dataitem.pictures[0]?.secure_url || '';
                     stock = dataitem.available_quantity;
                 }
-
-                Aitems.push({ imagen, stock, cantidadpedida, descripcion, variacion: "", sku });
+                const q = 'SELECT ean FROM fulfillment_productos WHERE sku = ?';
+                const res = await executeQuery(dbConnection, q, [sku]);
+                Aitems.push({
+                    imagen: imagen,
+                    stock: stock,
+                    cantidadpedida: cantidadpedida,
+                    descripcion: descripcion,
+                    variacion: "",
+                    sku: sku,
+                    ean: res[0]?.ean || 'Sin informacion',
+                });
             }
 
             return Aitems;
@@ -64,6 +77,8 @@ export async function getProductsFromShipment(dataQr) {
             message: error.message,
             stack: error.stack
         });
+    } finally {
+        dbConnection.end();
     }
 
 }

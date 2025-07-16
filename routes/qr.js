@@ -155,7 +155,8 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
 
     dataQr = parseIfJson(dataQr);
 
-    const response = await getProductsFromShipment(dataQr);
+    const company = await getCompanyById(companyId);
+    const response = await getProductsFromShipment(company, dataQr);
 
     logGreen(`Productos obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/products-from-shipment", true);
