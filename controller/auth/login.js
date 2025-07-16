@@ -94,7 +94,7 @@ export async function login(username, password, company) {
       profile: user.perfil,
       email: user.email,
       profilePicture: "",
-      hasShipmentProductsQr: company.did == 200,
+      hasShipmentProductsQr: company.did == 200 || company.did == 274,
       phone: user.telefono,
       token,
       houses: userHouses,
