@@ -74,7 +74,7 @@ export async function registerVisit(
           const token = await getTokenMLconMasParametros(
             envioRows[0].didCliente,
             envioRows[0].didCuenta,
-            idEmpresa
+            company.did
           );
 
           const dataML = await mlShipment(
