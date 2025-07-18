@@ -33,7 +33,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 dbConnectionR.connect();
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
 
-                const resultQueryEnvios = await executeQuery(dbConnectionR, queryEnvios, [dataQr, company.did == 20 ? 301 : 215], true);
+                const resultQueryEnvios = await executeQuery(dbConnectionR, queryEnvios, [dataQr, company.did == 20 ? 215 : 301], true);
 
                 dbConnectionR.end();
                 if (resultQueryEnvios.length == 0) {
