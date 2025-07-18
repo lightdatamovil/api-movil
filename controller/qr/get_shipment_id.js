@@ -26,14 +26,14 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
-            if ((company.did == 211 || company.did == 20) && !dataQr.hasOwnProperty("sender_id")) {
+            if ((company.did == 211 || company.did == 20 || company.did == 55) && !dataQr.hasOwnProperty("sender_id")) {
                 const Rabionz = await getCompanyById(company.did == 20 ? 211 : company.did);
                 const dbConfigR = getProdDbConfig(Rabionz);
                 const dbConnectionR = mysql2.createConnection(dbConfigR);
                 dbConnectionR.connect();
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
 
-                const resultQueryEnvios = await executeQuery(dbConnectionR, queryEnvios, [dataQr, company.did == 20 ? 215 : 301], true);
+                const resultQueryEnvios = await executeQuery(dbConnectionR, queryEnvios, [dataQr, company.did == 20 ? 215 : company.did == 55 ? 184 : 301], true);
 
                 dbConnectionR.end();
                 if (resultQueryEnvios.length == 0) {

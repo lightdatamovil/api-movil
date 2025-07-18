@@ -37,7 +37,7 @@ export async function crossDocking(dataQr, company) {
             }
             queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
-            if ((company.did == 211 || company.did == 20) && !dataQr.hasOwnProperty("sender_id")) {
+            if ((company.did == 211 || company.did == 20 || company.did == 55) && !dataQr.hasOwnProperty("sender_id")) {
                 shipmentId = dataQr;
                 queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
             } else {
