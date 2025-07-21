@@ -50,7 +50,7 @@ export async function identification(company) {
             depots: hasMultiDepot ? depots : depots.length > 0 ? [depots[0]] : [],
             image: imageBase64,
             hasBarcode: hasBarcode.includes(company.plan * 1),
-            hasProductsQr: hasProductsQr
+            hasProductsQr: hasProductsQr.includes(company.plan * 1),
         };
 
         return result;
