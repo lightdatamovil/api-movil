@@ -27,6 +27,8 @@ export async function identification(company) {
         }
         const hasAditionalPay = [];
         const granLogisticaPlans = [24, 35, 52];
+        const hasBarcode = [211, 20, 55];
+        const hasProductsQr = [274, 200];
         const depots = resultsFromDepotQuery.map(depot => ({
             id: depot.id,
             name: depot.nombre,
@@ -47,6 +49,8 @@ export async function identification(company) {
             obligatoryDniAndNameOnRegisterVisit: company.did == 97,
             depots: hasMultiDepot ? depots : depots.length > 0 ? [depots[0]] : [],
             image: imageBase64,
+            hasBarcode: hasBarcode.includes(company.plan * 1),
+            hasProductsQr: hasProductsQr
         };
 
         return result;
