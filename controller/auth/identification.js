@@ -49,8 +49,8 @@ export async function identification(company) {
             obligatoryDniAndNameOnRegisterVisit: company.did == 97,
             depots: hasMultiDepot ? depots : depots.length > 0 ? [depots[0]] : [],
             image: imageBase64,
-            hasBarcode: hasBarcode.includes(company.plan * 1),
-            hasProductsQr: hasProductsQr.includes(company.plan * 1),
+            hasBarcode: hasBarcode.includes(company.did * 1),
+            hasProductsQr: hasProductsQr.includes(company.did * 1),
         };
 
         return result;
