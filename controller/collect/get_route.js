@@ -3,6 +3,9 @@ import { getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
+
+// este no preguntar a GONZALO
+
 export async function getRoute(company, userId, dateYYYYMMDD) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);

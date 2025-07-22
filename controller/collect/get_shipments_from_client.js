@@ -3,6 +3,9 @@ import { getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
+
+
+// NOTA: ESTE ENDPOINT NO SE QUE HACE 
 export async function shipmentsFromClient(company, dateYYYYMMDD, clientId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);

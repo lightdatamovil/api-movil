@@ -59,7 +59,6 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
             logRed(`Error en settlement-details: ${mensajeError}`);
             throw new CustomException({ title: 'Error en settlement-details', message: mensajeError });
         }
-
         const company = await getCompanyById(companyId);
         const details = await getSettlementDetails(company, settlementId);
 

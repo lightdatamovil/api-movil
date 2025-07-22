@@ -2,13 +2,15 @@ import mysql2 from 'mysql2';
 import { getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
+import { getHoraLocalDePais } from '../../src/funciones/getHoraLocalByPais.js';
 
-export async function getCollectDetails(company, dateYYYYMMDD) {
+export async function getCollectDetails(company) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
+        const datetime = getHoraLocalDePais(company.pais);
         const clientesResult = await executeQuery(
             dbConnection,
             "SELECT did, nombre_fantasia FROM clientes WHERE superado=0 AND elim=0"
@@ -25,7 +27,7 @@ export async function getCollectDetails(company, dateYYYYMMDD) {
             `SELECT didCliente, didEnvio 
              FROM colecta_asignacion 
              WHERE superado = 0 AND elim = 0 AND didChofer = ? AND fecha = ? `,
-            [userId, dateYYYYMMDD]
+            [userId, datetime]
         );
 
         let collectDetails = {};

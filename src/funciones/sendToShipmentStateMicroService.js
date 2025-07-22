@@ -2,7 +2,7 @@ import { connect } from 'amqplib';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import { logGreen, logRed, logYellow } from './logsCustom.js';
-import { formatFechaUTC3 } from './formatFechaUTC3.js';
+
 
 dotenv.config({ path: process.env.ENV_FILE || '.env' });
 
@@ -37,6 +37,8 @@ async function getChannel() {
     }
 }
 
+
+// todo aca
 export async function sendToShipmentStateMicroService(companyId, userId, estado, shipmentId) {
     const message = {
         didempresa: companyId,
@@ -44,7 +46,7 @@ export async function sendToShipmentStateMicroService(companyId, userId, estado,
         estado: estado,
         subestado: null,
         estadoML: null,
-        fecha: formatFechaUTC3(),
+        fecha: getHoraLocalDePais(companyId.pais),
         quien: userId,
         operacion: "ingresarFlex",
     };
