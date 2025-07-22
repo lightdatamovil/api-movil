@@ -23,7 +23,6 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
         longitude,
         shipmentState,
         observation,
-        date,
         appVersion,
     } = req.body;
     try {
@@ -54,7 +53,6 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
             longitude,
             shipmentState,
             observation,
-            date,
             appVersion,
         );
 
