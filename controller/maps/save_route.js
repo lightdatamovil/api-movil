@@ -3,7 +3,7 @@ import mysql2 from 'mysql2';
 import { getProdDbConfig, executeQuery } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
-import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
+import { getFechaLocalDePais } from '../../src/funciones/getFechaLocalByPais.js';
 
 export async function saveRoute(company, userId, orders, distance, totalDelay, additionalRouteData) {
     const dbConfig = getProdDbConfig(company);
@@ -23,7 +23,7 @@ export async function saveRoute(company, userId, orders, distance, totalDelay, a
             // TODO: Verificar si es necesario actualizar las paradas
             // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
         }
-        const dateConHora = getFechaConHoraLocalDePais(company.pais);
+        const dateConHora = getFechaLocalDePais(company.pais);
         // TODO: Que significa este 2??
         const result = await executeQuery(
             dbConnection,
