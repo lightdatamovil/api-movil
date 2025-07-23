@@ -166,12 +166,12 @@ export async function registerVisit(
       {
         query:
           "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0",
-        values: [shipmentState, shipmentId],
+        values: [estadoInsert, shipmentId],
       },
       {
         query:
           "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0",
-        values: [shipmentState, shipmentId],
+        values: [estadoInsert, shipmentId],
       },
     ];
 
