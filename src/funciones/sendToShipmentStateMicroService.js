@@ -2,6 +2,7 @@ import { connect } from 'amqplib';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import { logGreen, logRed, logYellow } from './logsCustom.js';
+import { getHoraLocalDePais } from '../../src/funciones/getHoraLocalByPais.js';
 
 
 dotenv.config({ path: process.env.ENV_FILE || '.env' });
