@@ -13,11 +13,11 @@ const map = Router();
 
 map.post('/get-route-by-user', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, dateYYYYMMDD } = req.body;
+    const { companyId, userId, profile } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
-            ['companyId', 'userId', 'dateYYYYMMDD'],
+            ['companyId', 'userId'],
             true
         );
         if (mensajeError) {
@@ -26,7 +26,7 @@ map.post('/get-route-by-user', verifyToken, async (req, res) => {
         }
 
         const company = await getCompanyById(companyId);
-        const result = await getRouteByUserId(company, userId, dateYYYYMMDD);
+        const result = await getRouteByUserId(company, userId);
 
         logGreen(`Ruta de usuario obtenida correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/get-route-by-user", true);
@@ -87,11 +87,11 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
 
 map.post('/save-route', verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData } = req.body;
+    const { companyId, userId, profile, orders, distance, totalDelay, additionalRouteData } = req.body;
     try {
         const mensajeError = verifyParamaters(
             req.body,
-            ['companyId', 'userId', 'dateYYYYMMDD', 'orders', 'distance', 'totalDelay', 'additionalRouteData'],
+            ['companyId', 'userId', 'orders', 'distance', 'totalDelay', 'additionalRouteData'],
             true
         );
         if (mensajeError) {
@@ -103,7 +103,6 @@ map.post('/save-route', verifyToken, async (req, res) => {
         await saveRoute(
             company,
             userId,
-            dateYYYYMMDD,
             orders,
             distance,
             totalDelay,

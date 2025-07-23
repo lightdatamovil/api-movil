@@ -2,10 +2,11 @@ import mysql2 from 'mysql2';
 import { getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
+import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
 
 // 
-export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders) {
+export async function saveRoute(company, userId, additionalRouteData, orders) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -39,12 +40,12 @@ export async function saveRoute(company, dateYYYYMMDD, userId, additionalRouteDa
             "UPDATE colecta_ruta_paradas SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuta = ?",
             [didAsuperar]
         );
-
+        const date = getFechaConHoraLocalDePais(company.pais);
         // TODO: Que significa este 2??
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO colecta_ruta (desde, fecha, fechaOperativa, didChofer, quien, dataRuta) VALUES (?, ?, ?, ?, ?, ?)",
-            [2, dateYYYYMMDD, dateYYYYMMDD, userId, userId, JSON.stringify(additionalRouteData)]
+            [2, date, date, userId, userId, JSON.stringify(additionalRouteData)]
         );
 
         const newId = result.insertId;

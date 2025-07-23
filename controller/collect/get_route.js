@@ -2,20 +2,21 @@ import mysql2 from 'mysql2';
 import { getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
+import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
 
 // este no preguntar a GONZALO
 
-export async function getRoute(company, userId, dateYYYYMMDD) {
+export async function getRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
     try {
         let hasRoute, routeId, additionalRouteData, client = null;
-
+        const date = getFechaConHoraLocalDePais(company.pais);
         const routeQuery = "SELECT id, did, dataRuta FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND fecha = ? AND didChofer = ?";
-        const routeResult = await executeQuery(dbConnection, routeQuery, [dateYYYYMMDD, userId]);
+        const routeResult = await executeQuery(dbConnection, routeQuery, [date, userId]);
 
         if (routeResult.length > 0) {
             const dataRoute = JSON.parse(routeResult[0].dataRuta);
@@ -56,7 +57,7 @@ export async function getRoute(company, userId, dateYYYYMMDD) {
                 LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND cd.cliente = c.did
                 WHERE ca.fecha LIKE ? AND ca.superado = 0 AND ca.elim = 0 AND ca.didChofer = ? GROUP BY ca.didCliente;
             `;
-            const assignmentResult = await executeQuery(dbConnection, assignmentQuery, [dateYYYYMMDD, userId]);
+            const assignmentResult = await executeQuery(dbConnection, assignmentQuery, [date, userId]);
 
             client = assignmentResult.map(row => ({
                 orden: null,

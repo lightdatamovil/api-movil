@@ -3,8 +3,9 @@ import mysql2 from 'mysql2';
 import { getProdDbConfig, executeQuery } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
+import { getFechaLocalDePais } from '../../src/funciones/getFechaLocalByPais.js';
 
-export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance, totalDelay, additionalRouteData) {
+export async function saveRoute(company, userId, orders, distance, totalDelay, additionalRouteData) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -22,12 +23,12 @@ export async function saveRoute(company, userId, dateYYYYMMDD, orders, distance,
             // TODO: Verificar si es necesario actualizar las paradas
             // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
         }
-
+        const dateConHora = getFechaLocalDePais(company.pais);
         // TODO: Que significa este 2??
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [2, dateYYYYMMDD, dateYYYYMMDD, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)]
+            [2, dateConHora, dateConHora, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)]
         );
 
         const newId = result.insertId;

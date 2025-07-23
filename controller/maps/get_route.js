@@ -4,8 +4,9 @@ import { getProdDbConfig, executeQuery } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import MapConstants from '../../src/constants/map.js';
+import { getFechaLocalDePais } from '../../src/funciones/getFechaLocalByPais.js';
 
-export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
+export async function getRouteByUserId(company, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -14,9 +15,10 @@ export async function getRouteByUserId(company, userId, dateYYYYMMDD) {
         let shipments = [];
 
         let additionalRouteData;
+        const date = getFechaLocalDePais(company.pais);
 
         const rutaQuery = "SELECT id FROM `ruteo` WHERE superado=0 AND elim=0 AND fechaOperativa = ? AND didChofer = ?";
-        const rutaResult = await executeQuery(dbConnection, rutaQuery, [dateYYYYMMDD, userId]);
+        const rutaResult = await executeQuery(dbConnection, rutaQuery, [date, userId]);
 
         if (rutaResult.length > 0) {
             const getRouteShipmentsQuery = `

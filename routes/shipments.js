@@ -125,11 +125,11 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
 
 shipments.post("/next-visit", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, shipmentId, dateYYYYMMDD } = req.body;
+  const { companyId, userId, profile, shipmentId } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
-      ["companyId", "userId", "shipmentId", "dateYYYYMMDD"],
+      ["companyId", "userId", "shipmentId"],
       true
     );
     if (mensajeError) {
@@ -141,7 +141,7 @@ shipments.post("/next-visit", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    const result = await nextDeliver(company, shipmentId, dateYYYYMMDD, userId);
+    const result = await nextDeliver(company, shipmentId, userId);
 
     logGreen(`Próxima visita obtenida correctamente`);
     crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/next-visit", true);

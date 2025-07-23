@@ -1,5 +1,7 @@
-function getHoraLocalDePais(idPais) {
-    const conf = config[idPais];
+import { configPaises } from "./getFechaConHoraLocalByPais.js";
+
+export function getFechaLocalDePais(idPais) {
+    const conf = configPaises[idPais];
     if (!conf) return null;
 
     const now = new Date();
@@ -20,9 +22,6 @@ function getHoraLocalDePais(idPais) {
     const dia = get('day');
     const mes = get('month');
     const año = get('year');
-    const hora = get('hour');
-    const minuto = get('minute');
-    const segundo = get('second');
 
-    return `${dia}/${mes}/${año} ${hora}:${minuto}:${segundo}`;
+    return `${año}-${mes}-${dia}`;
 }

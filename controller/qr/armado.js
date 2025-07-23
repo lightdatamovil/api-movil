@@ -1,8 +1,9 @@
 import CustomException from "../../classes/custom_exception.js";
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
+import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 
-export async function armado(company, userId, dataEnvios, didCliente, fecha) {
+export async function armado(company, userId, dataEnvios, didCliente) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -54,12 +55,12 @@ export async function armado(company, userId, dataEnvios, didCliente, fecha) {
                 );
             }
         }
-
+        const dateConHora = getFechaConHoraLocalDePais(company.pais);
         await executeQuery(
             dbConnection, `INSERT INTO fulfillment_movimientos_stock
          (did, didCliente, fecha, didConcepto, didArmado, observaciones, lineas, total, quien)
          VALUES (?, ?, ?, -1, ?, '', ?, ?, ?)`,
-            [maxDid, didCliente, fecha, dataEnvios[dataEnvios.length - 1]?.did, lineas, cantidad, userId]
+            [maxDid, didCliente, dateConHora, dataEnvios[dataEnvios.length - 1]?.did, lineas, cantidad, userId]
         );
 
 

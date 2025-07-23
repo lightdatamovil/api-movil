@@ -267,11 +267,11 @@ qr.post("/sku", verifyToken, async (req, res) => {
 
 qr.post("/armado", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, dataEnvios, didCliente, fecha } = req.body;
+  const { companyId, userId, profile, dataEnvios, didCliente } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
-      ["userId", "dataEnvios", "didCliente", "fecha"],
+      ["userId", "dataEnvios", "didCliente"],
       true
     );
     if (mensajeError) {
@@ -283,7 +283,7 @@ qr.post("/armado", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    const result = await armado(company, userId, dataEnvios, didCliente, fecha);
+    const result = await armado(company, userId, dataEnvios, didCliente);
 
     logGreen(`Armado ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/armado", true);

@@ -1,12 +1,8 @@
-import {
-  executeQuery,
-  getProdDbConfig,
-  getClientsByCompany,
-  getDriversByCompany,
-} from "../../db.js";
+import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from "../../db.js";
 import mysql2 from "mysql2";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
+import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
 
 export async function shipmentList(
   company,
@@ -14,8 +10,7 @@ export async function shipmentList(
   profile,
   from,
   shipmentStates,
-  isAssignedToday,
-  date
+  isAssignedToday
 ) {
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
@@ -36,7 +31,7 @@ export async function shipmentList(
   }
 
   try {
-    const hoy = date || new Date().toISOString().split("T")[0];
+    const date = getFechaLocalDePais(company.pais);
     // Obtener clientes y choferes
     const clientes = await getClientsByCompany(dbConnection, company.did);
     const drivers = await getDriversByCompany(dbConnection, company.did);
@@ -59,11 +54,11 @@ export async function shipmentList(
       estadoAsignacion = "e.estadoAsignacion,";
     }
 
-    const b = isAssignedToday ? `AND ea.autofecha > '${hoy} 00:00:00'` : "";
+    const b = isAssignedToday ? `AND ea.autofecha > '${date} 00:00:00'` : "";
     const a = isAssignedToday ? "" : "LEFT";
     const c = isAssignedToday
-      ? `AND ea.autofecha > '${hoy} 00:00:00'`
-      : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${hoy} 23:59:59'`;
+      ? `AND ea.autofecha > '${date} 00:00:00'`
+      : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${date} 23:59:59'`;
 
     if (shipmentStates.length == 0) {
       return [];
@@ -126,7 +121,7 @@ export async function shipmentList(
                     AND rp.elim = 0
                     AND rp.didPaquete = eh.didEnvio
                     and rp.didRuteo = r.did
-                    and rp.autofecha like '${hoy}%'
+                    and rp.autofecha like '${date}%'
     )
                 LEFT JOIN envios_cobranzas as ec on(
       ec.elim = 0

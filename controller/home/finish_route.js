@@ -1,13 +1,14 @@
 import { getProdDbConfig, executeQuery } from '../../db.js';
 import mysql2 from 'mysql2';
 import CustomException from '../../classes/custom_exception.js';
+import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
-export async function finishRoute(company, userId, dateYYYYMMDD) {
+export async function finishRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
-
-    const hour = dateYYYYMMDD.split(' ')[1];
+    const dateConHora = getFechaConHoraLocalDePais(company.pais);
+    const hour = dateConHora.split(' ')[1];
 
     try {
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo, desde) VALUES (?, ?,?)";
