@@ -35,7 +35,7 @@ home.post("/home", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    const result = await getHomeData(company, userId, profile, dateYYYYMMDD);
+    const result = await getHomeData(company, userId, profile);
 
     logGreen(`Datos obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
