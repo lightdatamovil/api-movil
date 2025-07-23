@@ -1,7 +1,7 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
-import { logRed } from "../../src/funciones/logsCustom.js";
+import { logPurple, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
@@ -24,6 +24,7 @@ export async function registerVisit(
 
   try {
     const date = getFechaConHoraLocalDePais(company.pais);
+    logPurple(`Registering visit for shipment ${shipmentId} at ${date} with user ${userId}`);
     const queryEnviosHistorial =
       "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
 
@@ -152,7 +153,7 @@ export async function registerVisit(
     const historialResult = await executeQuery(
       dbConnection,
       queryInsertEnviosHistorial,
-      [shipmentId, estadoInsert, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId]
+      [shipmentId, estadoInsert, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId], true
     );
 
     const idInsertado = historialResult.insertId;
@@ -203,7 +204,7 @@ export async function registerVisit(
       shipmentState: estadoInsert,
     };
   } catch (error) {
-    logRed(`Error in register visit: ${error.stack}`);
+    logRed(`Error in register visit: ${JSON.stringify(error)}`);
     if (error instanceof CustomException) {
       throw error;
     }

@@ -1,3 +1,5 @@
+import { logPurple } from "./logsCustom.js";
+
 export const configPaises = {
     1: { tz: 'America/Argentina/Buenos_Aires', locale: 'es-AR' },
     2: { tz: 'America/Santiago', locale: 'es-CL' },
@@ -10,7 +12,12 @@ export const configPaises = {
 };
 
 export function getFechaConHoraLocalDePais(idPais) {
+    logPurple(`getFechaConHoraLocalDePais called for country ID: ${idPais}`);
     const conf = configPaises[idPais];
+    if (!conf) {
+        logPurple(`No configuration found for country ID: ${idPais}`);
+        return null;
+    }
     if (!conf) return null;
 
     const now = new Date();
@@ -34,6 +41,6 @@ export function getFechaConHoraLocalDePais(idPais) {
     const hora = get('hour');
     const minuto = get('minute');
     const segundo = get('second');
-
-    return `${dia}/${mes}/${año} ${hora}:${minuto}:${segundo}`;
+    logPurple(`Formatted date: ${dia}/${mes}/${año} ${hora}:${minuto}:${segundo}`);
+    return `${año}-${mes}-${dia} ${hora}:${minuto}:${segundo}`;
 }

@@ -2,7 +2,7 @@ import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany
 import mysql2 from "mysql2";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
-import { getFechaLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
+import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
 
 export async function shipmentList(
   company,

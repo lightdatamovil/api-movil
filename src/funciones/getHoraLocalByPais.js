@@ -1,6 +1,6 @@
-import { configPaises } from "./getFechaConHoraLocalByPais";
+import { configPaises } from "./getFechaConHoraLocalByPais.js";
 
-export function getFechaConHoraLocalDePais(idPais) {
+export function getHoraLocalDePais(idPais) {
     const conf = configPaises[idPais];
     if (!conf) return null;
 
