@@ -23,16 +23,16 @@ const collect = Router();
 // cambiar asi nomas
 collect.post("/get-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, dateYYYYMMDD } = req.body;
+    const { companyId, userId, profile } = req.body;
     try {
-        const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'dateYYYYMMDD'], true);
+        const mensajeError = verifyParamaters(req.body, ['companyId', 'userId'], true);
         if (mensajeError) {
             logRed(`Error en get-route: ${mensajeError}`);
             throw new CustomException({ title: 'Error en get-route', message: mensajeError });
         }
 
         const company = await getCompanyById(companyId);
-        const route = await getRoute(company, userId, dateYYYYMMDD);
+        const route = await getRoute(company, userId);
 
         logGreen(`Ruta obtenida correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(route), "/get-route", true);
@@ -86,12 +86,11 @@ collect.post("/start-route", verifyToken, async (req, res) => {
 
 collect.post("/save-route", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, dateYYYYMMDD, additionalRouteData, orders } = req.body;
+    const { companyId, userId, profile, additionalRouteData, orders } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
             'userId',
-            'dateYYYYMMDD',
             'operationDate',
             'additionalRouteData',
             'orders'
@@ -102,7 +101,7 @@ collect.post("/save-route", verifyToken, async (req, res) => {
         }
 
         const company = await getCompanyById(companyId);
-        const savedRoute = await saveRoute(company, dateYYYYMMDD, userId, additionalRouteData, orders);
+        const savedRoute = await saveRoute(company, userId, additionalRouteData, orders);
 
         logGreen(`Ruta guardada correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(savedRoute), "/save-route", true);
@@ -125,13 +124,13 @@ collect.post("/save-route", verifyToken, async (req, res) => {
 
 collect.post("/get-collect-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, dateYYYYMMDD } = req.body;
+    const { companyId, userId, profile } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
             'userId',
             'profile',
-            'dateYYYYMMDD'
+
         ], true);
         if (mensajeError) {
             logRed(`Error en get-collect-details: ${mensajeError}`);
@@ -139,7 +138,7 @@ collect.post("/get-collect-details", verifyToken, async (req, res) => {
         }
 
         const company = await getCompanyById(companyId);
-        const collectDetails = await getCollectDetails(company, userId, profile, dateYYYYMMDD);
+        const collectDetails = await getCollectDetails(company, userId, profile);
 
         logGreen(`Colecta obtenida correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(collectDetails), "/get-collect-details", true);
@@ -162,11 +161,10 @@ collect.post("/get-collect-details", verifyToken, async (req, res) => {
 
 collect.post("/get-client-details", verifyToken, async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, dateYYYYMMDD, clientId } = req.body;
+    const { companyId, userId, profile, clientId } = req.body;
     try {
         const mensajeError = verifyParamaters(req.body, [
             'companyId',
-            'dateYYYYMMDD',
             'clientId'
         ], true);
         if (mensajeError) {
@@ -175,7 +173,7 @@ collect.post("/get-client-details", verifyToken, async (req, res) => {
         }
 
         const company = await getCompanyById(companyId);
-        const shipments = await shipmentsFromClient(company, dateYYYYMMDD, clientId);
+        const shipments = await shipmentsFromClient(company, clientId);
 
         logGreen(`Envíos obtenidos correctamente`);
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(shipments), "/get-client-details", true);

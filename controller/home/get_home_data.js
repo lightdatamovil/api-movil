@@ -3,7 +3,7 @@ import mysql2 from "mysql2";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
-export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
+export async function getHomeData(company, userId, profile) {
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
@@ -23,6 +23,8 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
     }
   }
   try {
+    const dateConHora = getFechaConHoraLocalDePais(company.pais);
+    const date = getFechaLocalDePais(company.pais);
     const estadosPendientes = {
       20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
       55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
@@ -73,7 +75,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                   FROM envios_asignaciones 
                   WHERE superado = 0 
                     AND elim = 0 
-                    AND autofecha > '${dateYYYYMMDD} 00:00:00'
+                    AND autofecha > '${date} 00:00:00'
                 `;
           infoADevolver.assignedToday = await fetchCount(queryAsignadosHoy);
 
@@ -89,7 +91,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                   WHERE e.elim = 0
                     AND eh.elim = 0
                     AND eh.superado = 0
-                    AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
+                    AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateConHora}', INTERVAL 7 DAY) AND '${dateConHora}'
                     AND eh.estado IN (${estadosPendientes})
                 `;
           const rowsPendientes = await executeQuery(
@@ -167,7 +169,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                   WHERE operador = ${userId} 
                     AND superado = 0 
                     AND elim = 0 
-                    AND autofecha > '${dateYYYYMMDD} 00:00:00'
+                    AND autofecha > '${date} 00:00:00'
                 `;
           infoADevolver.assignedToday = await fetchCount(queryAsignadosHoy);
           // PENDIENTES para operador (filtrado por didCadete)
@@ -183,7 +185,7 @@ export async function getHomeData(company, userId, profile, dateYYYYMMDD) {
                     AND eh.didCadete = ${userId}
                     AND eh.elim = 0
                     AND eh.superado = 0
-                    AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateYYYYMMDD}', INTERVAL 7 DAY) AND '${dateYYYYMMDD}'
+                    AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateConHora}', INTERVAL 7 DAY) AND '${dateConHora}'
                     AND eh.estado IN (${estadosPendientes})
                     GROUP BY eh.didEnvio
                 `;

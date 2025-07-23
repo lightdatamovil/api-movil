@@ -4,7 +4,7 @@ import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { getHoraLocalDePais } from "../../src/funciones/getHoraLocalByPais.js";
+import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 
 export async function registerVisit(
   company,
@@ -23,7 +23,7 @@ export async function registerVisit(
   dbConnection.connect();
 
   try {
-    const date = getHoraLocalDePais(company.pais);
+    const date = getFechaConHoraLocalDePais(company.pais);
     const queryEnviosHistorial =
       "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
 

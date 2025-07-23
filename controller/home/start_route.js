@@ -2,13 +2,14 @@ import mysql2 from 'mysql2';
 import { executeQuery, getProdDbConfig } from '../../db.js';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
+import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
-export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) {
+export async function startRoute(company, userId, deviceFrom) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
-
-    const hour = dateYYYYMMDDHHSS.split(' ')[1];
+    const dateConHora = getFechaConHoraLocalDePais(company.pais);
+    const hour = dateConHora.split(' ')[1];
     try {
         const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo,desde) VALUES (?, ?,?)";
         await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0, 3]);
@@ -47,10 +48,10 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
 
 
             if ((company.did == 22 || company.did == 20) && enCaminoIds.length > 0) {
-                await fsetestadoMasivoDesde(dbConnection, enCaminoIds, deviceFrom, dateYYYYMMDDHHSS, userId, 11);
+                await fsetestadoMasivoDesde(dbConnection, enCaminoIds, deviceFrom, dateConHora, userId, 11);
             }
             if (pendientesIds.length > 0) {
-                await fsetestadoMasivoDesde(dbConnection, pendientesIds, deviceFrom, dateYYYYMMDDHHSS, userId, 2);
+                await fsetestadoMasivoDesde(dbConnection, pendientesIds, deviceFrom, dateConHora, userId, 2);
             }
         }
     } catch (error) {
@@ -68,7 +69,7 @@ export async function startRoute(company, userId, dateYYYYMMDDHHSS, deviceFrom) 
     }
 }
 
-async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYYYYMMDDHHSS, userId, onTheWayState) {
+async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
     try {
         const query1 = `
             UPDATE envios_historial
@@ -89,7 +90,7 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateYY
             SELECT did, ?, ?, ?, choferAsignado, ?
             FROM envios WHERE did IN(${shipmentIds.join(',')})
         `;
-        await executeQuery(connection, query3, [onTheWayState, userId, dateYYYYMMDDHHSS, deviceFrom]);
+        await executeQuery(connection, query3, [onTheWayState, userId, dateConHora, deviceFrom]);
     } catch (error) {
         throw error;
     }

@@ -19,11 +19,11 @@ const home = Router();
 
 home.post("/home", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, dateYYYYMMDD } = req.body;
+  const { companyId, userId, profile } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
-      ["companyId", "userId", "profile", "dateYYYYMMDD"],
+      ["companyId", "userId", "profile"],
       true
     );
     if (mensajeError) {
@@ -60,11 +60,11 @@ home.post("/home", verifyToken, async (req, res) => {
 
 home.post("/start-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, dateYYYYMMDD, deviceFrom } = req.body;
+  const { companyId, userId, profile, deviceFrom } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
-      ["companyId", "userId", "dateYYYYMMDD", "deviceFrom"],
+      ["companyId", "userId", "deviceFrom"],
       true
     );
     if (mensajeError) {
@@ -76,7 +76,7 @@ home.post("/start-route", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    await startRoute(company, userId, dateYYYYMMDD, deviceFrom);
+    await startRoute(company, userId, deviceFrom);
 
     logGreen(`Ruta comenzada exitosamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta comenzada exitosamente" }), "/start-route", true);
@@ -101,11 +101,11 @@ home.post("/start-route", verifyToken, async (req, res) => {
 
 home.post("/end-route", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, dateYYYYMMDD } = req.body;
+  const { companyId, userId, profile } = req.body;
   try {
     const mensajeError = verifyParamaters(
       req.body,
-      ["companyId", "userId", "dateYYYYMMDD"],
+      ["companyId", "userId"],
       true
     );
     if (mensajeError) {
@@ -117,7 +117,7 @@ home.post("/end-route", verifyToken, async (req, res) => {
     }
 
     const company = await getCompanyById(companyId);
-    await finishRoute(company, userId, dateYYYYMMDD);
+    await finishRoute(company, userId);
 
     logGreen(`Ruta terminada exitosamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, "Ruta terminada exitosamente", "/end-route", true);
