@@ -3,6 +3,7 @@ import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
+import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 
 export async function enterFlex(company, dataQr, userId, profile) {
     const dbConfig = getProdDbConfig(company);
@@ -46,7 +47,9 @@ export async function enterFlex(company, dataQr, userId, profile) {
 
         const nowInHours = new Date().getHours();
         const fecha_despacho = await setDispatchDate(dbConnection, clientId, nowInHours);
-        const fecha_inicio = get;
+
+        const fecha_inicio = getFechaConHoraLocalDePais(company.pais);
+
 
         if (!isLoaded) {
             const fechaunix = Math.floor(Date.now() / 1000);
@@ -54,7 +57,8 @@ export async function enterFlex(company, dataQr, userId, profile) {
             let shipmentId = 0;
 
             const insertEnvioQuery = `
-                INSERT INTO envios(did, ml_shipment_id, ml_vendedor_id, didCliente, quien, lote, fecha_despacho, didCuenta, ml_qr_seguridad, fecha_inicio, fechaunix) 
+                INSERT INTO envios(did, ml_shipment_id, ml_vendedor_id, didCliente, quien, lote, fecha_despacho, didCuenta, ml_qr_seguridad,
+                 fecha_inicio, fechaunix) 
                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
 
