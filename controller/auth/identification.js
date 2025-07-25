@@ -3,6 +3,7 @@ import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { executeQuery, getProdDbConfig } from '../../db.js';
 import mysql2 from 'mysql2';
+import LogisticaConf from '../../classes/logisticas_conf.js';
 
 export async function identification(company) {
     const dbConfig = getProdDbConfig(company);
@@ -49,7 +50,7 @@ export async function identification(company) {
             obligatoryDniAndNameOnRegisterVisit: company.did == 97,
             depots: hasMultiDepot ? depots : depots.length > 0 ? [depots[0]] : [],
             image: imageBase64,
-            hasBarcode: hasBarcode.includes(company.did * 1),
+            hasBarcode: LogisticaConf.hasBarcodeEnabled(company.did * 1),
             hasProductsQr: hasProductsQr.includes(company.did * 1),
         };
 
