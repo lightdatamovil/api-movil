@@ -2,6 +2,7 @@ import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany }
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';
+import LogisticaConf from "../../classes/logisticas_conf.js";
 
 export async function crossDocking(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
@@ -37,7 +38,8 @@ export async function crossDocking(dataQr, company) {
             }
             queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
         } else {
-            if ((company.did == 211 || company.did == 20 || company.did == 55) && !dataQr.hasOwnProperty("sender_id")) {
+            // tiene habilitado el barcode y es codigo de barra
+            if (LogisticaConf.hasBarcodeEnabled(company.did) && !dataQr.hasOwnProperty('sender_id') && !dataQr.hasOwnProperty('t')) {
                 shipmentId = dataQr;
                 queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
             } else {
