@@ -1,6 +1,6 @@
-import { executeQuery, getCompanyById, getProdDbConfig } from "../../db.js";
+import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logPurple, logRed } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import LogisticaConf from "../../classes/logisticas_conf.js";
 
@@ -29,7 +29,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
             }
         } else {
             if (LogisticaConf.hasBarcodeEnabled(company.did) && !dataQr.hasOwnProperty("sender_id") && !dataQr.hasOwnProperty("t")) {
-                c
+
                 const senderId = LogisticaConf.getSenderId(company.did)
 
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
