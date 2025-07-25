@@ -2,8 +2,6 @@ import { executeQuery, getCompanyById, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logPurple, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
-import LogisticaConf from "../../classes/logisticas_conf.js";
-
 
 export async function getShipmentIdFromQr(dataQr, company) {
     const dbConfig = getProdDbConfig(company);
@@ -28,16 +26,14 @@ export async function getShipmentIdFromQr(dataQr, company) {
                 shipmentId = resultQueryEnviosExteriores[0].didLocal;
             }
         } else {
-            if (LogisticaConf.hasBarcodeEnabled(company.did) && !dataQr.hasOwnProperty("sender_id") && !dataQr.hasOwnProperty("t")) {
-                const companyWithBarcodeEnabled = await getCompanyById(company.did);
-                const senderId = LogisticaConf.getSenderId(companyWithBarcodeEnabled.did)
-
-                const dbConfigR = getProdDbConfig(companyWithBarcodeEnabled);
+            if ((company.did == 211 || company.did == 20 || company.did == 55) && !dataQr.hasOwnProperty("sender_id")) {
+                const Rabionz = await getCompanyById(company.did == 20 ? 211 : company.did);
+                const dbConfigR = getProdDbConfig(Rabionz);
                 const dbConnectionR = mysql2.createConnection(dbConfigR);
                 dbConnectionR.connect();
-
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
-                const resultQueryEnvios = await executeQuery(dbConnectionR, queryEnvios, [dataQr, senderId], true);
+
+                const resultQueryEnvios = await executeQuery(dbConnectionR, queryEnvios, [dataQr, company.did == 20 ? 215 : company.did == 55 ? 184 : 301], true);
 
                 dbConnectionR.end();
                 if (resultQueryEnvios.length == 0) {
