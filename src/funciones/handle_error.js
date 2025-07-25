@@ -1,4 +1,6 @@
-import CustomException from "../../classes/custom_exception";
+import CustomException from "../../classes/custom_exception.js";
+import Status from "../../classes/status.js";
+import { logRed } from "./logsCustom.js";
 
 
 /**
@@ -17,10 +19,10 @@ export function handleError(req, res, err) {
             title: 'Internal Server Error',
             message: err.message,
             stack: err.stack,
-            status: 500
+            status: Status.internalServerError
         });
     }
 
-    logRed(`Error ${ex.status} ${req.method} ${req.originalUrl}: ${ex.toJsonString()}`);
+
     return res.status(ex.status).json(ex.toJSON());
 }

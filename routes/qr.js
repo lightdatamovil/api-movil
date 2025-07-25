@@ -8,12 +8,16 @@ import { armado } from "../controller/qr/armado.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
 import { logGreen, logPurple, logRed } from "../src/funciones/logsCustom.js";
 import CustomException from "../classes/custom_exception.js";
+import Status from "../classes/status.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
 import { getSkuAndStockFlex } from "../controller/qr/get_sku_and_stock _flex.js";
 import { parseIfJson } from "../src/funciones/isValidJson.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 import { getCantidadAsignaciones } from "../controller/qr/get_cantidad_asignaciones.js";
+import { altaEnvioFoto } from "../controller/qr/envio_foto.js";
+import { handleError } from "../src/funciones/handle_error.js";
+import { verificarTodo } from "../src/funciones/verificar_all.js";
 
 const qr = Router();
 
@@ -349,6 +353,29 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
   } finally {
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
+  }
+});
+
+
+qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
+  const startTime = performance.now();
+  try {
+    const mensajeError = verificarTodo(req, res, [], [
+      'image',
+      'companyId',
+      'userId'
+    ]);
+    const companyId = req.body.companyId;
+    const company = await getCompanyById(companyId);
+    const result = await altaEnvioFoto(company, req);
+
+    logGreen(`Envio de foto registrado correctamente`);
+    res.status(Status.created).json({ body: result, message: "Envio - imagen registrada correctamente" });
+  } catch (error) {
+    handleError(req, res, error);
+  } finally {
+    const endTime = performance.now();
+    logPurple(`Tiempo de ejecución alta-envio-foto: ${endTime - startTime} ms`);
   }
 });
 export default qr;

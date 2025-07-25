@@ -16,6 +16,7 @@ import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 
@@ -92,7 +93,7 @@ if (cluster.isMaster) {
             app.use('/api/users', users);
             app.use('/api/map', map);
             app.use("/api/collect", collect)
-            app.use("/api/register-visit", registerVisitRoute)
+            app.use("/api/register-visit", registerVisitRoute);
             ///
             app.listen(PORT, '0.0.0.0', () => {
                 logBlue(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
