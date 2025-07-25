@@ -61,7 +61,7 @@ export async function getRouteByUserId(company, userId) {
                 if (additionalRouteData.inicioEn == 'dep') {
                     additionalRouteData.inicioEn = additionalRouteData.idDepositoComienzo != null ? additionalRouteData.idDepositoComienzo * 1 : 1;
                 }
-                if (additionalRouteData.inicioEn == 'casa' || additionalRouteData.inicioEn == 'casaChofer') {
+                if (additionalRouteData.inicioEn == 'casa' || additionalRouteData.inicioEn == 'casaChofer' || additionalRouteData.inicioEn == 'casaChof') {
                     additionalRouteData.inicioEn = MapConstants.inicioEnCasa;
                 }
                 if (additionalRouteData.inicioEn == 'parada') {
