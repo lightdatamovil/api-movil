@@ -23,7 +23,7 @@ dotenv.config({ path: process.env.ENV_FILE || ".env" });
 const numCPUs = 2;
 const PORT = process.env.PORT;
 
-// TODO: PROBAR HOME, NICIAR RUTA, FINALIZAR RUTA, TRAER RUTA, GUARDAR RUTA, ARMAR QR--
+// TODO: PROBAR HOME, NICIAR RUTA, FINALIZAR RUTA, TRAER RUTA, GUARDAR RUTA, ARMAR QR, listado de paquetes, registro de paquetes--
 if (cluster.isMaster) {
     logBlue(`Proceso master ${process.pid} ejecutándose...`);
 
