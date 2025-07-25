@@ -29,17 +29,12 @@ export async function getShipmentIdFromQr(dataQr, company) {
             }
         } else {
             if (LogisticaConf.hasBarcodeEnabled(company.did) && !dataQr.hasOwnProperty("sender_id") && !dataQr.hasOwnProperty("t")) {
-                const companyWithBarcodeEnabled = await getCompanyById(company.did);
-                const senderId = LogisticaConf.getSenderId(companyWithBarcodeEnabled.did)
-
-                const dbConfigR = getProdDbConfig(companyWithBarcodeEnabled);
-                const dbConnectionR = mysql2.createConnection(dbConfigR);
-                dbConnectionR.connect();
+                c
+                const senderId = LogisticaConf.getSenderId(company.did)
 
                 const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
-                const resultQueryEnvios = await executeQuery(dbConnectionR, queryEnvios, [dataQr, senderId], true);
+                const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr, senderId], true);
 
-                dbConnectionR.end();
                 if (resultQueryEnvios.length == 0) {
                     throw new CustomException({
                         title: 'Error obteniendo el ID del envío',
