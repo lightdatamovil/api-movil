@@ -360,11 +360,15 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
 qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
   const startTime = performance.now();
   try {
-    // const mensajeError = verificarTodo(req, res, [], [
-    //   'image',
-    //   'companyId',
-    //   'userId'
-    // ]);
+    const mensajeError = verificarTodo(req, res, [], [
+      'image',
+      'companyId',
+      'userId',
+      'street',
+      'number',
+      'city',
+      'observations'
+    ]);
     const companyId = req.body.companyId;
     const company = await getCompanyById(companyId);
     const result = await altaEnvioFoto(company, req);
