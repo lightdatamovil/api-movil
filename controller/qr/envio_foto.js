@@ -20,7 +20,7 @@ export async function altaEnvioFoto(company, req) {
 
     // ajustar parametros a envio foto (usuario foto)
     const reqBody = {
-      "data": { idEmpresa: companyId, didCliente: -99, quien: userId }
+      "data": { idEmpresa: companyId, quien: userId, calle: street, numero: number, localidad: city, obs: observations, elim: 69 },
     };
 
     const response = await axios.post(url, reqBody, {
