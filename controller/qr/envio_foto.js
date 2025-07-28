@@ -6,7 +6,7 @@ import CustomException from "../../classes/custom_exception.js";
 
 
 export async function altaEnvioFoto(company, req) {
-  const { image, userId } = req.body;
+  const { image, userId, street, number, city, observations } = req.body;
 
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
