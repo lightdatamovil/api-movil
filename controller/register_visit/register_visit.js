@@ -146,7 +146,7 @@ export async function registerVisit(
 
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
 
-    const estadoInsert = currentShipmentState == 6 ? 10 : shipmentState;
+    const estadoInsert = company.did == 4 ? (currentShipmentState == 6 ? 10 : shipmentState) : shipmentState;
 
     const queryInsertEnviosHistorial =
       "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
