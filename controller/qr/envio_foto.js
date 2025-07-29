@@ -17,10 +17,11 @@ export async function altaEnvioFoto(company, req) {
     // ajustar a endpoint
     const url = `https://altaenvios.lightdata.com.ar/api/altaEnvio`;
     const companyId = company.did;
+    const enviosDireccionesDestino = { calle: street, numero: number, localidad: city };
 
     // ajustar parametros a envio foto (usuario foto)
     const reqBody = {
-      "data": { idEmpresa: companyId, quien: userId, calle: street, numero: number, localidad: city, obs: observations, elim: 69, lote: "envioFoto" },
+      "data": { idEmpresa: companyId, quien: userId, enviosDireccionesDestino: enviosDireccionesDestino, obs: observations, elim: 69, lote: "envioFoto" },
     };
 
     const response = await axios.post(url, reqBody, {
