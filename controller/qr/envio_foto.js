@@ -38,6 +38,7 @@ export async function altaEnvioFoto(company, req) {
       });
     } else {
       const shipmentId = response.data.did;
+      const server = 1;
 
       const reqBody = { image, shipmentId, companyId };
       const url = 'https://files.lightdata.app/upload_foto_envios.php';
@@ -53,6 +54,14 @@ export async function altaEnvioFoto(company, req) {
           title: 'Error en subida de imagen',
           message: 'No se pudo subir la imagen',
         });
+      }
+
+      const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien) VALUES ( ?, ?, ?, ?)";
+
+      await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId], true);
+      return {
+        message: "Imagen subida correctamente",
+
       }
 
       const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
