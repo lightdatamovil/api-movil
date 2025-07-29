@@ -6,7 +6,7 @@ import CustomException from "../../classes/custom_exception.js";
 
 
 export async function altaEnvioFoto(company, req) {
-  const { image, userId, street, number, city, observations } = req.body;
+  const { image, userId, street, number, city, observations, driverId } = req.body;
 
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
@@ -68,8 +68,17 @@ export async function altaEnvioFoto(company, req) {
 
       const companyId2 = parseInt(company.did, 10);
       const req_body_asignar = {
-        shipmentId: shipmentId, userId: userId, driverId: userId, deviceFrom: "APP NUEVA", profile: 3, companyId: companyId2, appVersion: "1.0.74",
-        brand: "samsung", model: "samsung a15", androidVersion: "14", deviceId: "UTAS34.82-106-4"
+        shipmentId: shipmentId,
+        userId: userId,
+        driverId: driverId,
+        deviceFrom: "APIMOVIL ENVIO FOTO",
+        profile: 0,
+        companyId: companyId2,
+        appVersion: "null",
+        brand: "null",
+        model: "null",
+        androidVersion: "null",
+        deviceId: "null"
       };
       logCyan(`ReqBody Asignar: ${JSON.stringify(req_body_asignar)}`);
       const response_assign = await axios.post(url_assignment, req_body_asignar, {

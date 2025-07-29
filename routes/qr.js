@@ -367,7 +367,15 @@ qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
       'street',
       'number',
       'city',
-      'observations'
+      'observations',
+      'appVersion',
+      'brand',
+      'model',
+      'androidVersion',
+      'deviceId',
+      'deviceFrom',
+      'profile',
+      'driverId',
     ]);
     const companyId = req.body.companyId;
     const company = await getCompanyById(companyId);
