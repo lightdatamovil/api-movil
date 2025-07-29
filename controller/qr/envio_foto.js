@@ -55,7 +55,7 @@ export async function altaEnvioFoto(company, req) {
         });
       }
 
-      const url_assignment = `http://localhost:13000/api/asignaciones/asignar-web`;
+      const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
 
       const companyId2 = parseInt(company.did, 10);
       const req_body_asignar = {
