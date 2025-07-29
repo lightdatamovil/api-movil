@@ -8,11 +8,39 @@ export default class LogisticaConf {
         327: 15,
     };
 
+    static hasEnvioFoto = [270];
+    static hasProductsQr = [274, 200];
+    static granLogisticaPlans = [24, 35, 52];
+    static hasMultiDepot = [];
+    static hasAppPro = [];
+    static hasObligatoryImageOnRegisterVisit = [108];
+    static hasObligatoryDniAndNameOnRegisterVisit = [97];
+
     static hasBarcodeEnabled(did) {
         return String(did) in this.tieneBarcode;
     }
 
+    static hasObligatoryImageOnRegisterVisitEnabled(did) {
+        return this.hasObligatoryImageOnRegisterVisit.includes(did * 1);
+    }
+
+    static hasObligatoryDniAndNameOnRegisterVisitEnabled(did) {
+        return this.hasObligatoryDniAndNameOnRegisterVisit.includes(did * 1);
+    }
+
+    static hasMultiDepotEnabled(did) {
+        return this.hasMultiDepot.includes(did * 1) || this.granLogisticaPlans.includes(did * 1);
+    }
+
+    static hasEnvioFotoEnabled(did) {
+        return this.hasEnvioFoto.includes(did * 1);
+    }
+
+    static hasProductsQrEnabled(did) {
+        return this.hasProductsQr.includes(did * 1);
+    }
+
     static getSenderId(did) {
-        return this.tieneBarcode?.[String(did)] ?? 0;
+        return this.tieneBarcode?.[String(did * 1)] ?? 0;
     }
 }
