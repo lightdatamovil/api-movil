@@ -199,7 +199,11 @@ export async function getAccountBySenderId(dbConnection, companyId, senderId) {
             await loadAccountList(dbConnection, companyId, senderId);
         }
 
-        const account = accountList[companyId][senderId];
+        let account = accountList[companyId][senderId];
+        if (!account) {
+            await loadAccountList(dbConnection, companyId, senderId);
+            account = accountList[companyId][senderId];
+        }
 
         return account;
     } catch (error) {
@@ -207,6 +211,7 @@ export async function getAccountBySenderId(dbConnection, companyId, senderId) {
         throw error;
     }
 }
+
 
 async function loadClients(dbConnection, companyId) {
     if (!clientList[companyId]) {
