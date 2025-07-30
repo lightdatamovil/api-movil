@@ -367,13 +367,21 @@ qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
       'street',
       'number',
       'city',
-      'observations'
+      'observations',
+      'appVersion',
+      'brand',
+      'model',
+      'androidVersion',
+      'deviceId',
+      'deviceFrom',
+      'profile',
+      'driverId',
     ]);
     const companyId = req.body.companyId;
     const company = await getCompanyById(companyId);
     const result = await altaEnvioFoto(company, req);
 
-    logGreen(`Envio de foto registrado correctamente`);
+    logGreen(`Envio de foto registrado y asignado correctamente`);
     res.status(Status.created).json({ body: result, message: "Envio - imagen registrada correctamente" });
   } catch (error) {
     handleError(req, res, error);
