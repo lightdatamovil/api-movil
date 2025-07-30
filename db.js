@@ -212,7 +212,6 @@ export async function getAccountBySenderId(dbConnection, companyId, senderId) {
     }
 }
 
-
 async function loadClients(dbConnection, companyId) {
     if (!clientList[companyId]) {
         clientList[companyId] = {}
