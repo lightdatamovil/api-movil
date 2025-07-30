@@ -55,12 +55,15 @@ export async function crossDocking(dataQr, company) {
                 e.didCliente AS clientId,
                 e.didEnvioZona AS zoneId,
                 DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date,
-                CONCAT(su.nombre, ' ', su.apellido) AS driver
+                CONCAT(su.nombre, ' ', su.apellido) AS driver,
+                rp.orden
             FROM envios AS e
             LEFT JOIN envios_asignaciones AS ea
                 ON ea.didEnvio = e.did AND ea.superado = 0 AND ea.elim = 0
             LEFT JOIN sistema_usuarios AS su
                 ON ea.operador = su.did AND su.superado = 0 AND su.elim = 0
+            LEFT JOIN ruteo_paradas AS rp
+                ON rp.didPaquete = e.did AND rp.superado = 0 AND rp.elim = 0
             ${queryWhereId}
             LIMIT 1
         `;
@@ -84,10 +87,11 @@ export async function crossDocking(dataQr, company) {
             date: row.date,
             client: clients[row.clientId]?.nombre || "Desconocido",
             zone: zones[row.zoneId]?.nombre || "Desconocido",
-            driver: row.driver ?? "Sin asignar"
+            driver: row.driver ?? "Sin asignar",
+            order: row.orden ?? null,
         };
     } catch (error) {
-        logRed(`Error en crossDocking: ${error.stack}`);
+        logRed(`Error en crossDocking: ${JSON.stringify(error)}`);
         throw error;
     } finally {
         dbConnection.end();
