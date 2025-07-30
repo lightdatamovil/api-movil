@@ -61,7 +61,7 @@ export async function getRouteByUserId(company, userId) {
                 if (additionalRouteData.inicioEn == 'dep') {
                     additionalRouteData.inicioEn = additionalRouteData.idDepositoComienzo != null ? additionalRouteData.idDepositoComienzo * 1 : 1;
                 }
-                if (additionalRouteData.inicioEn == 'casa' || additionalRouteData.inicioEn == 'casaChofer') {
+                if (additionalRouteData.inicioEn == 'casa' || additionalRouteData.inicioEn == 'casaChofer' || additionalRouteData.inicioEn == 'casaChof') {
                     additionalRouteData.inicioEn = MapConstants.inicioEnCasa;
                 }
                 if (additionalRouteData.inicioEn == 'parada') {
@@ -73,7 +73,7 @@ export async function getRouteByUserId(company, userId) {
                 if (additionalRouteData.finalizoEn == 'dep') {
                     additionalRouteData.finalizoEn = additionalRouteData.idDepositoFinalizacion != null ? additionalRouteData.idDepositoFinalizacion * 1 : 1;
                 }
-                if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer') {
+                if (additionalRouteData.finalizoEn == 'casa' || additionalRouteData.finalizoEn == 'casaChofer' || additionalRouteData.finalizoEn == 'casaChof') {
                     additionalRouteData.finalizoEn = MapConstants.inicioEnCasa;
                 }
                 if (additionalRouteData.finalizoEn == 'parada') {
