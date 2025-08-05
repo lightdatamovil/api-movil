@@ -4,12 +4,9 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
+import Status from "../../classes/status.js";
+import generateToken from "../../src/funciones/token.js";
 
-function generateToken(userId, idEmpresa, perfil) {
-  const payload = { userId, perfil, idEmpresa };
-  const options = { expiresIn: "2558h" };
-  return jwt.sign(payload, "ruteate", options);
-}
 
 export async function login(username, password, company) {
   const dbConfig = getProdDbConfig(company);
@@ -22,15 +19,14 @@ export async function login(username, password, company) {
 
     const userQuery = `SELECT
     u.did,
-    u.bloqueado,
     u.nombre,
     u.apellido,
     u.email,
     u.telefono,
     u.pass,
-    u.elim,
+    u.bloqueado,
     u.usuario,
-    u.token_fcm,
+    u.elim,
     a.perfil,
     u.direccion
     FROM sistema_usuarios as u
@@ -41,6 +37,7 @@ export async function login(username, password, company) {
       username,
     ]);
 
+
     if (resultsFromUserQuery.length === 0) {
       throw new CustomException({
         title: "Usuario inválido",
@@ -49,6 +46,13 @@ export async function login(username, password, company) {
     }
 
     const user = resultsFromUserQuery[0];
+    const hashPassword = crypto.createHash("sha256").update(password).digest("hex");
+    if (user.pass !== hashPassword) {
+      throw new CustomException({
+        title: "Contraseña incorrecta",
+        message: "La contraseña ingresada no coincide",
+      });
+    }
 
     if (user.bloqueado === 1) {
       throw new CustomException({
@@ -57,18 +61,14 @@ export async function login(username, password, company) {
       });
     }
 
-    const hashPassword = crypto
-      .createHash("sha256")
-      .update(password)
-      .digest("hex");
-    if (user.pass !== hashPassword) {
+    if (user.eliminado === 1) {
       throw new CustomException({
-        title: "Contraseña incorrecta",
-        message: "La contraseña ingresada no coincide",
+        title: "Acceso denegado",
+        message: "El usuario se encuentra eliminado",
       });
     }
 
-    const token = generateToken(user.did, company.did, user.perfil);
+    const token = generateToken({ id: user.did, profile: user.perfil, companyId: company.did });
 
     let userHomeLatitude, userHomeLongitude;
     if (user.direccion != "") {
@@ -88,6 +88,7 @@ export async function login(username, password, company) {
         longitude: userHomeLongitude,
       });
     }
+
     return {
       id: user.did,
       username: user.usuario,

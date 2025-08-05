@@ -1,6 +1,7 @@
+import mysql2 from "mysql2";
 import { Router } from "express";
 import verifyToken from "../src/funciones/verifyToken.js";
-import { getCompanyById } from "../db.js";
+import { getCompanyById, getProdDbConfig } from "../db.js";
 import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
@@ -21,38 +22,34 @@ import { verificarTodo } from "../src/funciones/verificar_all.js";
 
 const qr = Router();
 
-qr.post("/driver-list", verifyToken, async (req, res) => {
+function dameHeaders(req) {
+  return {
+    "X-Company-Id": req.header("X-Company-Id"),
+    "X-User-Id": req.header("X-User-Id"),
+    "X-Profile": req.header("X-Profile")
+  };
+}
+
+qr.get("/driver-list", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile } = req.body;
+  const { companyId, userId, profile } = dameHeaders(req);
+
+  const company = await getCompanyById(companyId);
+  console.log("🔍 Header X-Company-Id:", companyId);
+
+  const dbConfig = getProdDbConfig(company);
+  const dbConnection = mysql2.createConnection(dbConfig);
+  dbConnection.connect();
+
   try {
-    const mensajeError = verifyParamaters(req.body, ["companyId"], true);
-    if (mensajeError) {
-      logRed(`Error en driver-list: ${mensajeError}`);
-      throw new CustomException({
-        title: "Error en driver-list",
-        message: mensajeError,
-      });
-    }
-
-    const company = await getCompanyById(companyId);
-    const result = await driverList(company);
-
+    const result = await driverList(company, dbConnection);
     logGreen(`Listado de choferes obtenido correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/driver-list", true);
-    res
-      .status(200)
-      .json({ body: result, message: "Datos obtenidos correctamente" });
+    res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logRed(`Error 400 en driver-list: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/driver-list", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en driver-list: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/driver-list", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    handleError(req, res, error);
   } finally {
+    dbConnection.end();
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución driver-list: ${endTime - startTime} ms`);
   }
@@ -60,86 +57,57 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
 
 qr.post("/cross-docking", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  let { companyId, userId, profile, dataQr } = req.body;
+  const { companyId, userId, profile } = dameHeaders(req);
+  const requiredBodyFields = ["companyId", "dataQr"];
+
+  const company = await getCompanyById(companyId);
+  console.log("🔍 Header X-Company-Id:", companyId);
+
+  const dbConfig = getProdDbConfig(company);
+  const dbConnection = mysql2.createConnection(dbConfig);
+  dbConnection.connect();
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["companyId", "dataQr"],
-      true
-    );
-    if (mensajeError) {
-      logRed(`Error en cross-docking: ${mensajeError}`);
-      throw new CustomException({
-        title: "Error en cross-docking",
-        message: mensajeError,
-      });
-    }
 
-    dataQr = parseIfJson(dataQr);
-    const company = await getCompanyById(companyId);
+    if (!verificarTodo(req, res, [], requiredBodyFields)) return;
     logGreen(`Iniciando cross-docking para la empresa: ${companyId}`);
-    logPurple(`Datos QR: ${JSON.stringify(company)}`);
-    const response = await crossDocking(dataQr, company);
-
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cross-docking", true);
+    const response = await crossDocking(req.body.dataQr, company, dbConnection);
     logGreen(`Cross-docking completado correctamente`);
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/cross-docking", true);
-    res
-      .status(200)
-      .json({ body: response, message: "Datos obtenidos correctamente", success: true });
+    res.status(200).json({ success: true, body: response, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logRed(`Error 400 en cross-docking: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cross-docking", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en cross-docking: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/cross-docking", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    handleError(req, res, error);
   } finally {
+
+    dbConnection.end();
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución cross-docking: ${endTime - startTime} ms`);
   }
 });
 
+// este endpoint se llama de otros lados de la app
 qr.post("/get-shipment-id", async (req, res) => {
   const startTime = performance.now();
-  let { companyId, userId, profile, dataQr } = req.body;
+  const { companyId, userId, profile } = dameHeaders(req);
+
+  const company = await getCompanyById(companyId);
+  console.log(" Header X-Company-Id:", companyId);
+
+  const dbConfig = getProdDbConfig(company);
+  const dbConnection = mysql2.createConnection(dbConfig);
+  dbConnection.connect();
+
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["companyId", "dataQr"],
-      true
-    );
-    if (mensajeError) {
-      logRed(`Error en get-shipment-id: ${mensajeError}`);
-      throw new CustomException({
-        title: "Error en get-shipment-id",
-        message: mensajeError,
-      });
-    }
+    verificarTodo(req, res, [], ["dataQr"]);
 
     dataQr = parseIfJson(dataQr);
-    const company = await getCompanyById(companyId);
+
     const response = await getShipmentIdFromQr(dataQr, company);
 
     logGreen(`ID de envío obtenido correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/get-shipment-id", true);
-    res.status(200).json({
-      success: true,
-      body: response,
-      message: "Datos obtenidos correctamente",
-    });
+    res.status(200).json({ success: true, body: response, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logRed(`Error 400 en get-shipment-id: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-shipment-id", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en get-shipment-id: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-shipment-id", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    handleError(req, res, error);
   } finally {
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución get-shipment-id: ${endTime - startTime} ms`);
@@ -355,7 +323,6 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
     logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
   }
 });
-
 
 qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
   const startTime = performance.now();

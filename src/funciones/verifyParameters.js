@@ -1,6 +1,5 @@
 
-export function verifyParamaters(body, parametrosRequeridos, userData = false) {
-    const param = ['deviceId', 'appVersion', 'brand', 'model', 'androidVersion', ...parametrosRequeridos];
+export function verifyParamaters(body, param, userData = false) {
 
     if (userData) {
         param.push('companyId', 'userId', 'profile');
