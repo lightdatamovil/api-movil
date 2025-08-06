@@ -5,7 +5,7 @@ import { logPurple, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
-import { es } from "date-fns/locale";
+
 
 export async function registerVisit(
   company,
@@ -153,17 +153,16 @@ export async function registerVisit(
     //verificar si el estado es nadie (6) y se entrego en 2da visita (9)
 
     // si el currentShipmentState es nadie (6) estadoInert = 10 sino shipmentState
-
-    estadoInsert = currentShipmentState == 6 ? 10 : shipmentState;
-
-    if (currentShipmentState == 6 && estadoInsert == 10) {
-      estadoInsert = 10;
+    if (currentShipmentState == 6 && shipmentState == 5) {
+      estadoInsert = 9;
+    } else {
+      estadoInsert = currentShipmentState == 6 ? 10 : shipmentState;
     }
-
 
     if (company.did == 4) {
       estadoInsert = currentShipmentState == 6 ? 6 : shipmentState;
     }
+
 
 
 
