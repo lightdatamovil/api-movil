@@ -32,7 +32,7 @@ function dameHeaders(req) {
 
 qr.get("/driver-list", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile } = dameHeaders(req);
+  const { companyId, userId, profile } = getHeaders(req);
 
   const company = await getCompanyById(companyId);
   console.log("🔍 Header X-Company-Id:", companyId);
@@ -138,17 +138,7 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
       .status(200)
       .json({ body: response, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logRed(`Error 400 en products-from-shipment: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/products-from-shipment", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en products-from-shipment: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/products-from-shipment", false);
-      res
-        .status(500)
-        .json({ success: false, message: "Error interno del servidor." });
-    }
+    handleError(req, res, error);
   } finally {
     const endTime = performance.now();
     logPurple(
@@ -281,6 +271,7 @@ qr.post("/armado", verifyToken, async (req, res) => {
     logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
   }
 });
+
 qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
   const startTime = performance.now();
   const { companyId, userId, profile } = req.body;
