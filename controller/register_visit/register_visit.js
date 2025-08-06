@@ -5,6 +5,7 @@ import { logPurple, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
+import { es } from "date-fns/locale";
 
 export async function registerVisit(
   company,
@@ -94,6 +95,8 @@ export async function registerVisit(
       }
     }
 
+
+
     const queryRuteoParadas =
       "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
 
@@ -147,8 +150,16 @@ export async function registerVisit(
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
     let estadoInsert;
 
+    //verificar si el estado es nadie (6) y se entrego en 2da visita (9)
+
+    // si el currentShipmentState es nadie (6) estadoInert = 10 sino shipmentState
 
     estadoInsert = currentShipmentState == 6 ? 10 : shipmentState;
+
+    if (currentShipmentState == 6 && estadoInsert == 10) {
+      estadoInsert = 10;
+    }
+
 
     if (company.did == 4) {
       estadoInsert = currentShipmentState == 6 ? 6 : shipmentState;
