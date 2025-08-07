@@ -98,7 +98,7 @@ export async function login(username, password, company) {
       phone: user.telefono,
       token,
       houses: userHouses,
-      version: "1.0.80",
+      version: "1.0.81",
     };
   } catch (error) {
     logRed(`Error en login: ${error.stack}`);
