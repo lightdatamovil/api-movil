@@ -46,8 +46,8 @@ export async function registerVisit(
 
     if (estadoActualRows.length > 0 && currentShipmentState == 8) {
       throw new CustomException({
-        title: "El envío ya fue entregado o cancelado",
-        message: "El envío ya fue entregado o cancelado",
+        title: "El envío ya fue cancelado",
+        message: "El envío ya fue cancelado",
       });
     }
 
@@ -95,7 +95,12 @@ export async function registerVisit(
       }
     }
 
-
+    if (currentShipmentState == 5 || currentShipmentState == 9 || currentShipmentState == 14 || currentShipmentState == 17) {
+      throw new CustomException({
+        title: "No es posible registrar visita",
+        message: "El envío ya fue entregado o devuelto al cliente",
+      });
+    }
 
     const queryRuteoParadas =
       "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
