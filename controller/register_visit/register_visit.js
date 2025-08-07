@@ -95,12 +95,12 @@ export async function registerVisit(
       }
     }
 
-    if (currentShipmentState == 5 || currentShipmentState == 9 || currentShipmentState == 14 || currentShipmentState == 17) {
-      throw new CustomException({
-        title: "No es posible registrar visita",
-        message: "El envío ya fue entregado o devuelto al cliente",
-      });
-    }
+    // if (currentShipmentState == 5 || currentShipmentState == 9 || currentShipmentState == 14 || currentShipmentState == 17) {
+    //   throw new CustomException({
+    //     title: "No es posible registrar visita",
+    //     message: "El envío ya fue entregado o devuelto al cliente",
+    //   });
+    // }
 
     const queryRuteoParadas =
       "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
