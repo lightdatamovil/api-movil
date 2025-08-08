@@ -2,8 +2,9 @@ import { logRed } from "../../src/funciones/logsCustom.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getShipmentFromMLByTracking, getTitleAndImageFromMLByTracking, } from "../../src/funciones/getItemsFromMLByShipmentId.js";
 
-export async function getSkuAndStockFlex(company, dataQr) {
+export async function getSkuAndStockFlex(req, company) {
     try {
+        const dataQr = req.body.dataQr;
         const token = await getTokenMLconMasParametros(3, 28, company.did);
         const shipment = await getShipmentFromMLByTracking(dataQr.id, token);
 
