@@ -157,7 +157,7 @@ qr.post("/enter-flex", async (req, res) => {
 
 qr.post("/sku", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  let { companyId, userId, profile, dataQr } = req.body;
+  let { companyId, userId, profile } = getHeaders(req);
   const company = await getCompanyById(companyId);
 
   const dbConfig = getProdDbConfig(company);
@@ -181,42 +181,22 @@ qr.post("/sku", verifyToken, async (req, res) => {
 
 qr.post("/armado", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, dataEnvios, didCliente } = req.body;
+  let { companyId, userId, profile } = getHeaders(req);
+  const company = await getCompanyById(companyId);
+
+  const dbConfig = getProdDbConfig(company);
+  const dbConnection = mysql2.createConnection(dbConfig);
+  dbConnection.connect();
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["userId", "dataEnvios", "didCliente"],
-      true
-    );
-    if (mensajeError) {
-      logRed(`Error en armado: ${mensajeError}`);
-      throw new CustomException({
-        title: "Error en armado",
-        message: mensajeError,
-      });
-    }
-
-    const company = await getCompanyById(companyId);
-    const result = await armado(company, userId, dataEnvios, didCliente);
-
+    verificarTodo(req, res, [], ["dataEnvios", "didCliente"]);
+    const result = await armado(req, company, userId, dbConnection);
     logGreen(`Armado ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/armado", true);
-    res.status(200).json({
-      body: result,
-      message: "Datos obtenidos correctamente",
-      success: true,
-    });
+    res.status(Status.ok).json({ body: result, message: "Datos obtenidos correctamente", success: true });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logRed(`Error 400 en armado: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/armado", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en armado: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/armado", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    handleError(req, res, error);
   } finally {
+    dbConnection.end();
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
   }
@@ -224,42 +204,22 @@ qr.post("/armado", verifyToken, async (req, res) => {
 
 qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile } = req.body;
+  let { companyId, userId, profile } = getHeaders(req);
+  const company = await getCompanyById(companyId);
+
+  const dbConfig = getProdDbConfig(company);
+  const dbConnection = mysql2.createConnection(dbConfig);
+  dbConnection.connect();
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      [],
-      true
-    );
-    if (mensajeError) {
-      logRed(`Error en armado: ${mensajeError}`);
-      throw new CustomException({
-        title: "Error en armado",
-        message: mensajeError,
-      });
-    }
-
-    const company = await getCompanyById(companyId);
-    const result = await getCantidadAsignaciones(company, userId, profile);
-
+    verificarTodo(req, res, [], ["dataEnvios", "didCliente"]);
+    const result = await getCantidadAsignaciones(company, userId, profile, dbConnection);
     logGreen(`get-cantidad-asignaciones ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
-    res.status(200).json({
-      body: result,
-      message: "Datos obtenidos correctamente",
-      success: true,
-    });
+    res.status(Status.ok).json({ body: result, message: "Datos obtenidos correctamente", success: true });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logOrange(`Error 400 en cantidad-asignaciones: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cantidad-asignaciones", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en cantidad-asignaciones: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/cantidad-asignaciones", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    handleError(req, res, error);
   } finally {
+    dbConnection.end();
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución armado: ${endTime - startTime} ms`);
   }
@@ -267,28 +227,15 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
 
 qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
   const startTime = performance.now();
-  try {
-    const mensajeError = verificarTodo(req, res, [], [
-      'image',
-      'companyId',
-      'userId',
-      'street',
-      'number',
-      'city',
-      'observations',
-      'appVersion',
-      'brand',
-      'model',
-      'androidVersion',
-      'deviceId',
-      'deviceFrom',
-      'profile',
-      'driverId',
-    ]);
-    const companyId = req.body.companyId;
-    const company = await getCompanyById(companyId);
-    const result = await altaEnvioFoto(company, req);
+  let { companyId, userId, profile } = getHeaders(req);
+  const company = await getCompanyById(companyId);
 
+  const dbConfig = getProdDbConfig(company);
+  const dbConnection = mysql2.createConnection(dbConfig);
+  dbConnection.connect();
+  try {
+    verificarTodo(req, res, [], ['image', 'street', 'cp', 'lineAddress', 'driverId']);
+    const result = await altaEnvioFoto(req, company, dbConnection);
     logGreen(`Envio de foto registrado y asignado correctamente`);
     res.status(Status.created).json({ body: result, message: "Envio - imagen registrada correctamente" });
   } catch (error) {
