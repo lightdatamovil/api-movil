@@ -92,7 +92,7 @@ export async function shipmentList(
     rp.orden,
     ec.didCampoCobranza,
     e.choferAsignado,
-    e.valor_declarado
+    ec.valor
             FROM
                 envios_historial as eh
                 LEFT JOIN envios AS e ON(
@@ -152,7 +152,7 @@ export async function shipmentList(
       const long = row.lng !== "0" ? row.lng : "0";
       const logisticainversa = row.logisticainversa != null;
       const estadoAsignacionVal = row.estadoAsignacion || 0;
-      const monto = row.valor_declarado || 0;
+      const monto = row.valor || 0;
       const nombre = clientes[row.didCliente]
         ? clientes[row.didCliente].nombre
         : "Cliente no encontrado";
