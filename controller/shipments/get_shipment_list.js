@@ -186,7 +186,7 @@ export async function shipmentList(
         observacionDestinatario: row.destination_comments,
         hasNextDeliverButton: isOnTheWay && row.proximaentregaId == null,
         orden: row.orden * 1,
-        cobranza: 0,
+        cobranza: row.didCampoCobranza || 0,
         chofer: nombreChofer,
         choferId: row.choferAsignado * 1,
         monto_a_cobrar: monto,
