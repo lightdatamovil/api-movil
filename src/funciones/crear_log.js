@@ -1,48 +1,37 @@
-import { executeQuery, poolLocal } from "../../db.js";
-import { logCyan, logGreen, logRed } from "./logsCustom.js";
+import { executeQueryFromPool, getHeaders, logGreen } from "lightdata-tools";
+import { poolLocal } from "../../db.js";
 
-export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito) {
-    try {
-        // Si 'resultado' vino como JSON string, conviértelo a objeto
-        let resultadoObj = typeof resultado === 'string'
-            ? JSON.parse(resultado)
-            : resultado;
-        let bodyObj = typeof body === 'string'
-            ? JSON.parse(body)
-            : body;
+export async function crearLog(req, tiempo, resultado, metodo, exito) {
+    const { companyId, userId, profile } = getHeaders(req) ?? {};
 
-        // Normaliza el endpoint (quita comillas sobrantes)
-        const endpointClean = endpoint.replace(/"/g, '');
+    // fallback defensivo por si algún proxy no pasó los headers esperados
+    const empresa = companyId ?? req.headers["x-company-id"];
+    const usuario = userId ?? req.headers["x-user-id"];
+    const perfil = profile ?? req.headers["x-profile"];
 
-        if (endpointClean === '/company-identification' && exito == 1) {
-            resultadoObj.image = 'Imagen eliminada por logs';
-        }
-        if (endpointClean === '/upload-image' || endpointClean === '/change-profile-picture') {
-            bodyObj.image = 'Imagen eliminada por logs';
-        }
-
-        const sqlLog = `
-            INSERT INTO logs_v2
-                (empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-
-        // Siempre stringify para que el driver reciba un string
-        const values = [
-            empresa,
-            usuario,
-            perfil,
-            JSON.stringify(bodyObj),
-            tiempo,
-            JSON.stringify(resultadoObj),
-            endpointClean,
-            exito ? 1 : 0
-        ];
-
-        await executeQuery(poolLocal, sqlLog, values);
-        logGreen(`Log creado: ${JSON.stringify(values)}`);
-    } catch (error) {
-        logRed(`Error en crearLog: ${error.stack}`);
-        throw error;
+    // valida antes de insertar (evitás NULL)
+    if (empresa == null || usuario == null || perfil == null) {
+        // podés loguear y salir sin romper la request:
+        // console.warn('crearLog: faltan headers', { empresa, usuario, perfil });
+        return;
     }
+
+    const sqlLog = `
+    INSERT INTO logs_v2 (empresa, usuario, perfil, body, tiempo, resultado, metodo, exito)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+    const values = [
+        Number(empresa),
+        String(usuario),
+        Number(perfil),
+        JSON.stringify(req.body ?? {}),
+        Math.round(tiempo),
+        JSON.stringify(resultado ?? {}),
+        String(metodo),
+        !!exito,
+    ];
+
+    await executeQueryFromPool(poolLocal, sqlLog, values, true);
+    logGreen(`Log creado: ${JSON.stringify(values)}`);
 }
