@@ -3,6 +3,7 @@ import Status from "../../classes/status.js";
 import { logRed } from "./logsCustom.js";
 
 
+
 /**
  * Envía la respuesta de error apropiada y loguea, según el tipo de excepción.
  * @param {Request}  req  – para saber método y URL
