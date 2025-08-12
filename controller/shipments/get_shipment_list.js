@@ -92,7 +92,7 @@ export async function shipmentList(
     rp.orden,
     ec.didCampoCobranza,
     e.choferAsignado,
-    e.valor_declarado
+    ec.valor
             FROM
                 envios_historial as eh
                 LEFT JOIN envios AS e ON(
@@ -152,7 +152,7 @@ export async function shipmentList(
       const long = row.lng !== "0" ? row.lng : "0";
       const logisticainversa = row.logisticainversa != null;
       const estadoAsignacionVal = row.estadoAsignacion || 0;
-      const monto = row.valor_declarado || 0;
+      const monto = row.valor || 0;
       const nombre = clientes[row.didCliente]
         ? clientes[row.didCliente].nombre
         : "Cliente no encontrado";
@@ -186,9 +186,9 @@ export async function shipmentList(
         observacionDestinatario: row.destination_comments,
         hasNextDeliverButton: isOnTheWay && row.proximaentregaId == null,
         orden: row.orden * 1,
-        cobranza: row.didCampoCobranza || 0,
         chofer: nombreChofer,
         choferId: row.choferAsignado * 1,
+        cobranza: (monto != 0.0 && monto != 0) ? row.didCampoCobranza : 0,
         monto_a_cobrar: monto,
       });
     }
