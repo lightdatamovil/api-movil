@@ -20,7 +20,7 @@ export async function crossDocking(dataQr, company) {
             if (company.did != dataQr.empresa) {
                 const queryEnviosExteriores = `
                     SELECT didLocal
-                    FROM envios_exteriores
+                    FROM envios_exteriores 
                     WHERE didExterno = ?
                     AND didEmpresa = ?
                 `;
