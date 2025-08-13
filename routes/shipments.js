@@ -59,69 +59,37 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
   try {
     const requiredBodyFields = ["shipmentId"];
     verifyAll(req, [], requiredBodyFields);
-
-    const company = await getCompanyById(companyId);
     const result = await shipmentDetails(dbConnection, company, userId, req);
-
     logGreen(`Detalle de envío obtenido correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/shipment-details", true);
-    res
-      .status(200)
-      .json({ body: result, message: "Datos obtenidos correctamente" });
+    res.status(Status.ok).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logRed(`Error 400 en shipment-details: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/shipment-details", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en shipment-details: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-details", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    errorHandler(error, req, res);
   } finally {
+    dbConnection.end();
     const endTime = performance.now();
-    logPurple(
-      `Tiempo de ejecución shipment-details: ${endTime - startTime} ms`
-    );
+    logPurple(`Tiempo de ejecución shipment-details: ${endTime - startTime} ms`);
   }
 });
 
 shipments.post("/next-visit", verifyToken, async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, shipmentId } = req.body;
+  const { companyId, userId, profile } = getHeaders(req);
+  const company = await getCompanyById(companyId);
+
+  const dbConfig = getProdDbConfig(company);
+  const dbConnection = mysql2.createConnection(dbConfig);
+  dbConnection.connect();
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["companyId", "userId", "shipmentId"],
-      true
-    );
-    if (mensajeError) {
-      logRed(`Error en next-visit: ${mensajeError}`);
-      throw new CustomException({
-        title: "Error en next-visit",
-        message: mensajeError,
-      });
-    }
-
-    const company = await getCompanyById(companyId);
-    const result = await nextDeliver(company, shipmentId, userId);
-
+    verifyAll(req, [], ["shipmentId"]);
+    const result = await nextDeliver(dbConnection, company, userId, req);
     logGreen(`Próxima visita obtenida correctamente`);
     crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/next-visit", true);
-    res
-      .status(200)
-      .json({ body: result, message: "Datos obtenidos correctamente" });
+    res.status(Status.ok).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
-    if (error instanceof CustomException) {
-      logRed(`Error 400 en next-visit: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/next-visit", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      logRed(`Error 500 en next-visit: ${error}`);
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/shipment-details", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    errorHandler(error, req, res);
   } finally {
+    dbConnection.end();
     const endTime = performance.now();
     logPurple(`Tiempo de ejecución next-visit: ${endTime - startTime} ms`);
   }

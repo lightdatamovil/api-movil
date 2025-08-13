@@ -4,28 +4,13 @@ import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
-export async function nextDeliver(company, shipmentId, userId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
 
-    try {
-        const date = getFechaConHoraLocalDePais(company.pais);
-        const query = "INSERT INTO proximas_entregas (didEnvio, fecha, quien) VALUES (?, ?, ?)";
+export async function nextDeliver(dbConnection, company, userId, req) {
+    const shipmentId = req.body.shipmentId;
 
-        await executeQuery(dbConnection, query, [shipmentId, date, userId]);
-    } catch (error) {
-        logRed(`Error en nextDeliver: ${error.stack} `);
+    const date = getFechaConHoraLocalDePais(company.pais);
+    const query = "INSERT INTO proximas_entregas (didEnvio, fecha, quien) VALUES (?, ?, ?)";
 
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en próxima entrega',
-            message: error.message,
-            stack: error.stack
-        });
-    } finally {
-        dbConnection.end();
-    }
+    await executeQuery(dbConnection, query, [shipmentId, date, userId]);
+
 }
