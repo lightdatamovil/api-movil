@@ -1,8 +1,8 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany } from "../../db.js";
+import { getProdDbConfig, getZonesByCompany, getClientsByCompany, clientsService } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
-import CustomException from '../../classes/custom_exception.js';
 import LogisticaConf from "../../classes/logisticas_conf.js";
+import { CustomException, executeQuery, LogisticaConfig } from "lightdata-tools";
 
 export async function crossDocking(dataQr, company, dbConnection) {
 
@@ -18,8 +18,7 @@ export async function crossDocking(dataQr, company, dbConnection) {
                     SELECT didLocal
                     FROM envios_exteriores
                     WHERE didExterno = ?
-                    AND didEmpresa = ?
-                `;
+                    AND didEmpresa = ? `;
             const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
 
             if (resultQueryEnviosExteriores.length == 0) {
@@ -35,14 +34,13 @@ export async function crossDocking(dataQr, company, dbConnection) {
         queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
     } else {
         // tiene habilitado el barcode y es codigo de barra
-        if (LogisticaConf.hasBarcodeEnabled(company.did) && !dataQr.hasOwnProperty('sender_id') && !dataQr.hasOwnProperty('t')) {
+        if (LogisticaConfig.hasBarcodeEnabled(company.did) && !dataQr.hasOwnProperty('sender_id') && !dataQr.hasOwnProperty('t')) {
             shipmentId = dataQr;
             queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
         } else {
             shipmentId = dataQr.id;
             queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = ${shipmentId}`;
         }
-
     }
 
     const queryEnvios = `
@@ -74,7 +72,7 @@ export async function crossDocking(dataQr, company, dbConnection) {
 
     const row = envioData[0];
 
-    const clients = await getClientsByCompany(dbConnection, company.did);
+    const clients = await clientsService.getByCompany(dbConnection, company.did);
 
     const zones = await getZonesByCompany(dbConnection, company.did);
 

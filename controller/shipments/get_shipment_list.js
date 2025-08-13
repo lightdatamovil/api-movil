@@ -4,17 +4,15 @@ import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
 
-export async function shipmentList(
+export async function shipmentList(dbConnection,
   company,
   userId,
   profile,
-  from,
-  shipmentStates,
-  isAssignedToday
+  req,
+  dbConnection
 ) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
+  const { from, shipmentStates, isAssignedToday } = req.body;
+
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
@@ -30,43 +28,42 @@ export async function shipmentList(
     }
   }
 
-  try {
-    const date = getFechaLocalDePais(company.pais);
-    // Obtener clientes y choferes
-    const clientes = await getClientsByCompany(dbConnection, company.did);
-    const drivers = await getDriversByCompany(dbConnection, company.did);
+  const date = getFechaLocalDePais(company.pais);
+  // Obtener clientes y choferes
+  const clientes = await getClientsByCompany(dbConnection, company.did);
+  const drivers = await getDriversByCompany(dbConnection, company.did);
 
-    // Variables para personalizar la consulta según el perfil
-    let sqlchoferruteo = "";
-    let leftjoinCliente = "";
-    let sqlduenio = "";
-    let estadoAsignacion = "";
+  // Variables para personalizar la consulta según el perfil
+  let sqlchoferruteo = "";
+  let leftjoinCliente = "";
+  let sqlduenio = "";
+  let estadoAsignacion = "";
 
-    if (profile == 2) {
-      leftjoinCliente = `LEFT JOIN sistema_usuarios_accesos as sua ON(sua.superado = 0 AND sua.elim = 0 AND sua.usuario = ${userId})`;
-      sqlduenio = "AND e.didCliente = sua.codigo_empleado";
-    } else if (profile == 3) {
-      sqlduenio = `AND e.choferAsignado = ${userId} `;
-      sqlchoferruteo = ` AND r.didChofer = ${userId} `;
-    }
+  if (profile == 2) {
+    leftjoinCliente = `LEFT JOIN sistema_usuarios_accesos as sua ON(sua.superado = 0 AND sua.elim = 0 AND sua.usuario = ${userId})`;
+    sqlduenio = "AND e.didCliente = sua.codigo_empleado";
+  } else if (profile == 3) {
+    sqlduenio = `AND e.choferAsignado = ${userId} `;
+    sqlchoferruteo = ` AND r.didChofer = ${userId} `;
+  }
 
-    if (company.did == 4) {
-      estadoAsignacion = "e.estadoAsignacion,";
-    }
+  if (company.did == 4) {
+    estadoAsignacion = "e.estadoAsignacion,";
+  }
 
-    const b = isAssignedToday ? `AND ea.autofecha > '${date} 00:00:00'` : "";
-    const a = isAssignedToday ? "" : "LEFT";
-    const c = isAssignedToday
-      ? `AND ea.autofecha > '${date} 00:00:00'`
-      : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${date} 23:59:59'`;
+  const b = isAssignedToday ? `AND ea.autofecha > '${date} 00:00:00'` : "";
+  const a = isAssignedToday ? "" : "LEFT";
+  const c = isAssignedToday
+    ? `AND ea.autofecha > '${date} 00:00:00'`
+    : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${date} 23:59:59'`;
 
-    if (shipmentStates.length == 0) {
-      return [];
-    }
+  if (shipmentStates.length == 0) {
+    return [];
+  }
 
-    const estadosQuery = `(${shipmentStates.join(",")})`;
+  const estadosQuery = `(${shipmentStates.join(",")})`;
 
-    const query = `SELECT
+  const query = `SELECT
                 e.did as didEnvio,
     e.flex,
     e.ml_shipment_id,
@@ -145,66 +142,53 @@ export async function shipmentList(
     ORDER BY rp.orden ASC
     `;
 
-    const rows = await executeQuery(dbConnection, query, []);
-    const lista = [];
-    for (const row of rows) {
-      const lat = row.lat !== "0" ? row.lat : "0";
-      const long = row.lng !== "0" ? row.lng : "0";
-      const logisticainversa = row.logisticainversa != null;
-      const estadoAsignacionVal = row.estadoAsignacion || 0;
-      const monto = row.valor || 0;
-      const nombre = clientes[row.didCliente]
-        ? clientes[row.didCliente].nombre
-        : "Cliente no encontrado";
-      const nombreChofer = drivers[row.choferAsignado]
-        ? drivers[row.choferAsignado].nombre
-        : "Chofer no encontrado";
-      const isOnTheWay =
-        row.estado_envio == 2 ||
-        row.estado_envio == 11 ||
-        row.estado_envio == 12 ||
-        (company.did == 20 && row.estado_envio == 16);
-      lista.push({
-        didEnvio: row.didEnvio * 1,
-        flex: row.flex * 1,
-        shipmentid: row.ml_shipment_id,
-        ml_venta_id: row.ml_venta_id,
-        estado: row.estado * 1,
-        nombreCliente: nombre,
-        didCliente: row.didCliente * 1,
-        fechaEmpresa: row.fecha_inicio,
-        fechaHistorial: row.fecha_historial || null,
-        estadoAsignacion: estadoAsignacionVal * 1,
-        nombreDestinatario: row.destination_receiver_name,
-        direccion1: row.address_line,
-        direccion2: `CP ${row.cp}, ${row.localidad} `,
-        provincia: row.provincia || "Sin provincia",
-        telefono: row.destination_receiver_phone,
-        lat: lat,
-        long: long,
-        logisticainversa: logisticainversa,
-        observacionDestinatario: row.destination_comments,
-        hasNextDeliverButton: isOnTheWay && row.proximaentregaId == null,
-        orden: row.orden * 1,
-        cobranza: 0,
-        chofer: nombreChofer,
-        choferId: row.choferAsignado * 1,
-        monto_a_cobrar: monto,
-      });
-    }
-    return lista;
-  } catch (error) {
-    logRed(`Error en shipmentList: ${error.stack} `);
-
-    if (error instanceof CustomException) {
-      throw error;
-    }
-    throw new CustomException({
-      title: "Error obteniendo lista de envíos",
-      message: error.message,
-      stack: error.stack,
+  const rows = await executeQuery(dbConnection, query, []);
+  const lista = [];
+  for (const row of rows) {
+    const lat = row.lat !== "0" ? row.lat : "0";
+    const long = row.lng !== "0" ? row.lng : "0";
+    const logisticainversa = row.logisticainversa != null;
+    const estadoAsignacionVal = row.estadoAsignacion || 0;
+    const monto = row.valor || 0;
+    const nombre = clientes[row.didCliente]
+      ? clientes[row.didCliente].nombre
+      : "Cliente no encontrado";
+    const nombreChofer = drivers[row.choferAsignado]
+      ? drivers[row.choferAsignado].nombre
+      : "Chofer no encontrado";
+    const isOnTheWay =
+      row.estado_envio == 2 ||
+      row.estado_envio == 11 ||
+      row.estado_envio == 12 ||
+      (company.did == 20 && row.estado_envio == 16);
+    lista.push({
+      didEnvio: row.didEnvio * 1,
+      flex: row.flex * 1,
+      shipmentid: row.ml_shipment_id,
+      ml_venta_id: row.ml_venta_id,
+      estado: row.estado * 1,
+      nombreCliente: nombre,
+      didCliente: row.didCliente * 1,
+      fechaEmpresa: row.fecha_inicio,
+      fechaHistorial: row.fecha_historial || null,
+      estadoAsignacion: estadoAsignacionVal * 1,
+      nombreDestinatario: row.destination_receiver_name,
+      direccion1: row.address_line,
+      direccion2: `CP ${row.cp}, ${row.localidad} `,
+      provincia: row.provincia || "Sin provincia",
+      telefono: row.destination_receiver_phone,
+      lat: lat,
+      long: long,
+      logisticainversa: logisticainversa,
+      observacionDestinatario: row.destination_comments,
+      hasNextDeliverButton: isOnTheWay && row.proximaentregaId == null,
+      orden: row.orden * 1,
+      cobranza: 0,
+      chofer: nombreChofer,
+      choferId: row.choferAsignado * 1,
+      monto_a_cobrar: monto,
     });
-  } finally {
-    dbConnection.end();
   }
+  return lista;
+
 }

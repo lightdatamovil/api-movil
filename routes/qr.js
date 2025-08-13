@@ -1,6 +1,6 @@
 import mysql2 from "mysql2";
 import { Router } from "express";
-import { errorHandler, getHeaders, Status } from "lightdata-tools";
+import { errorHandler, getHeaders, Status, verifyAll } from "lightdata-tools";
 import { getCompanyById, getProdDbConfig } from "../db.js";
 import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
@@ -33,7 +33,7 @@ qr.get("/driver-list", verifyToken, async (req, res) => {
     const result = await driverList(company, dbConnection);
     logGreen(`Listado de choferes obtenido correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/driver-list", true);
-    res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+    res.status(Status.ok).json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     errorHandler(req, res, error);
   } finally {
@@ -55,7 +55,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
   try {
-    verificarTodo(req, [], requiredBodyFields);
+    verifyAll(req, [], requiredBodyFields);
     logGreen(`Iniciando cross-docking para la empresa: ${companyId}`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cross-docking", true);
     const response = await crossDocking(req.body.dataQr, company, dbConnection);
@@ -83,7 +83,7 @@ qr.post("/get-shipment-id", async (req, res) => {
   dbConnection.connect();
 
   try {
-    verificarTodo(req, [], ["dataQr"]);
+    verifyAll(req, [], ["dataQr"]);
     dataQr = parseIfJson(dataQr);
     const response = await getShipmentIdFromQr(req, company, dbConnection);
     logGreen(`ID de envío obtenido correctamente`);
@@ -109,7 +109,7 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
   try {
-    verificarTodo(req, [], ["dataQr"]);
+    verifyAll(req, [], ["dataQr"]);
     const response = await getProductsFromShipment(req, dbConnection);
     logGreen(`Productos obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/products-from-shipment", true);
@@ -136,7 +136,7 @@ qr.post("/enter-flex", async (req, res) => {
   dbConnection.connect();
 
   try {
-    verificarTodo(req, [], ["dataQr"]);
+    verifyAll(req, [], ["dataQr"]);
     await enterFlex(req, company, userId, profile, dbConnection);
     logGreen(`Enter flex ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "exito" }), "/enter-flex", true);
@@ -160,7 +160,7 @@ qr.post("/sku", verifyToken, async (req, res) => {
   dbConnection.connect();
 
   try {
-    verificarTodo(req, [], ["dataQr"]);
+    verifyAll(req, [], ["dataQr"]);
     let result = await getSkuAndStockFlex(req, company);
     logGreen(`SKU y cantidad de ítems obtenidos correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/sku", true);
@@ -183,7 +183,7 @@ qr.post("/armado", verifyToken, async (req, res) => {
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
   try {
-    verificarTodo(req, [], ["dataEnvios", "didCliente"]);
+    verifyAll(req, [], ["dataEnvios", "didCliente"]);
     const result = await armado(req, company, userId, dbConnection);
     logGreen(`Armado ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/armado", true);
@@ -206,7 +206,7 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
   try {
-    verificarTodo(req, [], ["dataEnvios", "didCliente"]);
+    verifyAll(req, [], ["dataEnvios", "didCliente"]);
     const result = await getCantidadAsignaciones(company, userId, profile, dbConnection);
     logGreen(`get-cantidad-asignaciones ejecutado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
@@ -229,7 +229,7 @@ qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
   try {
-    verificarTodo(req, [], ['image', 'street', 'cp', 'lineAddress', 'driverId']);
+    verifyAll(req, [], ['image', 'street', 'cp', 'lineAddress', 'driverId']);
     const result = await altaEnvioFoto(req, company, dbConnection);
     logGreen(`Envio de foto registrado y asignado correctamente`);
     res.status(Status.created).json({ body: result, message: "Envio - imagen registrada correctamente" });

@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { logRed, logYellow } from './src/funciones/logsCustom.js';
 import mysql2 from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
+import { AccountsService, ClientsService, CompaniesService, DriversService, logRed } from "lightdata-tools";
 
 /// Redis para obtener las empresas
 const redisHost = process.env.REDIS_HOST;
@@ -43,6 +44,11 @@ let accountList = {};
 let driverList = {};
 let zoneList = {};
 let clientList = {};
+
+export let companiesService = new CompaniesService({ redisClient });
+export let clientsService = new ClientsService();
+export let accountsService = new AccountsService();
+export let driversService = new DriversService();
 
 export function getDbConfig(companyId) {
     return {

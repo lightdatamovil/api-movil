@@ -7,28 +7,32 @@ import { uploadImage } from '../controller/register_visit/upload_image.js';
 import { logGreen, logPurple, logRed } from '../src/funciones/logsCustom.js';
 import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
+import { errorHandler, getHeaders, verifyAll } from 'lightdata-tools';
 
 const registerVisitRoute = Router();
 
 registerVisitRoute.post('/register', verifyToken, async (req, res) => {
     const startTime = performance.now();
+    const { companyId, userId, appVersion, profile } = getHeaders(req);
     const {
-        companyId,
-        userId,
         shipmentId,
-        profile,
         recieverDNI,
         recieverName,
         latitude,
         longitude,
         shipmentState,
         observation,
-        appVersion,
     } = req.body;
+
+
+    const company = await getCompanyById(companyId);
+    console.log(" Header X-Company-Id:", companyId);
+    const dbConfig = getProdDbConfig(company);
+    const dbConnection = mysql2.createConnection(dbConfig);
+
+    dbConnection.connect();
     try {
-        const mensajeError = verifyParamaters(req.body, [
-            'companyId',
-            'userId',
+        const requiredBodyFields = [
             'shipmentId',
             'shipmentState',
             'observation',
@@ -36,23 +40,14 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
             'longitude',
             'recieverName',
             'recieverDNI'
-        ], true);
-        if (mensajeError) {
-            logRed(`Error en register: ${mensajeError}`);
-            throw new CustomException({ title: 'Error en register', message: mensajeError });
-        }
+        ];
 
+        verifyAll(req, [], requiredBodyFields);
         const company = await getCompanyById(companyId);
         const result = await registerVisit(
+            dbConnection,
             company,
             userId,
-            shipmentId,
-            recieverDNI,
-            recieverName,
-            latitude,
-            longitude,
-            shipmentState,
-            observation,
             appVersion,
         );
 
@@ -60,15 +55,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/register", true);
         res.status(200).json({ body: result, message: "Visita registrada correctamente" });
     } catch (error) {
-        if (error instanceof CustomException) {
-            logRed(`Error 400 en register: ${error}`);
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/register", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            logRed(`Error 500 en register: ${error}`);
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/register", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
+        errorHandler(error, req, res);
     } finally {
         const endTime = performance.now();
         logPurple(`Tiempo de ejecución register: ${endTime - startTime} ms`);

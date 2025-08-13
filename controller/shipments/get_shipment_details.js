@@ -3,71 +3,56 @@ import mysql2 from 'mysql2';
 import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
-export async function shipmentDetails(company, shipmentId, userId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function shipmentDetails(dbConnection, company, userId, req) {
 
-    try {
-        let shipmentData = await shipmentInformation(dbConnection, shipmentId);
+    const shipmentId = req.body.shipmentId;
 
-        let lat = 0;
-        let long = 0;
+    let shipmentData = await shipmentInformation(dbConnection, shipmentId);
 
-        if (shipmentData.destination_latitude != 0) {
-            lat = shipmentData.destination_latitude * 1;
-            long = shipmentData.destination_longitude * 1;
-        }
+    let lat = 0;
+    let long = 0;
 
-        var detallesEnvio = new Object();
-        detallesEnvio["nombreDestinatario"] = shipmentData.destination_receiver_name;
-        detallesEnvio["nombreCliente"] = "";
-        detallesEnvio["didCliente"] = shipmentData.didCliente * 1;
-        detallesEnvio["domicilio1"] = shipmentData.destination_shipping_address_line;
-        detallesEnvio["domicilio2"] = "CP " + shipmentData.destination_shipping_zip_code + ", " + shipmentData.destination_city_name;
-        detallesEnvio["telefono"] = shipmentData.destination_receiver_phone;
-        detallesEnvio["observacionDomicilio"] = shipmentData.destination_comments;
-        detallesEnvio["estadoActual"] = shipmentData.estado_envio;
-        detallesEnvio["id_venta"] = shipmentData.ml_venta_id;
-        detallesEnvio["id_envio"] = shipmentData.ml_shipment_id;
-        detallesEnvio["cobranza"] = 0;
-        detallesEnvio["latitud"] = lat;
-        detallesEnvio["longitud"] = long;
-        detallesEnvio["monto_a_cobrar"] = shipmentData.monto_a_cobrar ?? 0;
-
-        let asignado = await verifyAssignment(dbConnection, shipmentId, userId);
-        detallesEnvio["asignado"] = asignado;
-
-        detallesEnvio["historial"] = [];
-        detallesEnvio["observaciones"] = [];
-        detallesEnvio["imagenes"] = [];
-
-        const historial = await getHistorial(dbConnection, shipmentId);
-        detallesEnvio["historial"] = historial;
-
-        const observaciones = await getObservations(dbConnection, shipmentId);
-        detallesEnvio["observaciones"] = observaciones;
-
-        const imagenes = await getImages(dbConnection, shipmentId);
-        detallesEnvio["imagenes"] = imagenes;
-
-        return detallesEnvio;
-
-    } catch (error) {
-        logRed(`Error en shipmentDetails: ${error.stack}`);
-
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error obteniendo detalles del envío',
-            message: error.message,
-            stack: error.stack
-        });
-    } finally {
-        dbConnection.end();
+    if (shipmentData.destination_latitude != 0) {
+        lat = shipmentData.destination_latitude * 1;
+        long = shipmentData.destination_longitude * 1;
     }
+
+    var detallesEnvio = new Object();
+    detallesEnvio["nombreDestinatario"] = shipmentData.destination_receiver_name;
+    detallesEnvio["nombreCliente"] = "";
+    detallesEnvio["didCliente"] = shipmentData.didCliente * 1;
+    detallesEnvio["domicilio1"] = shipmentData.destination_shipping_address_line;
+    detallesEnvio["domicilio2"] = "CP " + shipmentData.destination_shipping_zip_code + ", " + shipmentData.destination_city_name;
+    detallesEnvio["telefono"] = shipmentData.destination_receiver_phone;
+    detallesEnvio["observacionDomicilio"] = shipmentData.destination_comments;
+    detallesEnvio["estadoActual"] = shipmentData.estado_envio;
+    detallesEnvio["id_venta"] = shipmentData.ml_venta_id;
+    detallesEnvio["id_envio"] = shipmentData.ml_shipment_id;
+    detallesEnvio["cobranza"] = 0;
+    detallesEnvio["latitud"] = lat;
+    detallesEnvio["longitud"] = long;
+    detallesEnvio["monto_a_cobrar"] = shipmentData.monto_a_cobrar ?? 0;
+
+    let asignado = await verifyAssignment(dbConnection, shipmentId, userId);
+    detallesEnvio["asignado"] = asignado;
+
+    detallesEnvio["historial"] = [];
+    detallesEnvio["observaciones"] = [];
+    detallesEnvio["imagenes"] = [];
+
+    const historial = await getHistorial(dbConnection, shipmentId);
+    detallesEnvio["historial"] = historial;
+
+    const observaciones = await getObservations(dbConnection, shipmentId);
+    detallesEnvio["observaciones"] = observaciones;
+
+    const imagenes = await getImages(dbConnection, shipmentId);
+    detallesEnvio["imagenes"] = imagenes;
+
+    return detallesEnvio;
 }
+
+
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
         const sqlEnviosAsignaciones = "SELECT id FROM envios_asignaciones WHERE didEnvio = ? AND operador = ?";
