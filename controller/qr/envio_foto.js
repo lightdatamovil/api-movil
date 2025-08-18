@@ -56,7 +56,7 @@ export async function altaEnvioFoto(company, req) {
         });
       }
 
-      const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien) VALUES ( ?, ?, ?, ?)";
+      const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
 
       await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId], true);
       logYellow(`Imagen subida correctamente para el envio: ${shipmentId}`);

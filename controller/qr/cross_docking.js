@@ -3,8 +3,9 @@ import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from '../../classes/custom_exception.js';
 import LogisticaConf from "../../classes/logisticas_conf.js";
+import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
 
-export async function crossDocking(dataQr, company) {
+export async function crossDocking(dataQr, company, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
@@ -49,6 +50,7 @@ export async function crossDocking(dataQr, company) {
 
         }
 
+        const date = getFechaLocalDePais(company.pais);
         const queryEnvios = `
             SELECT
                 e.estado_envio AS shipmentState,
@@ -62,8 +64,18 @@ export async function crossDocking(dataQr, company) {
                 ON ea.didEnvio = e.did AND ea.superado = 0 AND ea.elim = 0
             LEFT JOIN sistema_usuarios AS su
                 ON ea.operador = su.did AND su.superado = 0 AND su.elim = 0
-            LEFT JOIN ruteo_paradas AS rp
-                ON rp.didPaquete = e.did AND rp.superado = 0 AND rp.elim = 0
+            LEFT JOIN ruteo AS r ON(
+                r.elim = 0
+                AND r.superado = 0
+                AND r.fechaOperativa = CURDATE() AND r.didChofer = e.choferAsignado
+            )
+            LEFT JOIN ruteo_paradas AS rp ON(
+                rp.superado = 0
+                AND rp.elim = 0
+                AND rp.didPaquete = e.did
+                AND rp.didRuteo = r.did
+                AND rp.autofecha like '${date}%'
+            )
             ${queryWhereId}
             LIMIT 1
         `;

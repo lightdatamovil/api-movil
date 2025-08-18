@@ -79,7 +79,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
     const company = await getCompanyById(companyId);
     logGreen(`Iniciando cross-docking para la empresa: ${companyId}`);
     logPurple(`Datos QR: ${JSON.stringify(company)}`);
-    const response = await crossDocking(dataQr, company);
+    const response = await crossDocking(dataQr, company, userId);
 
     logGreen(`Cross-docking completado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/cross-docking", true);

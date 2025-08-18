@@ -28,8 +28,10 @@ export async function getHomeData(company, userId, profile) {
     const dateConHora = getFechaConHoraLocalDePais(company.pais);
     const date = getFechaLocalDePais(company.pais);
     const estadosPendientes = {
-      20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
+      // todo revisar estadosPendientes de rabion -- agregamos 18 : nadie en 3ra visita
+      20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 18],
       55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
+      // todo revisar 1 o existe en  wynflex
       72: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 16, 18, 16],
       default: [0, 1, 2, 3, 6, 7, 10, 11, 12],
     }[company.did] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];

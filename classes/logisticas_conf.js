@@ -8,7 +8,7 @@ export default class LogisticaConf {
         327: 15,
     };
 
-    static hasEnvioFoto = [270];
+    static hasEnvioFoto = [270, 275];
     static hasProductsQr = [274, 200];
     static granLogisticaPlans = [24, 35, 52];
     static hasMultiDepot = [];
