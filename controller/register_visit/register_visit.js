@@ -144,6 +144,14 @@ export async function registerVisit(
       shipmentId,
     ]);
 
+    const queryEnviosNoEntregado =
+      "SELECT estado FROM envios_historial WHERE  elim = 0 AND didEnvio = ?";
+    const choferRows2 = await executeQuery(dbConnection, queryEnviosNoEntregado, [
+      shipmentId
+    ], true);
+
+
+
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
     let estadoInsert;
 
@@ -152,6 +160,13 @@ export async function registerVisit(
 
     if (company.did == 4) {
       estadoInsert = currentShipmentState == 6 ? 6 : shipmentState;
+    }
+    if (company.did == 12) {
+      const row = choferRows2.find(r => r.estado == 6);
+      if (row) {
+        console.log(row.estado, "holaaaa");
+        estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
+      }
     }
 
 
