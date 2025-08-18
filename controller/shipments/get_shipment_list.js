@@ -148,6 +148,21 @@ export async function shipmentList(
     const rows = await executeQuery(dbConnection, query, []);
     const lista = [];
     for (const row of rows) {
+      const direccion1 = row.address_line && row.address_line.trim() !== ""
+        ? row.address_line
+        : row.address_lineEDD;
+
+      const cp = row.cp && row.cp.trim() !== ""
+        ? row.cp
+        : row.cpEDD;
+
+      const localidad = row.localidad && row.localidad.trim() !== ""
+        ? row.localidad
+        : row.localidadEDD;
+
+      const observacionDestinatario = row.destination_comments && row.destination_comments.trim() !== ""
+        ? row.destination_comments
+        : row.destination_commentsEDD;
       const lat = row.lat !== "0" ? row.lat : "0";
       const long = row.lng !== "0" ? row.lng : "0";
       const logisticainversa = row.logisticainversa != null;
@@ -176,14 +191,14 @@ export async function shipmentList(
         fechaHistorial: row.fecha_historial || null,
         estadoAsignacion: estadoAsignacionVal * 1,
         nombreDestinatario: row.destination_receiver_name,
-        direccion1: row.address_line,
-        direccion2: `CP ${row.cp}, ${row.localidad} `,
+        direccion1: direccion1,
+        direccion2: `CP ${cp}, ${localidad} `,
         provincia: row.provincia || "Sin provincia",
         telefono: row.destination_receiver_phone,
         lat: lat,
         long: long,
         logisticainversa: logisticainversa,
-        observacionDestinatario: row.destination_comments,
+        observacionDestinatario: observacionDestinatario,
         hasNextDeliverButton: isOnTheWay && row.proximaentregaId == null,
         orden: row.orden * 1,
         chofer: nombreChofer,
