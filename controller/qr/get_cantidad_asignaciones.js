@@ -16,6 +16,8 @@ export async function getCantidadAsignaciones(company, userId, profile) {
                     AND quien ${profile === 3 ? "=" : "<>"} operador
                     AND operador <> 0
                     AND DATE(autofecha) = CURDATE()
+                    AND superado = 0
+                    AND elim = 0
                     GROUP BY operador;`;
         const result = await executeQuery(dbConnection, query, [userId], true);
 
