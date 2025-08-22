@@ -165,6 +165,23 @@ export async function registerVisit(
 
     //verificar si el estado es nadie (6) y se entrego en 2da visita (9)
 
+    if (company.did == 12) {
+      const row = choferRows2.find(r => r.estado == 6);
+      if (row && currentShipmentState == 6) {
+        currentShipmentState == 6
+        estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
+      }
+    }
+
+    if (company.did == 4) {
+      if (currentShipmentState == 5) {
+        throw new CustomException({
+          title: "El envío ya fue entregado",
+          message: "El envío ya fue entregado",
+        });
+      }
+    }
+
     // si el currentShipmentState es nadie (6) estadoInert = 10 sino shipmentState
     if (currentShipmentState == 6 && shipmentState == 5) {
       estadoInsert = 9;
@@ -174,13 +191,6 @@ export async function registerVisit(
 
     if (company.did == 4) {
       estadoInsert = currentShipmentState == 6 ? 6 : shipmentState;
-    }
-    if (company.did == 12) {
-      const row = choferRows2.find(r => r.estado == 6);
-      if (row) {
-        console.log(row.estado, "holaaaa");
-        estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
-      }
     }
 
 
