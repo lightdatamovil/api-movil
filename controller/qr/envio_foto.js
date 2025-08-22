@@ -6,7 +6,7 @@ import CustomException from "../../classes/custom_exception.js";
 
 
 export async function altaEnvioFoto(company, req) {
-  const { image, userId, street, number, city, observations, driverId, companyId, appVersion, brand, model, androidVersion, deviceId, deviceFrom, profile } = req.body;
+  const { image, userId, address, driverId, appVersion, brand, model, androidVersion, deviceId, deviceFrom, profile } = req.body;
 
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
@@ -17,11 +17,11 @@ export async function altaEnvioFoto(company, req) {
     // ajustar a endpoint
     const url = `https://altaenvios.lightdata.com.ar/api/altaEnvio`;
     const companyId = company.did;
-    const enviosDireccionesDestino = { calle: street, numero: number, localidad: city };
+    const enviosDireccionesDestino = { calle: address };
 
     // ajustar parametros a envio foto (usuario foto)
     const reqBody = {
-      "data": { idEmpresa: companyId, quien: userId, enviosDireccionesDestino: enviosDireccionesDestino, obs: observations, elim: 69, lote: "envioFoto" },
+      "data": { idEmpresa: companyId, quien: userId, enviosDireccionesDestino: enviosDireccionesDestino, elim: 69, lote: "envioFoto" },
     };
 
     const response = await axios.post(url, reqBody, {
