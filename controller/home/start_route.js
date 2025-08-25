@@ -1,7 +1,7 @@
 import mysql2 from 'mysql2';
 import axios from 'axios';
 import { executeQuery, getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
+import { logGreen, logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
@@ -49,10 +49,10 @@ export async function startRoute(company, userId, deviceFrom) {
 
             // distinciones why --  porque se hace esta distincion
             if ((company.did == 22 || company.did == 20) && enCaminoIds.length > 0) {
-                await fsetestadoMasivoMicroservicio(enCaminoIds, deviceFrom, dateConHora, userId, 11);
+                await fsetestadoMasivoMicroservicio(company.did, enCaminoIds, deviceFrom, dateConHora, userId, 11);
             }
             if (pendientesIds.length > 0) {
-                await fsetestadoMasivoMicroservicio(pendientesIds, deviceFrom, dateConHora, userId, 2);
+                await fsetestadoMasivoMicroservicio(company.did, pendientesIds, deviceFrom, dateConHora, userId, 2);
             }
         }
     } catch (error) {
@@ -99,7 +99,7 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateCo
 }
 
 
-async function fsetestadoMasivoMicroservicio(shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
+async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
     try {
         const message = {
             didempresa: companyId,
@@ -113,7 +113,7 @@ async function fsetestadoMasivoMicroservicio(shipmentIds, deviceFrom, dateConHor
             operacion: "masivo",
             didenvios: shipmentIds
         };
-        url = "https://serverestado.lightdata.app/estados/lote";
+        const url = "https://serverestado.lightdata.app/estados/lote";
         const response = await axios.post(url, message);
         logGreen(`✅ Enviado por HTTP con status ${response.status}`);
     } catch (error) {
