@@ -168,7 +168,6 @@ export async function registerVisit(
     if (company.did == 12) {
       const row = choferRows2.find(r => r.estado == 6);
       if (row && currentShipmentState == 6) {
-        //  console.log(row.estado, "holaaaa");
         currentShipmentState == 6
         estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
       }

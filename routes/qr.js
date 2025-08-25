@@ -359,15 +359,13 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
 
 qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
   const startTime = performance.now();
+
   try {
-    const mensajeError = verificarTodo(req, res, [], [
+    verificarTodo(req, res, [], [
       'image',
       'companyId',
       'userId',
-      'street',
-      'number',
-      'city',
-      'observations',
+      'address',
       'appVersion',
       'brand',
       'model',
