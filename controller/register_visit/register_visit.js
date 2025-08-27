@@ -159,16 +159,22 @@ export async function registerVisit(
     ], true);
 
 
-
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
     let estadoInsert;
+    let hayEstado6 = false;
 
     //verificar si el estado es nadie (6) y se entrego en 2da visita (9)
 
+    ///busco un estado 6
+    const row = choferRows2.find(r => r.estado == 6);
+    if (row && currentShipmentState == 6) {
+      const hayEstado6 = true;
+    }
+
+
     if (company.did == 12) {
-      const row = choferRows2.find(r => r.estado == 6);
-      if (row && currentShipmentState == 6) {
-        currentShipmentState == 6
+      if (hayEstado6) {
+        currentShipmentState == 6;
         estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
       }
     }
@@ -183,16 +189,12 @@ export async function registerVisit(
     }
 
     // si el currentShipmentState es nadie (6) estadoInert = 10 sino shipmentState
-    if (currentShipmentState == 6 && shipmentState == 5) {
+    if (hayEstado6 && shipmentState == 5) {
       estadoInsert = 9;
-    } else {
-      estadoInsert = currentShipmentState == 6 ? 10 : shipmentState;
-    }
-
-    if (company.did == 4) {
-      estadoInsert = currentShipmentState == 6 ? 6 : shipmentState;
-    }
-
+    } else if (hayEstado6 && shipmentState == 6) {
+      // exceepcion pocurrier
+      estadoInsert = (company.did == 4) ? 6 : 10;
+    } else { estadoInsert = shipmentState; }
 
 
 
