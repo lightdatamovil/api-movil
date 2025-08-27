@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import axios from 'axios';
 import { logGreen, logRed, logYellow } from './logsCustom.js';
 import { getHoraLocalDePais } from '../../src/funciones/getHoraLocalByPais.js';
+import { getFechaConHoraLocalDePais } from './getFechaConHoraLocalByPais.js';
+import { generarTokenFechaHoy } from './generarTokenFechaHoy.js';
 
 
 dotenv.config({ path: process.env.ENV_FILE || '.env' });
@@ -72,5 +74,32 @@ export async function sendToShipmentStateMicroService(companyId, userId, estado,
             logRed(`❌ Falló también el envío por HTTP: ${httpError.message}`);
             throw httpError;
         }
+    }
+}
+
+
+export async function sendToShipmentStateMicroServiceAPI(company, userId, shipmentId, latitud, longitud, shipmentState) {
+    console.log("entre a endpoint");
+    const message = {
+        didempresa: company.did,
+        didenvio: shipmentId,
+        estado: shipmentState,
+        subestado: null,
+        estadoML: null,
+        fecha: getFechaConHoraLocalDePais(company.pais),
+        quien: userId,
+        operacion: 'change-state',
+        latitud,
+        longitud,
+        desde: "api-movil",
+        tkn: generarTokenFechaHoy(),
+    };
+    logGreen(`Enviando mensaje a RabbitMQ: ${JSON.stringify(message)}`);
+    try {
+        const response = await axios.post(BACKUP_ENDPOINT, message);
+        logGreen(`✅ Enviado por HTTP con status ${response.status}`);
+    } catch (httpError) {
+        logRed(`❌ Falló el envío por HTTP también: ${httpError.message}`);
+        throw httpError;
     }
 }

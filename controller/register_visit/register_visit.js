@@ -5,7 +5,7 @@ import { logPurple, logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
-
+import { sendToShipmentStateMicroServiceAPI } from "../../src/funciones/sendToShipmentStateMicroService.js";
 
 export async function registerVisit(
   company,
@@ -32,7 +32,7 @@ export async function registerVisit(
     const estadoActualRows = await executeQuery(
       dbConnection,
       queryEnviosHistorial,
-      [shipmentId]
+      [shipmentId], true
     );
 
     if (estadoActualRows.length == 0) {
@@ -41,6 +41,7 @@ export async function registerVisit(
         message: "No se encontró el envío",
       });
     }
+    console.log("llegue a estado actual")
 
     const currentShipmentState = estadoActualRows[0].estado;
 
@@ -79,6 +80,7 @@ export async function registerVisit(
             envioRows[0].didCuenta,
             company.did
           );
+          console.log("llegue a estado 1")
 
           const dataML = await mlShipment(
             token,
@@ -94,7 +96,7 @@ export async function registerVisit(
         }
       }
     }
-
+    console.log("llegue a estado ")
     // if (currentShipmentState == 5 || currentShipmentState == 9 || currentShipmentState == 14 || currentShipmentState == 17) {
     //   throw new CustomException({
     //     title: "No es posible registrar visita",
@@ -111,6 +113,7 @@ export async function registerVisit(
       "SELECT didRuteo FROM ruteo_paradas WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
 
     const rutaRows = await executeQuery(dbConnection, queryRuteo, [shipmentId]);
+    console.log("llegue a estado 3")
 
     if (rutaRows.length > 0) {
       const didRuta = rutaRows[0].didRuteo;
@@ -133,6 +136,7 @@ export async function registerVisit(
         await executeQuery(dbConnection, queryRuteo, [didRuta]);
       }
     }
+    console.log("llegue a estado 4")
 
     const queryEnviosRecibe =
       "INSERT INTO envios_recibe (didEnvio, dni, nombre, ilat, ilong, quien) VALUES (?, ?, ?, ?, ?, ?)";
@@ -151,6 +155,7 @@ export async function registerVisit(
     const choferRows = await executeQuery(dbConnection, queryEnvios, [
       shipmentId,
     ]);
+    console.log("llegue a estado 5")
 
     const queryEnviosNoEntregado =
       "SELECT estado FROM envios_historial WHERE  elim = 0 AND didEnvio = ?";
@@ -172,6 +177,7 @@ export async function registerVisit(
         estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
       }
     }
+    console.log("llegue a estado 6")
 
     if (company.did == 4) {
       if (currentShipmentState == 5) {
@@ -192,41 +198,43 @@ export async function registerVisit(
     if (company.did == 4) {
       estadoInsert = currentShipmentState == 6 ? 6 : shipmentState;
     }
+    console.log("casi llegue")
 
-
-
-
-    const queryInsertEnviosHistorial =
-      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
-    const historialResult = await executeQuery(
-      dbConnection,
-      queryInsertEnviosHistorial,
-      [shipmentId, estadoInsert, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId], true
+    const historialResult = await sendToShipmentStateMicroServiceAPI(
+      company,
+      userId,
+      shipmentId,
+      latitude,
+      longitude,
+      estadoInsert
     );
+    console.log(`Resultado de historial: ${JSON.stringify(historialResult)}`);
 
-    const idInsertado = historialResult.insertId;
-
-    const updates = [
-      {
-        query:
-          "UPDATE envios_historial SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?",
-        values: [shipmentId, idInsertado],
-      },
-      {
-        query:
-          "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0",
-        values: [estadoInsert, shipmentId],
-      },
-      {
-        query:
-          "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0",
-        values: [estadoInsert, shipmentId],
-      },
-    ];
-
-    for (const { query, values } of updates) {
-      await executeQuery(dbConnection, query, values);
-    }
+    const idInsertado = 0;
+    /** 
+        const updates = [
+          {
+            query:
+              "UPDATE envios_historial SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?",
+            values: [shipmentId, idInsertado],
+          },
+          {
+            query:
+              "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0",
+            values: [estadoInsert, shipmentId],
+          },
+          {
+            query:
+              "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0",
+            values: [estadoInsert, shipmentId],
+          },
+        ];
+    
+        for (const { query, values } of updates) {
+          await executeQuery(dbConnection, query, values);
+        }
+    
+        */
 
     if (observation) {
       const queryInsertObservaciones =
@@ -237,6 +245,7 @@ export async function registerVisit(
         queryInsertObservaciones,
         [shipmentId, observation, userId]
       );
+      console.log("llegue a estado 7")
 
       const queryUpdateEnviosObservaciones =
         "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
@@ -248,7 +257,7 @@ export async function registerVisit(
     }
 
     return {
-      lineId: idInsertado,
+      lineId: idInsertado ?? 0,
       shipmentState: estadoInsert,
     };
   } catch (error) {

@@ -2,7 +2,7 @@ import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
-import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
+import { sendToShipmentStateMicroService, sendToShipmentStateMicroServiceAPI } from "../../src/funciones/sendToShipmentStateMicroService.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 
 export async function enterFlex(company, dataQr, userId, profile) {
@@ -88,7 +88,7 @@ export async function enterFlex(company, dataQr, userId, profile) {
                 shipmentState = 7;
             }
 
-            await sendToShipmentStateMicroService(company.did, userId, shipmentState, shipmentId);
+            await sendToShipmentStateMicroServiceAPI(company, userId, shipmentId, 0, 0, shipmentState);
             // await setShipmentState(dbConnection, shipmentId, shipmentState, "");
 
             if (profile === 3) {
