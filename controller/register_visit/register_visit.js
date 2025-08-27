@@ -161,15 +161,9 @@ export async function registerVisit(
 
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
     let estadoInsert;
-    let hayEstado6 = false;
 
-    //verificar si el estado es nadie (6) y se entrego en 2da visita (9)
-
-    ///busco un estado 6
-    const row = choferRows2.find(r => r.estado == 6);
-    if (row && currentShipmentState == 6) {
-      const hayEstado6 = true;
-    }
+    // Verifica si existe al menos un registro con estado == 6
+    let hayEstado6 = Array.isArray(choferRows2) && choferRows2.some(r => Number(r?.estado) === 6);
 
 
     if (company.did == 12) {
