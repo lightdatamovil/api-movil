@@ -165,14 +165,6 @@ export async function registerVisit(
     // Verifica si existe al menos un registro con estado == 6
     let hayEstado6 = Array.isArray(choferRows2) && choferRows2.some(r => Number(r?.estado) === 6);
 
-
-    if (company.did == 12) {
-      if (hayEstado6) {
-        currentShipmentState == 6;
-        estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
-      }
-    }
-
     if (company.did == 4) {
       if (currentShipmentState == 5) {
         throw new CustomException({
