@@ -184,9 +184,9 @@ export async function getHomeData(company, userId, profile) {
                     e.superado = 0
                     AND e.elim = 0
                     AND e.did = eh.didEnvio
+                    AND e.choferAsignado = ${userId}
                   )
                   WHERE e.elim = 0
-                    AND eh.didCadete = ${userId}
                     AND eh.elim = 0
                     AND eh.superado = 0
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateConHora}', INTERVAL 7 DAY) AND '${dateConHora}'
@@ -196,7 +196,8 @@ export async function getHomeData(company, userId, profile) {
           const rowsPendientesOperador = await executeQuery(
             dbConnection,
             queryPendientes,
-            []
+            [],
+            true
           );
           infoADevolver.pendings = rowsPendientesOperador.length;
           // En Camino, Cerrados y Entregados HOY para operador
