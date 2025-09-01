@@ -196,7 +196,8 @@ export async function getHomeData(company, userId, profile) {
           const rowsPendientesOperador = await executeQuery(
             dbConnection,
             queryPendientes,
-            []
+            [],
+            true
           );
           infoADevolver.pendings = rowsPendientesOperador.length;
           // En Camino, Cerrados y Entregados HOY para operador
