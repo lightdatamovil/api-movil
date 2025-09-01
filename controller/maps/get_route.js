@@ -92,7 +92,7 @@ export async function getRouteByUserId(company, userId) {
                 FROM envios as e 
                 LEFT JOIN clientes AS c ON (c.elim = 0 AND c.superado = 0 AND c.did = e.didCliente) 
                 JOIN envios_asignaciones as ea ON (ea.didEnvio = e.did AND ea.superado = 0 AND ea.elim = 0 AND ea.operador = ?)
-                WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,9,10,12) and e.autofecha >= now() - interval 3 day 
+                WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,10,12) and e.autofecha >= now() - interval 3 day 
                 ORDER BY ea.orden ASC`;
 
             const shipmentsWithoutOrderResult = await executeQuery(dbConnection, shipmentsWithoutOrderQuery, [userId]);
