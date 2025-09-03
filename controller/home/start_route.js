@@ -2,7 +2,6 @@ import mysql2 from 'mysql2';
 import axios from 'axios';
 import { executeQuery, getProdDbConfig } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
-import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 import { logGreen, logRed } from 'lightdata-tools';
 
 export async function startRoute(company, userId, deviceFrom) {

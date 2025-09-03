@@ -1,7 +1,6 @@
 import CustomException from "../../classes/custom_exception.js";
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 
 export async function armado(company, userId, dataEnvios, didCliente) {
     const dbConfig = getProdDbConfig(company);

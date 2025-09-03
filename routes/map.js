@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
-import { getCompanyById } from '../db.js';
 import { getRouteByUserId } from '../controller/maps/get_route.js';
 import { geolocalize } from '../controller/maps/geolocalize.js';
 import { saveRoute } from '../controller/maps/save_route.js';
@@ -23,11 +22,11 @@ map.post('/get-route-by-user', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en get-route-by-user', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         const result = await getRouteByUserId(company, userId);
 
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/get-route-by-user", true);
-        res.status(200).json({ body: result, message: "Datos obtenidos correctamente" });
+        res.status(Status.ok).json({ body: result, message: "Datos obtenidos correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-route-by-user", false);
@@ -53,13 +52,13 @@ map.post('/geolocalize', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en geolocalize', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         await geolocalize(company, shipmentId, latitude, longitude);
 
 
         const result = { message: "Geolocalización registrada correctamente" };
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/geolocalize", true);
-        res.status(200).json(result);
+        res.status(Status.ok).json(result);
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/geolocalize", false);
@@ -85,7 +84,7 @@ map.post('/save-route', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en save-route', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         await saveRoute(
             company,
             userId,
@@ -96,7 +95,7 @@ map.post('/save-route', verifyToken, async (req, res) => {
         );
 
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta guardada correctamente" }), "/save-route", true);
-        res.status(200).json({ message: "Ruta guardada correctamente" });
+        res.status(Status.ok).json({ message: "Ruta guardada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/save-route", false);

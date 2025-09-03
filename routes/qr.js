@@ -1,6 +1,5 @@
 import { Router } from "express";
 import verifyToken from "../src/funciones/verifyToken.js";
-import { getCompanyById } from "../db.js";
 import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
@@ -32,12 +31,12 @@ qr.post("/driver-list", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await driverList(company);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/driver-list", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -68,7 +67,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
     }
 
     dataQr = parseIfJson(dataQr);
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     logGreen(`Iniciando cross-docking para la empresa: ${companyId}`);
     logPurple(`Datos QR: ${JSON.stringify(company)}`);
     const response = await crossDocking(dataQr, company, userId);
@@ -76,7 +75,7 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
     logGreen(`Cross-docking completado correctamente`);
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/cross-docking", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ body: response, message: "Datos obtenidos correctamente", success: true });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -109,11 +108,11 @@ qr.post("/get-shipment-id", async (req, res) => {
     }
 
     dataQr = parseIfJson(dataQr);
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const response = await getShipmentIdFromQr(dataQr, company);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/get-shipment-id", true);
-    res.status(200).json({
+    res.status(Status.ok).json({
       success: true,
       body: response,
       message: "Datos obtenidos correctamente",
@@ -145,12 +144,12 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
 
     dataQr = parseIfJson(dataQr);
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const response = await getProductsFromShipment(company, dataQr);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/products-from-shipment", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ body: response, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -182,12 +181,12 @@ qr.post("/enter-flex", async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     await enterFlex(company, dataQr, userId, profile);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "exito" }), "/enter-flex", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -219,11 +218,11 @@ qr.post("/sku", verifyToken, async (req, res) => {
 
     dataQr = parseIfJson(dataQr);
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     let result = await getSkuAndStockFlex(company, dataQr);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/sku", true);
-    res.status(200).json(result);
+    res.status(Status.ok).json(result);
   } catch (error) {
     if (error instanceof CustomException) {
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/sku", false);
@@ -252,11 +251,11 @@ qr.post("/armado", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await armado(company, userId, dataEnvios, didCliente);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/armado", true);
-    res.status(200).json({
+    res.status(Status.ok).json({
       body: result,
       message: "Datos obtenidos correctamente",
       success: true,
@@ -288,11 +287,11 @@ qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await getCantidadAsignaciones(company, userId, profile);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
-    res.status(200).json({
+    res.status(Status.ok).json({
       body: result,
       message: "Datos obtenidos correctamente",
       success: true,
@@ -329,7 +328,7 @@ qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
       'driverId',
     ]);
     const companyId = req.body.companyId;
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await altaEnvioFoto(company, req);
 
     res.status(Status.created).json({ body: result, message: "Envio - imagen registrada correctamente" });

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import verifyToken from "../src/funciones/verifyToken.js";
-import { getCompanyById } from "../db.js";
 import { nextDeliver } from "../controller/shipments/next_deliver.js";
 import { shipmentDetails } from "../controller/shipments/get_shipment_details.js";
 import { shipmentList } from "../controller/shipments/get_shipment_list.js";
@@ -41,7 +40,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await shipmentList(
       company,
       userId,
@@ -55,7 +54,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/shipment-list", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -85,13 +84,13 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await shipmentDetails(company, shipmentId, userId);
 
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/shipment-details", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -121,12 +120,12 @@ shipments.post("/next-visit", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await nextDeliver(company, shipmentId, userId);
 
     crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/next-visit", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {

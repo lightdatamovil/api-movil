@@ -1,8 +1,6 @@
-import mysql2 from "mysql2";
-import { executeQuery, getProdDbConfig } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import CustomException from "../../classes/custom_exception.js";
+import { CustomException, executeQuery } from "lightdata-tools";
 
 function generateToken(userId, idEmpresa, perfil) {
   const payload = { userId, perfil, idEmpresa };
@@ -10,16 +8,12 @@ function generateToken(userId, idEmpresa, perfil) {
   return jwt.sign(payload, "ruteate", options);
 }
 
-export async function login(username, password, company) {
-  const dbConfig = getProdDbConfig(company);
-  const dbConnection = mysql2.createConnection(dbConfig);
-  dbConnection.connect();
+export async function login(dbConnection, req) {
+  const { username, password, company } = req.body;
 
-  try {
+  let userAddress = {};
 
-    let userAddress = {};
-
-    const userQuery = `SELECT
+  const userQuery = `SELECT
     u.did,
     u.bloqueado,
     u.nombre,
@@ -36,58 +30,59 @@ export async function login(username, password, company) {
     JOIN sistema_usuarios_accesos as a on (a.elim=0 and a.superado=0 and a.usuario = u.did)
     WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
 
-    const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
-      username,
-    ]);
+  const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
+    username,
+  ]);
 
-    if (resultsFromUserQuery.length === 0) {
-      throw new CustomException({
-        title: "Usuario inválido",
-        message: "Usuario no encontrado en el sistema",
-      });
-    }
+  if (resultsFromUserQuery.length === 0) {
+    throw new CustomException({
+      title: "Usuario inválido",
+      message: "Usuario no encontrado en el sistema",
+    });
+  }
 
-    const user = resultsFromUserQuery[0];
+  const user = resultsFromUserQuery[0];
 
-    if (user.bloqueado === 1) {
-      throw new CustomException({
-        title: "Acceso denegado",
-        message: "El usuario se encuentra bloqueado",
-      });
-    }
+  if (user.bloqueado === 1) {
+    throw new CustomException({
+      title: "Acceso denegado",
+      message: "El usuario se encuentra bloqueado",
+    });
+  }
 
-    const hashPassword = crypto
-      .createHash("sha256")
-      .update(password)
-      .digest("hex");
-    if (user.pass !== hashPassword) {
-      throw new CustomException({
-        title: "Contraseña incorrecta",
-        message: "La contraseña ingresada no coincide",
-      });
-    }
+  const hashPassword = crypto
+    .createHash("sha256")
+    .update(password)
+    .digest("hex");
+  if (user.pass !== hashPassword) {
+    throw new CustomException({
+      title: "Contraseña incorrecta",
+      message: "La contraseña ingresada no coincide",
+    });
+  }
 
-    const token = generateToken(user.did, company.did, user.perfil);
+  const token = generateToken(user.did, company.did, user.perfil);
 
-    let userHomeLatitude, userHomeLongitude;
-    if (user.direccion != "") {
-      userAddress = JSON.parse(user.direccion);
-      userHomeLatitude = userAddress.lat;
-      userHomeLongitude = userAddress.lng;
-    }
+  let userHomeLatitude, userHomeLongitude;
+  if (user.direccion != "") {
+    userAddress = JSON.parse(user.direccion);
+    userHomeLatitude = userAddress.lat;
+    userHomeLongitude = userAddress.lng;
+  }
 
-    const userHouses = [];
+  const userHouses = [];
 
-    if (userHomeLatitude && userHomeLongitude) {
-      userHouses.push({
-        id: 0,
-        name: "Casa",
-        abreviation: "casa",
-        latitude: userHomeLatitude,
-        longitude: userHomeLongitude,
-      });
-    }
-    return {
+  if (userHomeLatitude && userHomeLongitude) {
+    userHouses.push({
+      id: 0,
+      name: "Casa",
+      abreviation: "casa",
+      latitude: userHomeLatitude,
+      longitude: userHomeLongitude,
+    });
+  }
+  return {
+    body: {
       id: user.did,
       username: user.usuario,
       profile: user.perfil,
@@ -98,17 +93,7 @@ export async function login(username, password, company) {
       token,
       houses: userHouses,
       version: "1.0.85",
-    };
-  } catch (error) {
-    if (error instanceof CustomException) {
-      throw error;
-    }
-    throw new CustomException({
-      title: "No pudimos iniciar sesión",
-      message: error.message,
-      stack: error.stack,
-    });
-  } finally {
-    dbConnection.end();
-  }
+    },
+    message: "Usuario logueado correctamente"
+  };
 }

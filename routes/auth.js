@@ -1,103 +1,94 @@
 import { Router } from 'express';
-import { getCompanyById, getCompanyByCode } from '../db.js';
-import verifyToken from '../src/funciones/verifyToken.js';
-import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { identification } from '../controller/auth/identification.js';
 import { login } from '../controller/auth/login.js';
 import { whatsappMessagesList } from '../controller/auth/whatsappMessagesList.js';
-import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
+import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
+import mysql2 from 'mysql2';
+import { companiesService, jwtSecret } from '../db.js';
 
 const auth = Router();
 
 auth.post('/company-identification', async (req, res) => {
     const startTime = performance.now();
 
-    const { companyCode } = req.body;
+    let dbConnection;
+
     try {
-        const errorMessage = verifyParamaters(req.body, ['companyCode']);
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: ['companyCode'], optional: [] });
 
-        if (errorMessage) {
-            throw new CustomException({
-                title: 'Error en identificacion de empresa',
-                message: errorMessage
-            });
-        }
+        const { companyCode } = req.body;
+        const company = await companiesService.getByCode(companyCode);
 
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
 
-        const company = await getCompanyByCode(companyCode);
+        const result = await identification(dbConnection, company);
 
-        const result = await identification(company);
-
-        crearLog(company.did, null, null, req.body, performance.now() - startTime, JSON.stringify(result), "/company-identification", true);
-        res.status(200).json({ body: result, message: "Empresa identificada correctamente" });
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json();
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(null, null, null, req.body, performance.now() - startTime, JSON.stringify(error), "/company-identification", false);
-            res.status(400).json(error);
-        } else {
-            crearLog(null, null, null, req.body, performance.now() - startTime, JSON.stringify(error.message), "/company-identification", false);
-            res.status(500).json({ title: 'Error interno del servidor', message: 'Unhandled Error', stack: error.stack });
-        }
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
     }
 });
 
 auth.post('/login', async (req, res) => {
     const startTime = performance.now();
 
-    const { username, password, companyId } = req.body;
+    let dbConnection;
+
     try {
-        const mensajeError = verifyParamaters(req.body, ['username', 'password', 'companyId']);
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: ['username', 'password'], optional: [] });
 
-        if (mensajeError) {
-            throw new CustomException({
-                title: 'Error en login',
-                message: mensajeError
-            });
-        }
+        const { companyId } = req.user;
+        const company = await companiesService.getById(companyId);
 
-        const company = await getCompanyById(companyId);
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
 
-        const result = await login(username, password, company);
+        const result = await login(dbConnection, req);
 
-        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/login", true);
-        res.status(200).json({ body: result, message: "Usuario logueado correctamente" });
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json(result);
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/login", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/login", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
     }
 });
 
-auth.post('/whatsapp-message-list', verifyToken, async (req, res) => {
+auth.get('/whatsapp-message-list', verifyToken(jwtSecret), async (req, res) => {
     const startTime = performance.now();
-    const mensajeError = verifyParamaters(req.body, ['companyId'], true);
 
-    if (mensajeError) {
-        return res.status(400).json({ message: mensajeError });
-    }
+    let dbConnection;
 
-    const { companyId } = req.body;
     try {
-        const company = await getCompanyById(companyId);
-        const result = await whatsappMessagesList(company);
-        crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(result), "/whatsapp-message-list", true);
-        res.status(200).json({ body: result, message: "Mensajes traidos correctamente" });
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: [], optional: [] });
+
+        const { companyId } = req.user;
+        const company = await companiesService.getById(companyId);
+
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const result = await whatsappMessagesList(dbConnection);
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json(result);
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(error), "/whatsapp-message-list", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, null, null, req.body, performance.now() - startTime, JSON.stringify(error.message), "/whatsapp-message-list", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
     }
 });
 

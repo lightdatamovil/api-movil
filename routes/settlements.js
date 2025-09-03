@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
-import { getCompanyById } from '../db.js';
 import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
@@ -23,10 +22,10 @@ settlements.post('/settlement-list', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en settlement-list', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         const list = await getSettlementList(company, userId, from, to);
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-list", true);
-        res.status(200).json({ body: list, message: 'Listado de liquidaciones obtenido correctamente' });
+        res.status(Status.ok).json({ body: list, message: 'Listado de liquidaciones obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/settlement-list", false);
@@ -51,11 +50,11 @@ settlements.post('/settlement-details', verifyToken, async (req, res) => {
         if (mensajeError) {
             throw new CustomException({ title: 'Error en settlement-details', message: mensajeError });
         }
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         const details = await getSettlementDetails(company, settlementId);
 
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-details", true);
-        res.status(200).json({ body: details, message: 'Detalle de liquidación obtenido correctamente' });
+        res.status(Status.ok).json({ body: details, message: 'Detalle de liquidación obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/settlement-details", false);
@@ -81,11 +80,11 @@ settlements.post('/settlement-shipment-details', verifyToken, async (req, res) =
             throw new CustomException({ title: 'Error en settlement-shipment-details', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         const shipments = await getSettlementShipmentDetails(company, userId);
 
         crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/settlement-shipment-details", true);
-        res.status(200).json({ body: shipments, message: 'Detalle de envíos de liquidación obtenido correctamente' });
+        res.status(Status.ok).json({ body: shipments, message: 'Detalle de envíos de liquidación obtenido correctamente' });
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/settlement-shipment-details", false);

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import verifyToken from "../src/funciones/verifyToken.js";
-import { getCompanyById } from "../db.js";
 import { verifyStartedRoute } from "../controller/home/verify_started_route.js";
 import { startRoute } from "../controller/home/start_route.js";
 import { finishRoute } from "../controller/home/finish_route.js";
@@ -8,6 +7,8 @@ import { getHomeData } from "../controller/home/get_home_data.js";
 import { verifyParamaters } from "../src/funciones/verifyParameters.js";
 import CustomException from "../classes/custom_exception.js";
 import { crearLog } from "../src/funciones/crear_log.js";
+import { companiesService } from "../db.js";
+import { Status } from "lightdata-tools";
 
 const home = Router();
 
@@ -27,12 +28,12 @@ home.post("/home", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await getHomeData(company, userId, profile);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/home", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ body: result, message: "Datos obtenidos correctamente" });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -62,12 +63,12 @@ home.post("/start-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     await startRoute(company, userId, deviceFrom);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta comenzada exitosamente" }), "/start-route", true);
     res
-      .status(200)
+      .status(Status.ok)
       .json({ message: "La ruta ha comenzado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
@@ -97,11 +98,11 @@ home.post("/end-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     await finishRoute(company, userId);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, "Ruta terminada exitosamente", "/end-route", true);
-    res.status(200).json({ message: "La ruta ha terminado exitosamente" });
+    res.status(Status.ok).json({ message: "La ruta ha terminado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
       crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/end-route", false);
@@ -130,11 +131,11 @@ home.post("/verify-started-route", verifyToken, async (req, res) => {
       });
     }
 
-    const company = await getCompanyById(companyId);
+    const company = await companiesService.getById(companyId);
     const result = await verifyStartedRoute(company, userId);
 
     crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/verify-started-route", true);
-    res.status(200).json({
+    res.status(Status.ok).json({
       body: result,
       message: `La ruta ${result ? "ha comenzado" : "no ha comenzado"}`,
     });

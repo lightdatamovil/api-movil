@@ -1,7 +1,6 @@
 import mysql2 from 'mysql2';
 import { getProdDbConfig } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
-import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
 
 

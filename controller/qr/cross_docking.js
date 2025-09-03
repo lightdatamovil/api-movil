@@ -2,7 +2,6 @@ import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany }
 import mysql2 from 'mysql2';
 import CustomException from '../../classes/custom_exception.js';
 import LogisticaConf from "../../classes/logisticas_conf.js";
-import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
 
 export async function crossDocking(dataQr, company, userId) {
     const dbConfig = getProdDbConfig(company);

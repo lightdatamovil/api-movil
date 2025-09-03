@@ -2,7 +2,6 @@ import mysql2 from 'mysql2';
 
 import { getProdDbConfig, executeQuery } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
-import { getFechaLocalDePais } from '../../src/funciones/getFechaLocalByPais.js';
 
 export async function saveRoute(company, userId, orders, distance, totalDelay, additionalRouteData) {
     const dbConfig = getProdDbConfig(company);

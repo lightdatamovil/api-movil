@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import verifyToken from '../src/funciones/verifyToken.js';
-import { getCompanyById } from '../db.js';
 import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
@@ -40,7 +39,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en register', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         const result = await registerVisit(
             company,
             userId,
@@ -55,7 +54,7 @@ registerVisitRoute.post('/register', verifyToken, async (req, res) => {
         );
 
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/register", true);
-        res.status(200).json({ body: result, message: "Visita registrada correctamente" });
+        res.status(Status.ok).json({ body: result, message: "Visita registrada correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/register", false);
@@ -84,11 +83,11 @@ registerVisitRoute.post('/upload-image', verifyToken, async (req, res) => {
             throw new CustomException({ title: 'Error en upload-image', message: mensajeError });
         }
 
-        const company = await getCompanyById(companyId);
+        const company = await companiesService.getById(companyId);
         const response = await uploadImage(company, shipmentId, userId, shipmentState, image, lineId);
 
         crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/upload-image", true);
-        res.status(200).json({ message: "Imagen subida correctamente" });
+        res.status(Status.ok).json({ message: "Imagen subida correctamente" });
     } catch (error) {
         if (error instanceof CustomException) {
             crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/upload-image", false);

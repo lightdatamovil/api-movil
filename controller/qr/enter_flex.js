@@ -1,8 +1,6 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
 import CustomException from "../../classes/custom_exception.js";
-import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
-import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 
 export async function enterFlex(company, dataQr, userId, profile) {
     const dbConfig = getProdDbConfig(company);

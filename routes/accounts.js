@@ -1,40 +1,37 @@
 import { Router } from 'express';
-import verifyToken from '../src/funciones/verifyToken.js';
-import { getCompanyById } from '../db.js';
+import { companiesService, getProdDbConfig, jwtSecret } from '../db.js';
 import { accountList } from '../controller/accounts/accountList.js';
-import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
+import { errorHandler, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
+import mysql2 from 'mysql2';
 
 const accounts = Router();
 
-accounts.post('/account-list', verifyToken, async (req, res) => {
+accounts.get('/account-list', verifyToken(jwtSecret), async (req, res) => {
 	const startTime = performance.now();
-	const { companyId, userId, profile } = req.body;
+
+	let dbConnection;
 
 	try {
-		const mensajeError = verifyParamaters(req.body, ['companyId', 'userId', 'profile']);
-		if (mensajeError) {
-			throw new CustomException({
-				title: 'Error trayendo la lista de cuentas',
-				message: mensajeError
-			});
-		}
+		verifyHeaders(req, []);
+		verifyAll(req, [], { required: [], optional: [] });
 
-		const company = await getCompanyById(companyId);
-		const result = await accountList(company, userId, profile);
+		const { companyId } = req.user;
+		const company = await companiesService.getById(companyId);
 
-		crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/account-list", true);
-		res.status(200).json({ body: result, message: "Lista de cuentas obtenida correctamente" });
+		const dbConfig = getProdDbConfig(company);
+		dbConnection = mysql2.createConnection(dbConfig);
+		dbConnection.connect();
+
+		const result = await accountList(dbConnection, req);
+
+		crearLog(req, startTime, JSON.stringify(result), true);
+		res.status(Status.ok).json(result);
 	} catch (error) {
-		if (error instanceof CustomException) {
-			crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/account-list", false);
-			res.status(400).json({ title: error.title, message: error.message });
-		} else {
-			crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/account-list", false);
-			res.status(500).json({ message: 'Error interno del servidor' });
-		}
+		crearLog(req, startTime, JSON.stringify(error), false);
+		errorHandler(req, res, error);
 	} finally {
+		if (dbConnection) dbConnection.end();
 	}
 });
 

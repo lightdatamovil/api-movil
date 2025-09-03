@@ -1,6 +1,6 @@
 export default class Status {
 
-    static ok = 200;
+    static ok = Status.ok;
     static created = 201;
     static noContent = 204;
 

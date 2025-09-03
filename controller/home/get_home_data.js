@@ -1,8 +1,6 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
 import CustomException from "../../classes/custom_exception.js";
-import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
-import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
 
 export async function getHomeData(company, userId, profile) {
   const dbConfig = getProdDbConfig(company);

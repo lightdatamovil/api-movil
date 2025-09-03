@@ -3,7 +3,6 @@ import mysql2 from "mysql2";
 import axios from "axios";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 
 
 export async function registerVisit(

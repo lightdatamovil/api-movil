@@ -1,7 +1,6 @@
 import { getProdDbConfig, executeQuery } from '../../db.js';
 import mysql2 from 'mysql2';
 import CustomException from '../../classes/custom_exception.js';
-import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
 export async function finishRoute(company, userId) {
     const dbConfig = getProdDbConfig(company);

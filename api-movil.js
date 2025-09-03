@@ -53,7 +53,7 @@ if (cluster.isMaster) {
 
         const formattedTime = `${hours}:${minutes}:${seconds}`;
 
-        res.status(200).json({
+        res.status(Status.ok).json({
             hora: formattedTime
         });
     });

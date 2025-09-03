@@ -3,7 +3,6 @@ import mysql2 from 'mysql2';
 import { getProdDbConfig, executeQuery } from '../../db.js';
 import CustomException from '../../classes/custom_exception.js';
 import MapConstants from '../../src/constants/map.js';
-import { getFechaLocalDePais } from '../../src/funciones/getFechaLocalByPais.js';
 
 export async function getRouteByUserId(company, userId) {
     const dbConfig = getProdDbConfig(company);
