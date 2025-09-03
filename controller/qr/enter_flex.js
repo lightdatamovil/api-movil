@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
@@ -106,7 +105,6 @@ export async function enterFlex(company, dataQr, userId, profile) {
 
         }
     } catch (error) {
-        logRed(`Error en enterFlex: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }
@@ -161,7 +159,6 @@ async function setDispatchDate(dbConnection, clientId) {
 
         return now.toISOString().split("T")[0];
     } catch (error) {
-        logRed(`Error en setDispatchDate: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }
@@ -186,7 +183,6 @@ async function updateWhoPickedUp(dbConnection, userId, driverId) {
         await executeQuery(dbConnection, query, [userId, now, driverId]);
 
     } catch (error) {
-        logRed(`Error en updateWhoPickedUp: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

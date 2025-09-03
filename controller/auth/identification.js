@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { executeQuery, getProdDbConfig } from '../../db.js';
 import mysql2 from 'mysql2';
@@ -55,7 +54,6 @@ export async function identification(company) {
         return result;
 
     } catch (error) {
-        logRed(`Error en identification: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

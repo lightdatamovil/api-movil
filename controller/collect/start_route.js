@@ -1,6 +1,5 @@
 import mysql2 from 'mysql2';
 import { getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function startCollectRoute(company) {
@@ -11,7 +10,6 @@ export async function startCollectRoute(company) {
 
         return true;
     } catch (error) {
-        logRed(`Error en startCollectRoute: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getToken } from '../../src/funciones/getTokenML.js';
 import { executeQuery, getProdDbConfig } from '../../db.js';
@@ -95,7 +94,6 @@ async function getShipmentDetails(shipmentId, token) {
 
         return response.data;
     } catch (error) {
-        logRed(`Error obteniendo detalles del envío: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

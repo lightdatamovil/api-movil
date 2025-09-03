@@ -1,9 +1,9 @@
 import mysql2 from 'mysql2';
 import axios from 'axios';
 import { executeQuery, getProdDbConfig } from '../../db.js';
-import { logGreen, logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
+import { logGreen, logRed } from 'lightdata-tools';
 
 export async function startRoute(company, userId, deviceFrom) {
     const dbConfig = getProdDbConfig(company);
@@ -56,7 +56,6 @@ export async function startRoute(company, userId, deviceFrom) {
             }
         }
     } catch (error) {
-        logRed(`Error en startRoute: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }
@@ -69,35 +68,6 @@ export async function startRoute(company, userId, deviceFrom) {
         dbConnection.end();
     }
 }
-
-async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
-    try {
-        const query1 = `
-            UPDATE envios_historial
-            SET superado = 1
-            WHERE superado = 0 AND didEnvio IN(${shipmentIds.join(',')})
-        `;
-        await executeQuery(connection, query1);
-
-        const query2 = `
-            UPDATE envios
-            SET estado_envio = ?
-            WHERE superado = 0 AND did IN(${shipmentIds.join(',')})
-        `;
-        await executeQuery(connection, query2, [onTheWayState]);
-
-        const query3 = `
-            INSERT INTO envios_historial (didEnvio, estado, quien, fecha, didCadete, desde)
-            SELECT did, ?, ?, ?, choferAsignado, ?
-            FROM envios WHERE did IN(${shipmentIds.join(',')})
-        `;
-        await executeQuery(connection, query3, [onTheWayState, userId, dateConHora, deviceFrom]);
-    } catch (error) {
-        throw error;
-    }
-
-}
-
 
 async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
     try {

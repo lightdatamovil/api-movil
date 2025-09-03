@@ -1,6 +1,5 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function changePassword(company, userId, oldPassword, newPassword) {
@@ -55,8 +54,6 @@ export async function changePassword(company, userId, oldPassword, newPassword) 
 
         return;
     } catch (error) {
-        logRed(`Error en changePassword: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getSettlementShipmentDetails(company, shipmentId) {
@@ -46,7 +45,6 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
             });
         }
     } catch (error) {
-        logRed(`Error en getSettlementShipmentDetails: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

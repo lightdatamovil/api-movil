@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig, getZonesByCompany } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getSettlementDetails(company, settlementId) {
@@ -42,7 +41,6 @@ export async function getSettlementDetails(company, settlementId) {
             zona: zones[row.didEnvioZona] || "Zona desconocida"
         }));
     } catch (error) {
-        logRed(`Error en getSettlementDetails: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

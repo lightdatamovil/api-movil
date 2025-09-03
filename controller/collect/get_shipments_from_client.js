@@ -1,6 +1,5 @@
 import mysql2 from 'mysql2';
 import { getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
@@ -32,7 +31,6 @@ export async function shipmentsFromClient(company, clientId) {
 
         return shipmentsFromClient;
     } catch (error) {
-        logRed(`Error en shipmentsFromClient: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

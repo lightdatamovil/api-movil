@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import LogisticaConf from "../../classes/logisticas_conf.js";
 
@@ -64,8 +63,6 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
         return shipmentId;
     } catch (error) {
-        logRed(`Error en getShipmentIdFromQr: ${error}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

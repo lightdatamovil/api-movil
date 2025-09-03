@@ -1,6 +1,5 @@
 import mysql2 from 'mysql2';
 import { getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
@@ -80,7 +79,6 @@ export async function getRoute(company, userId) {
             client: client
         };
     } catch (error) {
-        logRed(`Error en getRoute: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }

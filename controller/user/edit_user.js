@@ -1,6 +1,5 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function editUser(company, userId, email, phone) {
@@ -40,8 +39,6 @@ export async function editUser(company, userId, email, phone) {
 
         return;
     } catch (error) {
-        logRed(`Error en editUser: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

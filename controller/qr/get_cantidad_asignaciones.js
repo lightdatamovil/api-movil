@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from "mysql2";
-import { logRed } from "../../src/funciones/logsCustom.js";
 
 export async function getCantidadAsignaciones(company, userId, profile) {
     const dbConfig = getProdDbConfig(company);
@@ -32,7 +31,6 @@ export async function getCantidadAsignaciones(company, userId, profile) {
 
         return asignaciones;
     } catch (error) {
-        logRed(`Error en driverList: ${error.stack}`);
         throw error;
     } finally {
         dbConnection.end();

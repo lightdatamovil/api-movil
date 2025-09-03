@@ -1,7 +1,6 @@
 import mysql2 from 'mysql2';
 
 import { getProdDbConfig, executeQuery } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import MapConstants from '../../src/constants/map.js';
 import { getFechaLocalDePais } from '../../src/funciones/getFechaLocalByPais.js';
@@ -122,8 +121,6 @@ export async function getRouteByUserId(company, userId) {
             additionalRouteData: additionalRouteData,
         };
     } catch (error) {
-        logRed(`Error en getRoutaByUserId: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

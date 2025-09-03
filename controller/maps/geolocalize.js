@@ -1,7 +1,6 @@
 import mysql2 from 'mysql2';
 
 import { getProdDbConfig, executeQuery } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function geolocalize(company, shipmentId, latitude, longitude) {
@@ -26,15 +25,12 @@ export async function geolocalize(company, shipmentId, latitude, longitude) {
 
             return;
         } else {
-            logRed(`El envío no existe`);
             throw new CustomException({
                 title: 'Error geolocalizando',
                 message: 'El envío no existe',
             });
         }
     } catch (error) {
-        logRed(`Error en geolocalize: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

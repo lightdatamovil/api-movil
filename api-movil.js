@@ -10,11 +10,10 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { getCompanyById, redisClient } from './db.js';
-import { getUrls } from './src/funciones/urls.js';
-import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
+import { redisClient } from './db.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { logBlue, logRed } from 'lightdata-tools';
 
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
@@ -43,13 +42,6 @@ if (cluster.isMaster) {
     app.use(json());
     app.use(cors());
 
-    app.post('/api/testapi', async (req, res) => {
-        const startTime = performance.now();
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
-        res.status(200).json({ message: 'API funcionando correctamente' });
-    });
-
     app.get('/ping', (req, res) => {
         const currentDate = new Date();
         currentDate.setHours(currentDate.getHours()); // Resta 3 horas
@@ -65,20 +57,6 @@ if (cluster.isMaster) {
             hora: formattedTime
         });
     });
-
-    app.post('/api/get-urls', async (req, res) => {
-        const startTime = performance.now();
-        const { companyId } = req.body;
-
-        const company = await getCompanyById(companyId);
-
-        const urls = getUrls(company);
-
-        const endTime = performance.now();
-        logPurple(`Tiempo de ejecución: ${endTime - startTime} ms`)
-        res.status(200).json({ body: urls, message: 'Datos obtenidos correctamente' });
-    });
-
 
     (async () => {
         try {

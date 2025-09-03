@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getSettlementList(company, userId, from, to) {
@@ -36,8 +35,6 @@ export async function getSettlementList(company, userId, from, to) {
             did: row.did * 1
         }));
     } catch (error) {
-        logRed(`Error en getSettlementList: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

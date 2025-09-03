@@ -1,7 +1,6 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
-import { logCyan, logPurple, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 
@@ -29,7 +28,6 @@ export async function altaEnvioFoto(company, req) {
         'Content-Type': 'application/json'
       }
     });
-    logPurple(`Response de altaEnvioFoto: ${JSON.stringify(response.data)}`);
 
     if (!response.data) {
       throw new CustomException({
@@ -48,7 +46,6 @@ export async function altaEnvioFoto(company, req) {
           'Content-Type': 'application/json'
         }
       });
-      logCyan(`Response de subida de imagen: ${JSON.stringify(res.data)}`);
       if (!res.data) {
         throw new CustomException({
           title: 'Error en subida de imagen',
@@ -59,7 +56,6 @@ export async function altaEnvioFoto(company, req) {
       const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
 
       await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId], true);
-      logYellow(`Imagen subida correctamente para el envio: ${shipmentId}`);
 
       const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
 
@@ -78,13 +74,11 @@ export async function altaEnvioFoto(company, req) {
         deviceId: deviceId
       };
 
-      logCyan(`ReqBody Asignar: ${JSON.stringify(req_body_asignar)}`);
       const response_assign = await axios.post(url_assignment, req_body_asignar, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      logPurple(`Response de asignacion de envio: ${JSON.stringify(response_assign.data)}`);
       if (!response_assign.data) {
         throw new CustomException({
           title: 'Error en asignacion de envio',
@@ -94,7 +88,6 @@ export async function altaEnvioFoto(company, req) {
       return shipmentId;
     }
   } catch (error) {
-    logRed(`Error en altaEnvioFoto: ${error.message}`);
     throw new CustomException({
       title: 'Error en altaEnvioFoto',
       message: error.message,

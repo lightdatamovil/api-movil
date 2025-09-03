@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig, getClientsByCompany, getDriversByCompany } from "../../db.js";
 import mysql2 from "mysql2";
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
 
@@ -22,7 +21,6 @@ export async function shipmentList(
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
-      logRed(`No se encontró el perfil del usuario con ID ${userId}`);
       throw new CustomException({
         title: "Error al obtener perfil",
         message: `No se encontró el perfil del usuario con ID ${userId}`,
@@ -209,8 +207,6 @@ export async function shipmentList(
     }
     return lista;
   } catch (error) {
-    logRed(`Error en shipmentList: ${error.stack} `);
-
     if (error instanceof CustomException) {
       throw error;
     }

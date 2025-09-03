@@ -1,6 +1,5 @@
 import { executeQuery, getProdDbConfig } from '../../db.js';
 import mysql2 from 'mysql2';
-import { logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 
 export async function shipmentDetails(company, shipmentId, userId) {
@@ -54,8 +53,6 @@ export async function shipmentDetails(company, shipmentId, userId) {
         return detallesEnvio;
 
     } catch (error) {
-        logRed(`Error en shipmentDetails: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }
@@ -76,8 +73,6 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
 
         return resultQueryEnviosAsignaciones.length > 0 ? true : false;
     } catch (error) {
-        logRed(`Error en verifyAssignment: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }
@@ -105,8 +100,6 @@ async function getHistorial(dbConnection, shipmentId) {
 
         return historial;
     } catch (error) {
-        logRed(`Error en getHistorial: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }
@@ -136,8 +129,6 @@ async function getObservations(dbConnection, shipmentId) {
 
         return observations;
     } catch (error) {
-        logRed(`Error en getObservations: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }
@@ -168,8 +159,6 @@ async function getImages(dbConnection, shipmentId) {
 
         return images;
     } catch (error) {
-        logRed(`Error en getImages: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }
@@ -216,8 +205,6 @@ async function shipmentInformation(dbConnection, shipmentId) {
 
         return results[0];
     } catch (error) {
-        logRed(`Error en shipmentInformation: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

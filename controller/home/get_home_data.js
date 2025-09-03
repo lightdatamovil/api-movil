@@ -1,6 +1,5 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 import { getFechaLocalDePais } from "../../src/funciones/getFechaLocalByPais.js";
@@ -17,7 +16,6 @@ export async function getHomeData(company, userId, profile) {
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
-      logRed(`No se encontró el perfil del usuario con ID ${userId}`);
       throw new CustomException({
         title: "Error al obtener perfil",
         message: `No se encontró el perfil del usuario con ID ${userId}`,
@@ -240,7 +238,6 @@ export async function getHomeData(company, userId, profile) {
 
     return infoADevolver;
   } catch (error) {
-    logRed(`Error en getHomeData: ${error.stack}`);
     if (error instanceof CustomException) {
       throw error;
     }

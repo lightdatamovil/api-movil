@@ -1,6 +1,5 @@
 import mysql2 from "mysql2";
 import { executeQuery, getProdDbConfig } from "../../db.js";
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function whatsappMessagesList(company, startTime) {
@@ -14,7 +13,6 @@ export async function whatsappMessagesList(company, startTime) {
     const results = await executeQuery(dbConnection, queryTexts, []);
     return results.map((row) => row.texto);
   } catch (error) {
-    logRed(`Error en whatsappMessagesList: ${error.stack}`);
     if (error instanceof CustomException) {
       throw error;
     }

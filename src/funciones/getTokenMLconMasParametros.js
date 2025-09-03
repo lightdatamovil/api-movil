@@ -1,5 +1,4 @@
 import axios from "axios";
-import { logRed } from "./logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 export async function getTokenMLconMasParametros(clientId, accountId, companyId) {
@@ -10,8 +9,6 @@ export async function getTokenMLconMasParametros(clientId, accountId, companyId)
 
         return data.trim();
     } catch (error) {
-        logRed(`Error obteniendo token: ${error.stack}`);
-
         if (error instanceof CustomException) {
             throw error;
         }

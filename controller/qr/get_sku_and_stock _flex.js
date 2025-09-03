@@ -1,4 +1,3 @@
-import { logRed } from "../../src/funciones/logsCustom.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getShipmentFromMLByTracking, getTitleAndImageFromMLByTracking, } from "../../src/funciones/getItemsFromMLByShipmentId.js";
 
@@ -26,7 +25,6 @@ export async function getSkuAndStockFlex(company, dataQr) {
             success: true
         };
     } catch (error) {
-        logRed(`Error en getSkuAndStockFlex: ${error.stack}`);
         return { message: error.message, success: false };
     }
 }

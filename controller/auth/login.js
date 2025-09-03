@@ -2,7 +2,6 @@ import mysql2 from "mysql2";
 import { executeQuery, getProdDbConfig } from "../../db.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 function generateToken(userId, idEmpresa, perfil) {
@@ -101,7 +100,6 @@ export async function login(username, password, company) {
       version: "1.0.85",
     };
   } catch (error) {
-    logRed(`Error en login: ${error.stack}`);
     if (error instanceof CustomException) {
       throw error;
     }

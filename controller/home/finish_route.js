@@ -17,7 +17,6 @@ export async function finishRoute(company, userId) {
         const sqlUpdateRuteo = "UPDATE ruteo SET hs_finApp = ? WHERE superado = 0 AND elim = 0 AND didChofer = ?";
         await executeQuery(dbConnection, sqlUpdateRuteo, [hour, userId]);
     } catch (error) {
-        logRed(`Error en finishRoute: ${error.stack}`);
         if (error instanceof CustomException) {
             throw error;
         }
