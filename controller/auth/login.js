@@ -1,12 +1,6 @@
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import { CustomException, executeQuery } from "lightdata-tools";
-
-function generateToken(userId, idEmpresa, perfil) {
-  const payload = { userId, perfil, idEmpresa };
-  const options = { expiresIn: "2558h" };
-  return jwt.sign(payload, "ruteate", options);
-}
+import { CustomException, executeQuery, generateToken } from "lightdata-tools";
+import { jwtSecret } from "../../db.js";
 
 export async function login(dbConnection, req, company) {
   const { username, password } = req.body;
@@ -61,7 +55,11 @@ export async function login(dbConnection, req, company) {
     });
   }
 
-  const token = generateToken(user.did, company.did, user.perfil);
+  const token = generateToken(jwtSecret, {
+    userId: user.did,
+    companyId: company.did,
+    profile: user.perfil
+  }, {}, 3600 * 24 * 30);
 
   let userHomeLatitude, userHomeLongitude;
   if (user.direccion != "") {
