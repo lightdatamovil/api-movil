@@ -1,9 +1,10 @@
 import imageType from 'image-type';
 import axios from 'axios';
 import CustomException from "../../classes/custom_exception.js";
+import { getFechaLocalDePais } from 'lightdata-tools';
 
 export async function changeProfilePicture(req, company) {
-    const { image, dateYYYYMMDD } = req.body;
+    const { image } = req.body;
     const { userId, profile } = req.user;
 
     if (image && image !== "") {
@@ -12,7 +13,7 @@ export async function changeProfilePicture(req, company) {
         const decodedData = Buffer.from(imageB64[1], 'base64');
 
         const imageType = await getImageType(decodedData);
-
+        const token = getFechaLocalDePais(company.pais);
         if (imageType) {
             const data = {
                 operador: "guardarImagen",
@@ -20,7 +21,7 @@ export async function changeProfilePicture(req, company) {
                 didUser: userId,
                 perfil: profile,
                 imagen: image,
-                token: dateYYYYMMDD
+                token: token
             };
 
             const config = {

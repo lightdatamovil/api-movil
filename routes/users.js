@@ -70,7 +70,7 @@ users.post('/change-profile-picture', verifyToken(jwtSecret), async (req, res) =
 
     try {
         verifyHeaders(req, []);
-        verifyAll(req, [], { required: ['image', 'dateYYYYMMDD'], optional: [] });
+        verifyAll(req, [], { required: ['image'], optional: [] });
 
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
