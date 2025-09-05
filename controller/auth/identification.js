@@ -1,6 +1,6 @@
 import axios from 'axios';
-import LogisticaConf from '../../classes/logisticas_conf.js';
-import { executeQuery, logRed } from 'lightdata-tools';
+
+import { executeQuery, LogisticaConfig, logRed } from 'lightdata-tools';
 
 export async function identification(dbConnection, company) {
 
@@ -34,15 +34,15 @@ export async function identification(dbConnection, company) {
         url: company.url,
         country: company.pais * 1,
         name: company.empresa,
-        appPro: LogisticaConf.hasAppPro.includes(company.did * 1),
+        appPro: LogisticaConfig.hasAppPro.includes(company.did * 1),
         colectaPro: false,
-        obligatoryImageOnRegisterVisit: LogisticaConf.hasObligatoryImageOnRegisterVisitEnabled(company.did),
-        obligatoryDniAndNameOnRegisterVisit: LogisticaConf.hasObligatoryDniAndNameOnRegisterVisitEnabled(company.did),
-        depots: LogisticaConf.hasMultiDepotEnabled(company.did) ? depots : depots.length > 0 ? [depots[0]] : [],
+        obligatoryImageOnRegisterVisit: LogisticaConfig.hasObligatoryImageOnRegisterVisitEnabled(company.did),
+        obligatoryDniAndNameOnRegisterVisit: LogisticaConfig.hasObligatoryDniAndNameOnRegisterVisitEnabled(company.did),
+        depots: LogisticaConfig.hasMultiDepotEnabled(company.did) ? depots : depots.length > 0 ? [depots[0]] : [],
         image: imageBase64,
-        hasBarcode: LogisticaConf.hasBarcodeEnabled(company.did),
-        hasProductsQr: LogisticaConf.hasProductsQrEnabled(company.did),
-        hasEnvioFoto: LogisticaConf.hasEnvioFotoEnabled(company.did),
+        hasBarcode: LogisticaConfig.hasBarcodeEnabled(company.did),
+        hasProductsQr: LogisticaConfig.hasProductsQrEnabled(company.did),
+        hasEnvioFoto: LogisticaConfig.hasEnvioFotoEnabled(company.did),
     };
 
     return { body: result, message: "Empresa identificada correctamente" };

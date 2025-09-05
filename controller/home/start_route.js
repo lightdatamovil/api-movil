@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { executeQuery, getFechaConHoraLocalDePais, logGreen, logRed } from 'lightdata-tools';
+import { executeQuery, getFechaConHoraLocalDePais } from 'lightdata-tools';
 
 export async function startRoute(dbConnection, req) {
     const { company, userId, deviceFrom } = req.body;
@@ -53,24 +53,18 @@ export async function startRoute(dbConnection, req) {
 }
 
 async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
-    try {
-        const message = {
-            didempresa: companyId,
-            estado: onTheWayState,
-            subestado: null,
-            estadoML: null,
-            fecha: dateConHora,
-            quien: userId,
-            latitud: null,
-            longitud: null,
-            operacion: "masivo",
-            didenvios: shipmentIds
-        };
-        const url = "https://serverestado.lightdata.app/estados/lote";
-        const response = await axios.post(url, message);
-        logGreen(`✅ Enviado por HTTP con status ${response.status}`);
-    } catch (error) {
-        logRed(`❌ Falló el envío por HTTP: ${error.message}`);
-        throw error;
-    }
+    const message = {
+        didempresa: companyId,
+        estado: onTheWayState,
+        subestado: null,
+        estadoML: null,
+        fecha: dateConHora,
+        quien: userId,
+        latitud: null,
+        longitud: null,
+        operacion: "masivo",
+        didenvios: shipmentIds
+    };
+    const url = "https://serverestado.lightdata.app/estados/lote";
+    await axios.post(url, message);
 }

@@ -1,14 +1,8 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
-import CustomException from '../../classes/custom_exception.js';
+import { executeQuery } from 'lightdata-tools';
 
-export async function getSettlementList(company, from, to) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
-
-    try {
-        const sql = `
+export async function getSettlementList(dbConnection, req) {
+    const { from, to } = req.body;
+    const sql = `
             SELECT did, DATE_FORMAT(desde, '%d/%m/%Y') AS desde, total,
             DATE_FORMAT(hasta, '%d/%m/%Y') AS hasta, DATE_FORMAT(fecha, '%d/%m/%Y') AS fecha
             FROM colecta_liquidaciones
@@ -16,27 +10,15 @@ export async function getSettlementList(company, from, to) {
             AND fecha BETWEEN ? AND ?
             `;
 
-        const result = await executeQuery(dbConnection, sql, [from, to]);
+    const result = await executeQuery(dbConnection, sql, [from, to]);
 
-        const settlementList = result.map(row => ({
-            did: Number(row.did),
-            total: Number(row.total),
-            desde: row.desde,
-            hasta: row.hasta,
-            fecha: row.fecha
-        }));
+    const settlementList = result.map(row => ({
+        did: Number(row.did),
+        total: Number(row.total),
+        desde: row.desde,
+        hasta: row.hasta,
+        fecha: row.fecha
+    }));
 
-        return settlementList;
-    } catch (error) {
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en obtener liquidaciones.',
-            message: error.message,
-            stack: error.stack
-        });
-    } finally {
-        dbConnection.end();
-    }
+    return settlementList;
 }

@@ -235,9 +235,9 @@ collect.get("/get-settlement-details", verifyToken(jwtSecret), async (req, res) 
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
-        const result = await getSettlementDetails(dbConnection, req);
+        const result = await getSettlementDetails(dbConnection, req, company);
 
-        crearLog(req, startTime, JSON.stringify(result), false);
+        crearLog(req, startTime, JSON.stringify(result), true);
         res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);

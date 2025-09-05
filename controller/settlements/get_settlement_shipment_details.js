@@ -1,5 +1,5 @@
 import { CustomException, executeQuery } from "lightdata-tools";
-import { companiesService } from "../../db";
+import { companiesService } from "../../db.js";
 
 export async function getSettlementShipmentDetails(dbConnection, req, company) {
     const { shipmentId } = req.body;

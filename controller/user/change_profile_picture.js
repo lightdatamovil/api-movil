@@ -1,7 +1,7 @@
 import imageType from 'image-type';
 import axios from 'axios';
-import CustomException from "../../classes/custom_exception.js";
-import { getFechaLocalDePais } from 'lightdata-tools';
+
+import { CustomException, getFechaLocalDePais } from 'lightdata-tools';
 
 export async function changeProfilePicture(req, company) {
     const { image } = req.body;

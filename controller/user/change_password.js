@@ -1,5 +1,4 @@
-import { executeQuery } from "lightdata-tools";
-import CustomException from "../../classes/custom_exception.js";
+import { CustomException, executeQuery } from "lightdata-tools";
 import { createHash } from "crypto";
 
 export async function changePassword(dbConnection, req) {

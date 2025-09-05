@@ -1,6 +1,5 @@
-import { CustomException, executeQuery, getFechaLocalDePais } from "lightdata-tools";
-import LogisticaConf from "../../classes/logisticas_conf";
-import { companiesService } from "../../db";
+import { CustomException, executeQuery, getFechaLocalDePais, LogisticaConfig } from "lightdata-tools";
+import { companiesService } from "../../db.js";
 
 export async function crossDocking(dbConnection, req, company) {
     const { dataQr } = req.body;
@@ -33,7 +32,7 @@ export async function crossDocking(dbConnection, req, company) {
         queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
     } else {
         // tiene habilitado el barcode y es codigo de barra
-        if (LogisticaConf.hasBarcodeEnabled(company.did) && !Object.prototype.hasOwnProperty.call(dataQr, 'sender_id') && !Object.prototype.hasOwnProperty.call(dataQr, 't')) {
+        if (LogisticaConfig.hasBarcodeEnabled(company.did) && !Object.prototype.hasOwnProperty.call(dataQr, 'sender_id') && !Object.prototype.hasOwnProperty.call(dataQr, 't')) {
             shipmentId = dataQr;
             queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
         } else {

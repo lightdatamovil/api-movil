@@ -1,5 +1,5 @@
 import { CustomException, executeQuery, getFechaConHoraLocalDePais, sendShipmentStateToStateMicroservice } from "lightdata-tools";
-import { queueEstados, rabbitUrl } from "../../db";
+import { queueEstados, rabbitUrl } from "../../db.js";
 
 export async function enterFlex(dbConnection, req, company) {
     const { dataQr } = req.body;

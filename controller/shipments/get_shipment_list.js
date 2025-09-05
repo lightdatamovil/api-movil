@@ -1,5 +1,5 @@
 import { CustomException, executeQuery, getFechaLocalDePais } from "lightdata-tools";
-import { companiesService } from "../../db";
+import { companiesService } from "../../db.js";
 
 export async function shipmentList(dbConnection, req, company) {
   const { from, shipmentStates, isAssignedToday } = req.body;
