@@ -1,340 +1,213 @@
 import { Router } from "express";
-import verifyToken from "../src/funciones/verifyToken.js";
 import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
 import { getProductsFromShipment } from "../controller/qr/get_products.js";
 import { enterFlex } from "../controller/qr/enter_flex.js";
-import { armado } from "../controller/qr/armado.js";
-import { verifyParamaters } from "../src/funciones/verifyParameters.js";
-import CustomException from "../classes/custom_exception.js";
-import Status from "../classes/status.js";
 import { driverList } from "../controller/qr/get_driver_list.js";
 import { crossDocking } from "../controller/qr/cross_docking.js";
-import { getSkuAndStockFlex } from "../controller/qr/get_sku_and_stock _flex.js";
-import { parseIfJson } from "../src/funciones/isValidJson.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 import { getCantidadAsignaciones } from "../controller/qr/get_cantidad_asignaciones.js";
 import { altaEnvioFoto } from "../controller/qr/envio_foto.js";
-import { handleError } from "../src/funciones/handle_error.js";
-import { verificarTodo } from "../src/funciones/verificar_all.js";
+import { companiesService, jwtSecret } from "../db.js";
+import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
+import mysql2 from "mysql2";
 
 const qr = Router();
 
-qr.post("/driver-list", verifyToken, async (req, res) => {
+qr.post("/driver-list", verifyToken(jwtSecret), async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile } = req.body;
+
+  let dbConnection;
+
   try {
-    const mensajeError = verifyParamaters(req.body, ["companyId"], true);
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en driver-list",
-        message: mensajeError,
-      });
-    }
+    verifyHeaders(req, []);
+    verifyAll(req, [], { required: [], optional: [] });
 
+    const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
-    const result = await driverList(company);
 
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/driver-list", true);
-    res
-      .status(Status.ok)
-      .json({ body: result, message: "Datos obtenidos correctamente" });
+    const dbConfig = getProductionDbConfig(company);
+    dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
+    const result = await driverList(dbConnection);
+
+    crearLog(req, startTime, JSON.stringify(result), true);
+    res.status(Status.ok).json(result);
   } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/driver-list", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/driver-list", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    crearLog(req, startTime, JSON.stringify(error), false);
+    errorHandler(req, res, error);
   } finally {
+    if (dbConnection) dbConnection.end();
   }
 });
 
-qr.post("/cross-docking", verifyToken, async (req, res) => {
+qr.post("/cross-docking", verifyToken(jwtSecret), async (req, res) => {
   const startTime = performance.now();
-  let { companyId, userId, profile, dataQr } = req.body;
+
+  let dbConnection;
+
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["companyId", "dataQr"],
-      true
-    );
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en cross-docking",
-        message: mensajeError,
-      });
-    }
+    verifyHeaders(req, []);
+    verifyAll(req, [], { required: ['dataQr'], optional: [] });
 
-    dataQr = parseIfJson(dataQr);
+    let { companyId } = req.user;
     const company = await companiesService.getById(companyId);
-    logGreen(`Iniciando cross-docking para la empresa: ${companyId}`);
-    logPurple(`Datos QR: ${JSON.stringify(company)}`);
-    const response = await crossDocking(dataQr, company, userId);
 
-    logGreen(`Cross-docking completado correctamente`);
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/cross-docking", true);
-    res
-      .status(Status.ok)
-      .json({ body: response, message: "Datos obtenidos correctamente", success: true });
+    const dbConfig = getProductionDbConfig(company);
+    dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
+    const result = await crossDocking(dbConnection, req, company);
+
+    crearLog(req, startTime, JSON.stringify(result), true);
+    res.status(Status.ok).json(result);
   } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cross-docking", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/cross-docking", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    crearLog(req, startTime, JSON.stringify(error), false);
+    errorHandler(req, res, error);
   } finally {
-    const endTime = performance.now();
-    logPurple(`Tiempo de ejecución cross-docking: ${endTime - startTime} ms`);
+    if (dbConnection) dbConnection.end();
   }
 });
 
 qr.post("/get-shipment-id", async (req, res) => {
   const startTime = performance.now();
-  let { companyId, userId, profile, dataQr } = req.body;
+
+  let dbConnection;
+
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["companyId", "dataQr"],
-      true
-    );
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en get-shipment-id",
-        message: mensajeError,
-      });
-    }
+    verifyHeaders(req, []);
+    verifyAll(req, [], { required: ['dataQr'], optional: [] });
 
-    dataQr = parseIfJson(dataQr);
+    let { companyId } = req.user;
     const company = await companiesService.getById(companyId);
-    const response = await getShipmentIdFromQr(dataQr, company);
 
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/get-shipment-id", true);
-    res.status(Status.ok).json({
-      success: true,
-      body: response,
-      message: "Datos obtenidos correctamente",
-    });
+    const dbConfig = getProductionDbConfig(company);
+    dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
+    const result = await getShipmentIdFromQr(dbConnection, req, company);
+
+    crearLog(req, startTime, JSON.stringify(result), true);
+    res.status(Status.ok).json();
   } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-shipment-id", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-shipment-id", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    crearLog(req, startTime, JSON.stringify(error), false);
+    errorHandler(req, res, error);
   } finally {
-    const endTime = performance.now();
+    if (dbConnection) dbConnection.end();
   }
 });
 
-qr.post("/products-from-shipment", verifyToken, async (req, res) => {
+qr.post("/products-from-shipment", verifyToken(jwtSecret), async (req, res) => {
   const startTime = performance.now();
-  let { companyId, userId, profile, dataQr } = req.body;
+
+  let dbConnection;
+
   try {
-    const mensajeError = verifyParamaters(req.body, ["dataQr"], true);
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en products-from-shipment",
-        message: mensajeError,
-      });
-    }
+    verifyHeaders(req, []);
+    verifyAll(req, [], { required: ['dataQr'], optional: [] });
 
-    dataQr = parseIfJson(dataQr);
-
+    let { companyId } = req.user;
     const company = await companiesService.getById(companyId);
-    const response = await getProductsFromShipment(company, dataQr);
 
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/products-from-shipment", true);
-    res
-      .status(Status.ok)
-      .json({ body: response, message: "Datos obtenidos correctamente" });
-  } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/products-from-shipment", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/products-from-shipment", false);
-      res
-        .status(500)
-        .json({ success: false, message: "Error interno del servidor." });
-    }
-  } finally {
-  }
-});
+    const dbConfig = getProductionDbConfig(company);
+    dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
 
-qr.post("/enter-flex", async (req, res) => {
-  const startTime = performance.now();
-  const { companyId, userId, dataQr, profile } = req.body;
-  try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["companyId", "userId", "profile", "dataQr"],
-      true
-    );
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en enter-flex",
-        message: mensajeError,
-      });
-    }
+    const result = await getProductsFromShipment(dbConnection, req);
 
-    const company = await companiesService.getById(companyId);
-    await enterFlex(company, dataQr, userId, profile);
-
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "exito" }), "/enter-flex", true);
-    res
-      .status(Status.ok)
-      .json({ message: "Datos obtenidos correctamente" });
-  } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/enter-flex", false);
-      res.status(400).json({ message: error.title, title: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/enter-flex", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
-  } finally {
-  }
-});
-
-qr.post("/sku", verifyToken, async (req, res) => {
-  const startTime = performance.now();
-  let { companyId, userId, profile, dataQr } = req.body;
-  try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["companyId", "dataQr"],
-      true
-    );
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en sku",
-        message: mensajeError,
-      });
-    }
-
-    dataQr = parseIfJson(dataQr);
-
-    const company = await companiesService.getById(companyId);
-    let result = await getSkuAndStockFlex(company, dataQr);
-
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/sku", true);
+    crearLog(req, startTime, JSON.stringify(result), true);
     res.status(Status.ok).json(result);
   } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/sku", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/sku", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    crearLog(req, startTime, JSON.stringify(error), false);
+    errorHandler(req, res, error);
   } finally {
+    if (dbConnection) dbConnection.end();
   }
 });
 
-qr.post("/armado", verifyToken, async (req, res) => {
+qr.post("/enter-flex", verifyToken(jwtSecret), async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile, dataEnvios, didCliente } = req.body;
+
+  let dbConnection;
+
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      ["userId", "dataEnvios", "didCliente"],
-      true
-    );
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en armado",
-        message: mensajeError,
-      });
-    }
+    verifyHeaders(req, []);
+    verifyAll(req, [], { required: ['dataQr'], optional: [] });
 
+    const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
-    const result = await armado(company, userId, dataEnvios, didCliente);
 
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/armado", true);
-    res.status(Status.ok).json({
-      body: result,
-      message: "Datos obtenidos correctamente",
-      success: true,
-    });
+    const dbConfig = getProductionDbConfig(company);
+    dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
+    const result = await enterFlex(dbConnection, req, company);
+
+    crearLog(req, startTime, JSON.stringify(result), true);
+    res.status(Status.ok).json(result);
   } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/armado", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/armado", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    crearLog(req, startTime, JSON.stringify(error), false);
+    errorHandler(req, res, error);
   } finally {
+    if (dbConnection) dbConnection.end();
   }
 });
-qr.post("/cantidad-asignaciones", verifyToken, async (req, res) => {
+
+qr.post("/cantidad-asignaciones", verifyToken(jwtSecret), async (req, res) => {
   const startTime = performance.now();
-  const { companyId, userId, profile } = req.body;
+
+  let dbConnection;
+
   try {
-    const mensajeError = verifyParamaters(
-      req.body,
-      [],
-      true
-    );
-    if (mensajeError) {
-      throw new CustomException({
-        title: "Error en armado",
-        message: mensajeError,
-      });
-    }
+    verifyHeaders(req, []);
+    verifyAll(req, [], { required: [], optional: [] });
 
+    const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
-    const result = await getCantidadAsignaciones(company, userId, profile);
 
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/cantidad-asignaciones", true);
-    res.status(Status.ok).json({
-      body: result,
-      message: "Datos obtenidos correctamente",
-      success: true,
-    });
+    const dbConfig = getProductionDbConfig(company);
+    dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
+    const result = await getCantidadAsignaciones(dbConnection, req);
+
+    crearLog(req, startTime, JSON.stringify(result), true);
+    res.status(Status.ok).json();
   } catch (error) {
-    if (error instanceof CustomException) {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/cantidad-asignaciones", false);
-      res.status(400).json({ title: error.title, message: error.message });
-    } else {
-      crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/cantidad-asignaciones", false);
-      res.status(500).json({ message: "Error interno del servidor" });
-    }
+    crearLog(req, startTime, JSON.stringify(error), false);
+    errorHandler(req, res, error);
   } finally {
+    if (dbConnection) dbConnection.end();
   }
 });
 
 
-qr.post('/alta-envio-foto', verifyToken, async (req, res) => {
+qr.post('/alta-envio-foto', verifyToken(jwtSecret), async (req, res) => {
   const startTime = performance.now();
 
+  let dbConnection;
+
   try {
-    verificarTodo(req, res, [], [
-      'image',
-      'companyId',
-      'userId',
-      'address',
-      'appVersion',
-      'brand',
-      'model',
-      'androidVersion',
-      'deviceId',
-      'deviceFrom',
-      'profile',
-      'driverId',
-    ]);
-    const companyId = req.body.companyId;
+    verifyHeaders(req, []);
+    verifyAll(req, [], { required: ['image', 'driverId'], optional: [] });
+
+    const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
+
+    const dbConfig = getProductionDbConfig(company);
+    dbConnection = mysql2.createConnection(dbConfig);
+    dbConnection.connect();
+
     const result = await altaEnvioFoto(company, req);
 
-    res.status(Status.created).json({ body: result, message: "Envio - imagen registrada correctamente" });
+    crearLog(req, startTime, JSON.stringify(result), true);
+    res.status(Status.created).json();
   } catch (error) {
-    handleError(req, res, error);
+    crearLog(req, startTime, JSON.stringify(error), false);
+    errorHandler(req, res, error);
   } finally {
+    if (dbConnection) dbConnection.end();
   }
 });
+
 export default qr;

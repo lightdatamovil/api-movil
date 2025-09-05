@@ -1,12 +1,9 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
-import mysql2 from "mysql2";
+import { executeQuery } from "lightdata-tools";
 
-export async function getCantidadAsignaciones(company, userId, profile) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
-    try {
-        const query = `SELECT
+export async function getCantidadAsignaciones(dbConnection, req) {
+    const { userId, profile } = req.user;
+
+    const query = `SELECT
                     operador,
                     COUNT(*) AS total_lineas
                     FROM envios_asignaciones
@@ -18,21 +15,20 @@ export async function getCantidadAsignaciones(company, userId, profile) {
                     AND superado = 0
                     AND elim = 0
                     GROUP BY operador;`;
-        const result = await executeQuery(dbConnection, query, [userId], true);
+    const result = await executeQuery(dbConnection, query, [userId], true);
 
-        if (result.length === 0) {
-            return [];
-        }
-
-        const asignaciones = result.map(row => ({
-            chofer: row.operador,
-            cantidad: row.total_lineas
-        }));
-
-        return asignaciones;
-    } catch (error) {
-        throw error;
-    } finally {
-        dbConnection.end();
+    if (result.length === 0) {
+        return [];
     }
+
+    const asignaciones = result.map(row => ({
+        chofer: row.operador,
+        cantidad: row.total_lineas
+    }));
+
+    return {
+        body: asignaciones,
+        message: "Datos obtenidos correctamente",
+        success: true,
+    };
 }

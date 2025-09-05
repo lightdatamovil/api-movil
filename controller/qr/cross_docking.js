@@ -1,55 +1,50 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany, getClientsByCompany } from "../../db.js";
-import mysql2 from 'mysql2';
-import CustomException from '../../classes/custom_exception.js';
-import LogisticaConf from "../../classes/logisticas_conf.js";
+import { CustomException, executeQuery, getFechaLocalDePais } from "lightdata-tools";
+import LogisticaConf from "../../classes/logisticas_conf";
+import { companiesService } from "../../db";
 
-export async function crossDocking(dataQr, company, userId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function crossDocking(dbConnection, req, company) {
+    const { dataQr } = req.body;
+    let shipmentId;
+    let queryWhereId = '';
+    const isLocal = Object.prototype.hasOwnProperty.call(dataQr, "local");
 
-    try {
-        let shipmentId;
-        let queryWhereId = '';
-        const isLocal = dataQr.hasOwnProperty("local");
+    if (isLocal) {
+        shipmentId = dataQr.did;
 
-        if (isLocal) {
-            shipmentId = dataQr.did;
-
-            if (company.did != dataQr.empresa) {
-                const queryEnviosExteriores = `
+        if (company.did != dataQr.empresa) {
+            const queryEnviosExteriores = `
                     SELECT didLocal
                     FROM envios_exteriores
                     WHERE didExterno = ?
                     AND didEmpresa = ?
                 `;
-                const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
+            const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
 
-                if (resultQueryEnviosExteriores.length == 0) {
-                    throw new CustomException({
-                        title: "Error en crossDocking",
-                        message: "El envío no pertenece a la empresa"
-                    });
-                }
-
-                shipmentId = resultQueryEnviosExteriores[0].didLocal;
-
+            if (resultQueryEnviosExteriores.length == 0) {
+                throw new CustomException({
+                    title: "Error en crossDocking",
+                    message: "El envío no pertenece a la empresa"
+                });
             }
-            queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
-        } else {
-            // tiene habilitado el barcode y es codigo de barra
-            if (LogisticaConf.hasBarcodeEnabled(company.did) && !dataQr.hasOwnProperty('sender_id') && !dataQr.hasOwnProperty('t')) {
-                shipmentId = dataQr;
-                queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
-            } else {
-                shipmentId = dataQr.id;
-                queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = ${shipmentId}`;
-            }
+
+            shipmentId = resultQueryEnviosExteriores[0].didLocal;
 
         }
+        queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
+    } else {
+        // tiene habilitado el barcode y es codigo de barra
+        if (LogisticaConf.hasBarcodeEnabled(company.did) && !Object.prototype.hasOwnProperty.call(dataQr, 'sender_id') && !Object.prototype.hasOwnProperty.call(dataQr, 't')) {
+            shipmentId = dataQr;
+            queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = '${shipmentId}'`;
+        } else {
+            shipmentId = dataQr.id;
+            queryWhereId = `WHERE e.superado=0 AND e.elim=0 AND e.ml_shipment_id = ${shipmentId}`;
+        }
 
-        const date = getFechaLocalDePais(company.pais);
-        const queryEnvios = `
+    }
+
+    const date = getFechaLocalDePais(company.pais);
+    const queryEnvios = `
             SELECT
                 e.estado_envio AS shipmentState,
                 e.didCliente AS clientId,
@@ -77,32 +72,29 @@ export async function crossDocking(dataQr, company, userId) {
             ${queryWhereId}
             LIMIT 1
         `;
-        const envioData = await executeQuery(dbConnection, queryEnvios, []);
+    const envioData = await executeQuery(dbConnection, queryEnvios, []);
 
-        if (envioData.length === 0) {
-            throw new CustomException({
-                title: "Error en crossDocking",
-                message: "No se encontró el envío"
-            });
-        }
+    if (envioData.length === 0) {
+        throw new CustomException({
+            title: "Error en crossDocking",
+            message: "No se encontró el envío"
+        });
+    }
 
-        const row = envioData[0];
+    const row = envioData[0];
 
-        const clients = await getClientsByCompany(dbConnection, company.did);
+    const clients = await companiesService.getClientsByCompany(dbConnection, company.did);
 
-        const zones = await getZonesByCompany(dbConnection, company.did);
+    const zones = await companiesService.getZonesByCompany(dbConnection, company.did);
 
-        return {
+    return {
+        body: {
             shipmentState: row.shipmentState,
             date: row.date,
             client: clients[row.clientId]?.nombre || "Desconocido",
             zone: zones[row.zoneId]?.nombre || "Desconocido",
             driver: row.driver ?? "Sin asignar",
             order: row.orden ?? null,
-        };
-    } catch (error) {
-        throw error;
-    } finally {
-        dbConnection.end();
-    }
+        }, message: "Datos obtenidos correctamente", success: true
+    };
 }
