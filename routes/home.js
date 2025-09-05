@@ -4,7 +4,7 @@ import { startRoute } from "../controller/home/start_route.js";
 import { finishRoute } from "../controller/home/finish_route.js";
 import { getHomeData } from "../controller/home/get_home_data.js";
 import { crearLog } from "../src/funciones/crear_log.js";
-import { companiesService, jwtSecret } from "../db.js";
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
 import mysql2 from "mysql2";
 
@@ -22,7 +22,7 @@ home.post("/home", verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -50,7 +50,7 @@ home.post("/start-route", verifyToken(jwtSecret), async (req, res) => {
     const { companyId, userId, deviceFrom } = req.body;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -78,7 +78,7 @@ home.post("/end-route", verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -106,7 +106,7 @@ home.post("/verify-started-route", verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 

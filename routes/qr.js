@@ -7,7 +7,7 @@ import { crossDocking } from "../controller/qr/cross_docking.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 import { getCantidadAsignaciones } from "../controller/qr/get_cantidad_asignaciones.js";
 import { altaEnvioFoto } from "../controller/qr/envio_foto.js";
-import { companiesService, jwtSecret } from "../db.js";
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
 import mysql2 from "mysql2";
 
@@ -25,7 +25,7 @@ qr.post("/driver-list", verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -53,7 +53,7 @@ qr.post("/cross-docking", verifyToken(jwtSecret), async (req, res) => {
     let { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -81,7 +81,7 @@ qr.post("/get-shipment-id", async (req, res) => {
     let { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -109,7 +109,7 @@ qr.post("/products-from-shipment", verifyToken(jwtSecret), async (req, res) => {
     let { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -137,7 +137,7 @@ qr.post("/enter-flex", verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -165,7 +165,7 @@ qr.post("/cantidad-asignaciones", verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -194,7 +194,7 @@ qr.post('/alta-envio-foto', verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 

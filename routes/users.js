@@ -4,7 +4,7 @@ import { changePassword } from '../controller/user/change_password.js';
 import { changeProfilePicture } from '../controller/user/change_profile_picture.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
-import { companiesService, jwtSecret } from '../db.js';
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
 import mysql2 from 'mysql2';
 
 const users = Router();
@@ -21,7 +21,7 @@ users.post('/edit-user', verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -49,7 +49,7 @@ users.post('/change-password', verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 

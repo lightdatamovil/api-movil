@@ -88,5 +88,5 @@ export async function crearLog(req, tiempo, resultado, exito) {
     ];
 
     await executeQueryFromPool(poolLocal, sql, values);
-    logGreen(`${Date.now()} Log creado correctamente`);
+    logGreen(`${new Date().toISOString()}} Log creado correctamente`);
 }

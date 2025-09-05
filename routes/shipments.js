@@ -4,7 +4,7 @@ import { shipmentDetails } from "../controller/shipments/get_shipment_details.js
 import { shipmentList } from "../controller/shipments/get_shipment_list.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
-import { companiesService, jwtSecret } from "../db.js";
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
 import mysql2 from "mysql2";
 
 const shipments = Router();
@@ -21,7 +21,7 @@ shipments.post("/shipment-list", verifyToken(jwtSecret), async (req, res) => {
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -49,7 +49,7 @@ shipments.post("/shipment-details", verifyToken(jwtSecret), async (req, res) => 
     const { companyId } = req.user;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 
@@ -77,7 +77,7 @@ shipments.post("/next-visit", verifyToken(jwtSecret), async (req, res) => {
     const { companyId, userId, shipmentId } = req.body;
     const company = await companiesService.getById(companyId);
 
-    const dbConfig = getProductionDbConfig(company);
+    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
     dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
 

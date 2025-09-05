@@ -8,7 +8,7 @@ import { getCollectList } from '../controller/collect/get_collect_list.js';
 import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { crearLog } from '../src/funciones/crear_log.js';
-import { companiesService, jwtSecret } from '../db.js';
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 import mysql2 from 'mysql2';
 
@@ -26,7 +26,7 @@ collect.get("/get-route", verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -54,7 +54,7 @@ collect.post("/start-route", verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -91,13 +91,13 @@ collect.post("/save-route", verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
         const result = await saveRoute(dbConnection, req, company);
 
-        crearLog(req, startTime, JSON.stringify(result), false);
+        crearLog(req, startTime, JSON.stringify(result), true);
         res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
@@ -119,13 +119,13 @@ collect.get("/get-collect-details", verifyToken(jwtSecret), async (req, res) => 
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
         const result = await getCollectDetails(dbConnection, req, company);
 
-        crearLog(req, startTime, JSON.stringify(result), false);
+        crearLog(req, startTime, JSON.stringify(result), true);
         res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
@@ -147,13 +147,13 @@ collect.get("/get-client-details", verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
         const result = await shipmentsFromClient(dbConnection, req, company);
 
-        crearLog(req, startTime, JSON.stringify(result), false);
+        crearLog(req, startTime, JSON.stringify(result), true);
         res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
@@ -175,13 +175,13 @@ collect.get("/get-collect-list", verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
         const result = await getCollectList(dbConnection, req);
 
-        crearLog(req, startTime, JSON.stringify(result), false);
+        crearLog(req, startTime, JSON.stringify(result), true);
         res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
@@ -203,13 +203,13 @@ collect.get("/get-settlement-list", verifyToken(jwtSecret), async (req, res) => 
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
         const result = await getSettlementList(dbConnection, req);
 
-        crearLog(req, startTime, JSON.stringify(result), false);
+        crearLog(req, startTime, JSON.stringify(result), true);
         res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
@@ -231,7 +231,7 @@ collect.get("/get-settlement-details", verifyToken(jwtSecret), async (req, res) 
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 

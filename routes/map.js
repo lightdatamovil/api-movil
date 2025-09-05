@@ -3,7 +3,7 @@ import { getRouteByUserId } from '../controller/maps/get_route.js';
 import { geolocalize } from '../controller/maps/geolocalize.js';
 import { saveRoute } from '../controller/maps/save_route.js';
 import { crearLog } from '../src/funciones/crear_log.js';
-import { companiesService, jwtSecret } from '../db.js';
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 import mysql2 from 'mysql2';
 
@@ -21,7 +21,7 @@ map.post('/get-route-by-user', verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -49,7 +49,7 @@ map.post('/geolocalize', verifyToken(jwtSecret), async (req, res) => {
         const { companyId, shipmentId, latitude, longitude } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -77,7 +77,7 @@ map.post('/save-route', verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 

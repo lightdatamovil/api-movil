@@ -4,7 +4,7 @@ import { getSettlementDetails } from '../controller/settlements/get_settlement_d
 import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
-import { companiesService, jwtSecret } from '../db.js';
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
 import mysql2 from 'mysql2';
 
 const settlements = Router();
@@ -21,7 +21,7 @@ settlements.post('/settlement-list', verifyToken(jwtSecret), async (req, res) =>
         const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -49,7 +49,7 @@ settlements.post('/settlement-details', verifyToken(jwtSecret), async (req, res)
         const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -77,7 +77,7 @@ settlements.post('/settlement-shipment-details', verifyToken(jwtSecret), async (
         const { companyId, userId } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 

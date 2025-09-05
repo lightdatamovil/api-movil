@@ -5,10 +5,20 @@ import { whatsappMessagesList } from '../controller/auth/whatsappMessagesList.js
 import { crearLog } from '../src/funciones/crear_log.js';
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 import mysql2 from 'mysql2';
-import { companiesService, jwtSecret } from '../db.js';
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
 
 const auth = Router();
 
+function connectMySQL(dbConfig) {
+    const conn = mysql2.createConnection({
+        ...dbConfig,
+        connectTimeout: 8000,         // opcional: timeout de conexión
+        enableKeepAlive: true,        // opcional
+    });
+    return new Promise((resolve, reject) => {
+        conn.connect(err => (err ? reject(err) : resolve(conn)));
+    });
+}
 auth.post('/company-identification', async (req, res) => {
     const startTime = performance.now();
 
@@ -21,9 +31,9 @@ auth.post('/company-identification', async (req, res) => {
         const { companyCode } = req.body;
         const company = await companiesService.getByCode(companyCode);
 
-        const dbConfig = getProductionDbConfig(company);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
+
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await identification(dbConnection, company);
 
@@ -49,9 +59,9 @@ auth.post('/login', async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+
 
         const result = await login(dbConnection, req);
 
@@ -77,9 +87,9 @@ auth.get('/whatsapp-message-list', verifyToken(jwtSecret), async (req, res) => {
         const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+
 
         const result = await whatsappMessagesList(dbConnection);
         crearLog(req, startTime, JSON.stringify(result), true);

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
 import { crearLog } from '../src/funciones/crear_log.js';
-import { companiesService, jwtSecret } from '../db.js';
+import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
 import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 import mysql2 from 'mysql2';
 
@@ -30,7 +30,7 @@ registerVisitRoute.post('/register', verifyToken(jwtSecret), async (req, res) =>
         const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 
@@ -65,7 +65,7 @@ registerVisitRoute.post('/upload-image', verifyToken(jwtSecret), async (req, res
         const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
 
-        const dbConfig = getProductionDbConfig(company);
+        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
 

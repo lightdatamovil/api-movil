@@ -1,6 +1,6 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
-import mysql2 from 'mysql2';
+import mysql2 from 'mysql2/promise';
 import { CompaniesService, logRed } from 'lightdata-tools';
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
@@ -23,11 +23,12 @@ const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
 const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
 
 // Produccion
-const hostProductionDb = process.env.PRODUCTION_DB_HOST;
-const portProductionDb = process.env.PRODUCTION_DB_PORT;
+export const hostProductionDb = process.env.PRODUCTION_DB_HOST;
+export const portProductionDb = process.env.PRODUCTION_DB_PORT;
 
 export const rabbitUrl = process.env.RABBIT_URL;
 export const queueEstados = process.env.QUEUE_ESTADOS;
+
 export const jwtSecret = process.env.JWT_SECRET;
 
 export const redisClient = redis.createClient({
@@ -55,22 +56,12 @@ export function getDbConfig(companyId) {
     };
 }
 
-export function getProdDbConfig(company) {
-    return {
-        host: hostProductionDb,
-        user: company.dbuser,
-        password: company.dbpass,
-        database: company.dbname,
-        port: portProductionDb,
-    };
-}
-
 export const poolLocal = mysql2.createPool({
-    host: apimovilDBHost,
+    host: hostProductionDb,
     user: apimovilDbUserForLogs,
     password: apimovilDbPasswordForLogs,
     database: apimovilDbNameForLogs,
-    port: apimovilDBPort,
+    port: portProductionDb,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
