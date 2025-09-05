@@ -1,8 +1,9 @@
 import { CustomException, executeQuery } from "lightdata-tools";
+import { companiesService } from "../../db.js";
 
 export async function getSettlementDetails(dbConnection, req, company) {
     const { settlementId } = req.body;
-    const zones = await getZonesByCompany(company.did);
+    const zones = await companiesService.getZonesByCompany(company.did);
 
     const queryLines = "SELECT idlineas FROM liquidaciones WHERE superado=0 AND elim=0 AND did = ?";
 
