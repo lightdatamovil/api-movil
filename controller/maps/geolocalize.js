@@ -1,45 +1,26 @@
-import mysql2 from 'mysql2';
+import { CustomException, executeQuery } from "lightdata-tools";
 
-import { getProdDbConfig, executeQuery } from '../../db.js';
-import CustomException from '../../classes/custom_exception.js';
+export async function geolocalize(dbConnection, req) {
+    const { shipmentId, latitude, longitude } = req.body;
+    const queryShipment = `SELECT did FROM envios WHERE did = ${shipmentId}`;
 
-export async function geolocalize(company, shipmentId, latitude, longitude) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const resultQuery = await executeQuery(dbConnection, queryShipment);
 
-    try {
-        const queryShipment = `SELECT did FROM envios WHERE did = ${shipmentId}`;
+    if (resultQuery.length > 0) {
 
-        const resultQuery = await executeQuery(dbConnection, queryShipment);
+        const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude}, destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
 
-        if (resultQuery.length > 0) {
+        await executeQuery(dbConnection, queryUpdateShipment);
 
-            const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude}, destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
+        const queryUpdateAddress = `UPDATE envios_direcciones_destino SET latitud = ${latitude}, longitud = ${longitude}  WHERE didEnvio = ${shipmentId}`;
 
-            await executeQuery(dbConnection, queryUpdateShipment);
+        await executeQuery(dbConnection, queryUpdateAddress);
 
-            const queryUpdateAddress = `UPDATE envios_direcciones_destino SET latitud = ${latitude}, longitud = ${longitude}  WHERE didEnvio = ${shipmentId}`;
-
-            await executeQuery(dbConnection, queryUpdateAddress);
-
-            return;
-        } else {
-            throw new CustomException({
-                title: 'Error geolocalizando',
-                message: 'El envío no existe',
-            });
-        }
-    } catch (error) {
-        if (error instanceof CustomException) {
-            throw error;
-        }
+        return { message: "Geolocalización registrada correctamente" };
+    } else {
         throw new CustomException({
             title: 'Error geolocalizando',
-            message: error.message,
-            stack: error.stack
+            message: 'El envío no existe',
         });
-    } finally {
-        dbConnection.end();
     }
 }

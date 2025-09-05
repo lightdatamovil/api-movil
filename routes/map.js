@@ -3,108 +3,94 @@ import verifyToken from '../src/funciones/verifyToken.js';
 import { getRouteByUserId } from '../controller/maps/get_route.js';
 import { geolocalize } from '../controller/maps/geolocalize.js';
 import { saveRoute } from '../controller/maps/save_route.js';
-import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
+import { companiesService, jwtSecret } from '../db.js';
+import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders } from 'lightdata-tools';
+import mysql2 from 'mysql2';
 
 const map = Router();
 
-map.post('/get-route-by-user', verifyToken, async (req, res) => {
+map.post('/get-route-by-user', verifyToken(jwtSecret), async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile } = req.body;
+
+    let dbConnection;
+
     try {
-        const mensajeError = verifyParamaters(
-            req.body,
-            ['companyId', 'userId'],
-            true
-        );
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en get-route-by-user', message: mensajeError });
-        }
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: [], optional: [] });
 
+        const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
-        const result = await getRouteByUserId(company, userId);
 
-        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/get-route-by-user", true);
-        res.status(Status.ok).json({ body: result, message: "Datos obtenidos correctamente" });
-    } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/get-route-by-user", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/get-route-by-user", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
-    } finally {
-    }
-});
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
 
-map.post('/geolocalize', verifyToken, async (req, res) => {
-    const startTime = performance.now();
-    const { companyId, profile, userId, shipmentId, latitude, longitude } = req.body;
-    try {
-        const mensajeError = verifyParamaters(
-            req.body,
-            ['companyId', 'shipmentId', 'latitude', 'longitude'],
-            true
-        );
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en geolocalize', message: mensajeError });
-        }
+        const result = await getRouteByUserId(dbConnection, req, company);
 
-        const company = await companiesService.getById(companyId);
-        await geolocalize(company, shipmentId, latitude, longitude);
-
-
-        const result = { message: "Geolocalización registrada correctamente" };
-        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/geolocalize", true);
+        crearLog(req, startTime, JSON.stringify(result), true);
         res.status(Status.ok).json(result);
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/geolocalize", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/geolocalize", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
     }
 });
 
-map.post('/save-route', verifyToken, async (req, res) => {
+map.post('/geolocalize', verifyToken(jwtSecret), async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, orders, distance, totalDelay, additionalRouteData } = req.body;
+
+    let dbConnection;
+
     try {
-        const mensajeError = verifyParamaters(
-            req.body,
-            ['companyId', 'userId', 'orders', 'distance', 'totalDelay', 'additionalRouteData'],
-            true
-        );
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en save-route', message: mensajeError });
-        }
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: ['shipmentId', 'latitude', 'longitude'], optional: [] });
 
+        const { companyId, shipmentId, latitude, longitude } = req.body;
         const company = await companiesService.getById(companyId);
-        await saveRoute(
-            company,
-            userId,
-            orders,
-            distance,
-            totalDelay,
-            additionalRouteData
-        );
 
-        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify({ message: "Ruta guardada correctamente" }), "/save-route", true);
-        res.status(Status.ok).json({ message: "Ruta guardada correctamente" });
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const result = await geolocalize(company, shipmentId, latitude, longitude);
+
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json(result);
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/save-route", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/save-route", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
+    }
+});
+
+map.post('/save-route', verifyToken(jwtSecret), async (req, res) => {
+    const startTime = performance.now();
+
+    let dbConnection;
+
+    try {
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: ['orders', 'distance', 'totalDelay', 'additionalRouteData'], optional: [] });
+
+        const { companyId } = req.body;
+        const company = await companiesService.getById(companyId);
+
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const result = await saveRoute(dbConnection, req, company);
+
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json(result);
+    } catch (error) {
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
+    } finally {
+        if (dbConnection) dbConnection.end();
     }
 });
 
