@@ -1,100 +1,87 @@
 import { Router } from 'express';
-import verifyToken from '../src/funciones/verifyToken.js';
 import { editUser } from '../controller/user/edit_user.js';
 import { changePassword } from '../controller/user/change_password.js';
 import { changeProfilePicture } from '../controller/user/change_profile_picture.js';
-import { createHash } from 'crypto';
-import { verifyParamaters } from '../src/funciones/verifyParameters.js';
-import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
-import { companiesService } from '../db.js';
+import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
+import { companiesService, jwtSecret } from '../db.js';
+import mysql2 from 'mysql2';
 
 const users = Router();
 
-users.post('/edit-user', verifyToken, async (req, res) => {
+users.post('/edit-user', verifyToken(jwtSecret), async (req, res) => {
     const startTime = performance.now();
-    const { companyId, userId, profile, email, phone } = req.body;
+
+    let dbConnection;
+
     try {
-        const mensajeError = verifyParamaters(
-            req.body,
-            ['companyId', 'userId', 'email', 'phone'],
-            true
-        );
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en edit-user', message: mensajeError });
-        }
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: ['email', 'phone'], optional: [] });
 
+        const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
-        const result = await editUser(company, userId, email, phone);
 
-        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/edit-user", true);
-        res.status(Status.ok).json({ body: result, message: "Datos insertados correctamente" });
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const result = await editUser(dbConnection, req);
+
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json(result);
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/edit-user", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/edit-user", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
-    } finally {
-    }
-});
-
-users.post('/change-password', verifyToken, async (req, res) => {
-    const startTime = performance.now();
-    const { companyId, userId, oldPassword, newPassword } = req.body;
-    try {
-        const mensajeError = verifyParamaters(
-            req.body,
-            ['companyId', 'userId', 'oldPassword', 'newPassword'],
-            true
-        );
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en change-password', message: mensajeError });
-        }
-
-        const oldPasswordHash = createHash('sha256').update(oldPassword).digest('hex');
-        const newPasswordHash = createHash('sha256').update(newPassword).digest('hex');
-        const company = await companiesService.getById(companyId);
-        const result = await changePassword(company, userId, oldPasswordHash, newPasswordHash);
-
-        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-password", true);
-        res.status(Status.ok).json({ body: result, message: "Datos insertados correctamente" });
-    } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error), "/change-password", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, 0, 0, req.body, performance.now() - startTime, JSON.stringify(error.message), "/change-password", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
-    } finally {
-    }
-});
-
-users.post('/change-profile-picture', verifyToken, async (req, res) => {
-    const startTime = performance.now();
-    const { companyId, userId, profile, image, dateYYYYMMDD } = req.body;
-    try {
-        const mensajeError = verifyParamaters(
-            req.body,
-            ['companyId', 'userId', 'profile', 'image', 'dateYYYYMMDD'],
-            true
-        );
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en change-profile-picture', message: mensajeError });
-        }
-
-        const company = await companiesService.getById(companyId);
-        const result = await changeProfilePicture(company, userId, profile, image, dateYYYYMMDD);
-
-        crearLog(companyId, result.id, result.profile, req.body, performance.now() - startTime, JSON.stringify(result), "/change-profile-picture", true);
-        res.status(Status.ok).json({ body: result, message: "Datos insertados correctamente" });
-    } catch (error) {
-
+        crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
+    }
+});
+
+users.post('/change-password', verifyToken(jwtSecret), async (req, res) => {
+    const startTime = performance.now();
+
+    let dbConnection;
+
+    try {
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: ['oldPassword', 'newPassword'], optional: [] });
+
+        const { companyId } = req.user;
+        const company = await companiesService.getById(companyId);
+
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const result = await changePassword(dbConnection, req);
+
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json(result);
+    } catch (error) {
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
+    } finally {
+        if (dbConnection) dbConnection.end();
+    }
+});
+
+users.post('/change-profile-picture', verifyToken(jwtSecret), async (req, res) => {
+    const startTime = performance.now();
+
+    try {
+        verifyHeaders(req, []);
+        verifyAll(req, [], { required: ['image', 'dateYYYYMMDD'], optional: [] });
+
+        const { companyId } = req.user;
+        const company = await companiesService.getById(companyId);
+
+        const result = await changeProfilePicture(req, company);
+
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json(result);
+    } catch (error) {
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     }
 });
 

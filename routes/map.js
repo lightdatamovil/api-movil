@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import verifyToken from '../src/funciones/verifyToken.js';
 import { getRouteByUserId } from '../controller/maps/get_route.js';
 import { geolocalize } from '../controller/maps/geolocalize.js';
 import { saveRoute } from '../controller/maps/save_route.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 import { companiesService, jwtSecret } from '../db.js';
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders } from 'lightdata-tools';
+import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 import mysql2 from 'mysql2';
 
 const map = Router();

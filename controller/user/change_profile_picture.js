@@ -2,7 +2,10 @@ import imageType from 'image-type';
 import axios from 'axios';
 import CustomException from "../../classes/custom_exception.js";
 
-export async function changeProfilePicture(company, userId, profile, image, dateYYYYMMDD) {
+export async function changeProfilePicture(req, company) {
+    const { image, dateYYYYMMDD } = req.body;
+    const { userId, profile } = req.user;
+
     if (image && image !== "") {
         const imageB64 = image.split(",");
 
@@ -35,7 +38,7 @@ export async function changeProfilePicture(company, userId, profile, image, date
                 });
             }
 
-            return response.data;
+            return { body: response.data, message: "Datos insertados correctamente" };
         } else {
             throw new CustomException({
                 title: 'Error en subida de imagen',

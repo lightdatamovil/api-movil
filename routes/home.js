@@ -1,12 +1,11 @@
 import { Router } from "express";
-import verifyToken from "../src/funciones/verifyToken.js";
 import { verifyStartedRoute } from "../controller/home/verify_started_route.js";
 import { startRoute } from "../controller/home/start_route.js";
 import { finishRoute } from "../controller/home/finish_route.js";
 import { getHomeData } from "../controller/home/get_home_data.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 import { companiesService, jwtSecret } from "../db.js";
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders } from "lightdata-tools";
+import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
 import mysql2 from "mysql2";
 
 const home = Router();
