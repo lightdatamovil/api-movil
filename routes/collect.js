@@ -88,7 +88,7 @@ collect.post("/save-route", verifyToken(jwtSecret), async (req, res) => {
         });
 
 
-        const { companyId } = req.body;
+        const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company);
@@ -112,19 +112,21 @@ collect.get("/get-collect-details", verifyToken(jwtSecret), async (req, res) => 
 
     let dbConnection;
 
-    const { companyId, userId, profile } = req.body;
     try {
         verifyHeaders(req, []);
         verifyAll(req, [], { required: [], optional: [] });
 
+        const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
+
         const dbConfig = getProductionDbConfig(company);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
-        const result = await getCollectDetails(company, userId, profile);
+
+        const result = await getCollectDetails(dbConnection, req, company);
 
         crearLog(req, startTime, JSON.stringify(result), false);
-        res.status(Status.ok).json({ body: collectDetails, message: "Colecta obtenida correctamente" });
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
@@ -138,19 +140,21 @@ collect.get("/get-client-details", verifyToken(jwtSecret), async (req, res) => {
 
     let dbConnection;
 
-    const { companyId, userId, profile, clientId } = req.body;
     try {
         verifyHeaders(req, []);
         verifyAll(req, [], { required: ['clientId'], optional: [] });
 
+        const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
+
         const dbConfig = getProductionDbConfig(company);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
-        const result = await shipmentsFromClient(company, clientId);
+
+        const result = await shipmentsFromClient(dbConnection, req, company);
 
         crearLog(req, startTime, JSON.stringify(result), false);
-        res.status(Status.ok).json({ body: shipments, message: "Envíos obtenidos correctamente" });
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
@@ -164,19 +168,21 @@ collect.get("/get-collect-list", verifyToken(jwtSecret), async (req, res) => {
 
     let dbConnection;
 
-    const { companyId, userId, profile, from, to } = req.body;
     try {
         verifyHeaders(req, []);
         verifyAll(req, [], { required: ['from', 'to'], optional: [] });
 
+        const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
+
         const dbConfig = getProductionDbConfig(company);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
-        const result = await getCollectList(company, userId, from, to);
+
+        const result = await getCollectList(dbConnection, req);
 
         crearLog(req, startTime, JSON.stringify(result), false);
-        res.status(Status.ok).json({ body: list, message: "Listado de colectas obtenido correctamente" });
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
@@ -190,19 +196,21 @@ collect.get("/get-settlement-list", verifyToken(jwtSecret), async (req, res) => 
 
     let dbConnection;
 
-    const { companyId, userId, profile, from, to } = req.body;
     try {
         verifyHeaders(req, []);
         verifyAll(req, [], { required: ['from', 'to'], optional: [] });
 
+        const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
+
         const dbConfig = getProductionDbConfig(company);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
-        const result = await getSettlementList(company, from, to);
+
+        const result = await getSettlementList(dbConnection, req);
 
         crearLog(req, startTime, JSON.stringify(result), false);
-        res.status(Status.ok).json({ body: settlements, message: "Listado de liquidaciones obtenido correctamente" });
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
@@ -216,19 +224,21 @@ collect.get("/get-settlement-details", verifyToken(jwtSecret), async (req, res) 
 
     let dbConnection;
 
-    const { companyId, userId, profile, settlementId } = req.body;
     try {
         verifyHeaders(req, []);
         verifyAll(req, [], { required: ['settlementId'], optional: [] });
 
+        const { companyId } = req.user;
         const company = await companiesService.getById(companyId);
+
         const dbConfig = getProductionDbConfig(company);
         dbConnection = mysql2.createConnection(dbConfig);
         dbConnection.connect();
-        const result = await getSettlementDetails(company, settlementId);
+
+        const result = await getSettlementDetails(dbConnection, req);
 
         crearLog(req, startTime, JSON.stringify(result), false);
-        res.status(Status.ok).json({ body: details, message: "Detalle de liquidación obtenido correctamente" });
+        res.status(Status.ok).json();
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
