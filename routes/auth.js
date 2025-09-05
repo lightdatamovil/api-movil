@@ -28,7 +28,7 @@ auth.post('/company-identification', async (req, res) => {
         const result = await identification(dbConnection, company);
 
         crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json();
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);

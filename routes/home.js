@@ -86,7 +86,7 @@ home.post("/end-route", verifyToken(jwtSecret), async (req, res) => {
     const result = await finishRoute(dbConnection, req);
 
     crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json();
+    res.status(Status.ok).json(result);
   } catch (error) {
     crearLog(req, startTime, JSON.stringify(error), false);
     errorHandler(req, res, error);
@@ -114,7 +114,7 @@ home.post("/verify-started-route", verifyToken(jwtSecret), async (req, res) => {
     const result = await verifyStartedRoute(dbConnection, req);
 
     crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json();
+    res.status(Status.ok).json(result);
   } catch (error) {
     crearLog(req, startTime, JSON.stringify(error), false);
     errorHandler(req, res, error);

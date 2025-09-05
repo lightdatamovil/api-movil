@@ -88,7 +88,7 @@ qr.post("/get-shipment-id", async (req, res) => {
     const result = await getShipmentIdFromQr(dbConnection, req, company);
 
     crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json();
+    res.status(Status.ok).json(result);
   } catch (error) {
     crearLog(req, startTime, JSON.stringify(error), false);
     errorHandler(req, res, error);
@@ -172,7 +172,7 @@ qr.post("/cantidad-asignaciones", verifyToken(jwtSecret), async (req, res) => {
     const result = await getCantidadAsignaciones(dbConnection, req);
 
     crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json();
+    res.status(Status.ok).json(result);
   } catch (error) {
     crearLog(req, startTime, JSON.stringify(error), false);
     errorHandler(req, res, error);
@@ -201,7 +201,7 @@ qr.post('/alta-envio-foto', verifyToken(jwtSecret), async (req, res) => {
     const result = await altaEnvioFoto(company, req);
 
     crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.created).json();
+    res.status(Status.created).json(result);
   } catch (error) {
     crearLog(req, startTime, JSON.stringify(error), false);
     errorHandler(req, res, error);

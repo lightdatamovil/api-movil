@@ -238,7 +238,7 @@ collect.get("/get-settlement-details", verifyToken(jwtSecret), async (req, res) 
         const result = await getSettlementDetails(dbConnection, req);
 
         crearLog(req, startTime, JSON.stringify(result), false);
-        res.status(Status.ok).json();
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);

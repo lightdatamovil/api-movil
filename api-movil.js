@@ -35,9 +35,7 @@ app.get('/ping', (req, res) => {
 
     const formattedTime = `${hours}:${minutes}:${seconds}`;
 
-    res.status(Status.ok).json({
-        hora: formattedTime
-    });
+    res.status(Status.ok).json({ hora: formattedTime });
 });
 
 (async () => {

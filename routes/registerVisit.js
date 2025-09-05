@@ -37,7 +37,7 @@ registerVisitRoute.post('/register', verifyToken(jwtSecret), async (req, res) =>
         const result = await registerVisit(dbConnection, req, company);
 
         crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json();
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
@@ -72,7 +72,7 @@ registerVisitRoute.post('/upload-image', verifyToken(jwtSecret), async (req, res
         const result = await uploadImage(dbConnection, req, company);
 
         crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json();
+        res.status(Status.ok).json(result);
     } catch (error) {
         crearLog(req, startTime, JSON.stringify(error), false);
         errorHandler(req, res, error);
