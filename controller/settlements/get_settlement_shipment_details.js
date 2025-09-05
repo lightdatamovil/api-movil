@@ -1,16 +1,12 @@
-import { executeQuery, getProdDbConfig, getZonesByCompany } from "../../db.js";
-import mysql2 from 'mysql2';
-import CustomException from "../../classes/custom_exception.js";
+import { CustomException, executeQuery } from "lightdata-tools";
+import { companiesService } from "../../db";
 
-export async function getSettlementShipmentDetails(company, shipmentId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getSettlementShipmentDetails(dbConnection, req, company) {
+    const { shipmentId } = req.body;
 
-    try {
-        const zones = await getZonesByCompany(company.did);
+    const zones = await companiesService.getZonesByCompany(dbConnection, company.did);
 
-        const sql = `
+    const sql = `
         SELECT e.did, ce.chofer, e.estado_envio, e.flex, e.didEnvioZona,
             DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') as fecha, cl.razon_social,
             edd.cp, CONCAT(edd.address_line, ' ', edd.localidad) as direccion,
@@ -21,11 +17,12 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
         LEFT JOIN envios_direcciones_destino AS edd ON(edd.elim = 0 AND edd.superado = 0 AND edd.didEnvio = e.did) 
         WHERE e.superado = 0 AND e.elim = 0 AND e.did = ? `;
 
-        const resultados = await executeQuery(dbConnection, sql, [shipmentId]);
+    const resultados = await executeQuery(dbConnection, sql, [shipmentId]);
 
-        if (resultados.length > 0) {
-            const row = resultados[0];
-            return {
+    if (resultados.length > 0) {
+        const row = resultados[0];
+        return {
+            body: {
                 total: row.chofer ? parseInt(row.chofer) : 0,
                 didEnvio: parseInt(row.did),
                 direccion: row.direccion || "",
@@ -37,23 +34,12 @@ export async function getSettlementShipmentDetails(company, shipmentId) {
                 zona: zones[row.didEnvioZona] || "Zona no encontrada",
                 cp: row.cp || "",
                 obs: row.destination_comments || ""
-            };
-        } else {
-            throw new CustomException({
-                title: 'Error en liquidación',
-                message: 'No se encontró el envío',
-            });
-        }
-    } catch (error) {
-        if (error instanceof CustomException) {
-            throw error;
-        }
+            }, message: 'Detalle de envíos de liquidación obtenido correctamente'
+        };
+    } else {
         throw new CustomException({
-            title: 'Error obteniendo detalles de liquidación',
-            message: error.message,
-            stack: error.stack
+            title: 'Error en liquidación',
+            message: 'No se encontró el envío',
         });
-    } finally {
-        dbConnection.end();
     }
 }
