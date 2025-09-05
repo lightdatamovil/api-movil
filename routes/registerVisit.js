@@ -3,8 +3,7 @@ import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
-import mysql2 from 'mysql2';
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 
 const registerVisitRoute = Router();
 
@@ -31,8 +30,7 @@ registerVisitRoute.post('/register', verifyToken(jwtSecret), async (req, res) =>
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await registerVisit(dbConnection, req, company);
 
@@ -66,8 +64,7 @@ registerVisitRoute.post('/upload-image', verifyToken(jwtSecret), async (req, res
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await uploadImage(dbConnection, req, company);
 

@@ -4,8 +4,7 @@ import { geolocalize } from '../controller/maps/geolocalize.js';
 import { saveRoute } from '../controller/maps/save_route.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
-import mysql2 from 'mysql2';
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 
 const map = Router();
 
@@ -22,8 +21,7 @@ map.post('/get-route-by-user', verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getRouteByUserId(dbConnection, req, company);
 
@@ -50,8 +48,7 @@ map.post('/geolocalize', verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await geolocalize(company, shipmentId, latitude, longitude);
 
@@ -78,8 +75,7 @@ map.post('/save-route', verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await saveRoute(dbConnection, req, company);
 

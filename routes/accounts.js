@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import { companiesService, jwtSecret } from '../db.js';
+import { companiesService, hostProductionDb, jwtSecret, portProductionDb } from '../db.js';
 import { accountList } from '../controller/accounts/accountList.js';
 import { crearLog } from '../src/funciones/crear_log.js';
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
-import mysql2 from 'mysql2';
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 
 const accounts = Router();
 
@@ -19,9 +18,8 @@ accounts.get('/account-list', verifyToken(jwtSecret), async (req, res) => {
 		const { companyId } = req.user;
 		const company = await companiesService.getById(companyId);
 
-		const dbConfig = getProductionDbConfig(company);
-		dbConnection = mysql2.createConnection(dbConfig);
-		dbConnection.connect();
+		const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
+		dbConnection = await connectMySQL(dbConfig);
 
 		const result = await accountList(dbConnection, req);
 

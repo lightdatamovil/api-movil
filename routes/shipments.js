@@ -3,9 +3,8 @@ import { nextDeliver } from "../controller/shipments/next_deliver.js";
 import { shipmentDetails } from "../controller/shipments/get_shipment_details.js";
 import { shipmentList } from "../controller/shipments/get_shipment_list.js";
 import { crearLog } from "../src/funciones/crear_log.js";
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
 import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
-import mysql2 from "mysql2";
 
 const shipments = Router();
 
@@ -22,8 +21,7 @@ shipments.post("/shipment-list", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await shipmentList(dbConnection, req, company);
 
@@ -50,8 +48,7 @@ shipments.post("/shipment-details", verifyToken(jwtSecret), async (req, res) => 
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await shipmentDetails(dbConnection, req);
 
@@ -78,8 +75,7 @@ shipments.post("/next-visit", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await nextDeliver(company, shipmentId, userId);
 

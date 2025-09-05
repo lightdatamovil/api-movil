@@ -3,9 +3,8 @@ import { getSettlementList } from '../controller/settlements/get_settlement_list
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
 import { crearLog } from '../src/funciones/crear_log.js';
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
-import mysql2 from 'mysql2';
 
 const settlements = Router();
 
@@ -22,8 +21,7 @@ settlements.post('/settlement-list', verifyToken(jwtSecret), async (req, res) =>
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getSettlementList(dbConnection, req);
 
@@ -50,8 +48,7 @@ settlements.post('/settlement-details', verifyToken(jwtSecret), async (req, res)
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getSettlementDetails(dbConnection, req, company);
 
@@ -78,8 +75,7 @@ settlements.post('/settlement-shipment-details', verifyToken(jwtSecret), async (
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getSettlementShipmentDetails(company, userId);
 

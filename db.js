@@ -1,6 +1,6 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
-import mysql2 from 'mysql2/promise';
+import { createPool } from 'mysql2/promise';
 import { CompaniesService, logRed } from 'lightdata-tools';
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
@@ -56,12 +56,12 @@ export function getDbConfig(companyId) {
     };
 }
 
-export const poolLocal = mysql2.createPool({
-    host: hostProductionDb,
+export const poolLocal = createPool({
+    host: apimovilDBHost,
     user: apimovilDbUserForLogs,
     password: apimovilDbPasswordForLogs,
     database: apimovilDbNameForLogs,
-    port: portProductionDb,
+    port: Number(apimovilDBPort),
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

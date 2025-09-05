@@ -5,8 +5,7 @@ import { finishRoute } from "../controller/home/finish_route.js";
 import { getHomeData } from "../controller/home/get_home_data.js";
 import { crearLog } from "../src/funciones/crear_log.js";
 import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
-import mysql2 from "mysql2";
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
 
 const home = Router();
 
@@ -23,8 +22,7 @@ home.post("/home", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await getHomeData(dbConnection, req);
 
@@ -51,8 +49,7 @@ home.post("/start-route", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await startRoute(company, userId, deviceFrom);
 
@@ -79,8 +76,7 @@ home.post("/end-route", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await finishRoute(dbConnection, req);
 
@@ -107,8 +103,7 @@ home.post("/verify-started-route", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await verifyStartedRoute(dbConnection, req);
 

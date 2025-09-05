@@ -9,8 +9,7 @@ import { getSettlementList } from '../controller/settlements/get_settlement_list
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { crearLog } from '../src/funciones/crear_log.js';
 import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
-import mysql2 from 'mysql2';
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 
 const collect = Router();
 
@@ -27,8 +26,7 @@ collect.get("/get-route", verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getRoute(dbConnection, req, company);
 
@@ -55,8 +53,7 @@ collect.post("/start-route", verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await startCollectRoute(dbConnection);
 
@@ -92,8 +89,7 @@ collect.post("/save-route", verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await saveRoute(dbConnection, req, company);
 
@@ -120,8 +116,7 @@ collect.get("/get-collect-details", verifyToken(jwtSecret), async (req, res) => 
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getCollectDetails(dbConnection, req, company);
 
@@ -148,8 +143,7 @@ collect.get("/get-client-details", verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await shipmentsFromClient(dbConnection, req, company);
 
@@ -176,8 +170,7 @@ collect.get("/get-collect-list", verifyToken(jwtSecret), async (req, res) => {
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getCollectList(dbConnection, req);
 
@@ -204,8 +197,7 @@ collect.get("/get-settlement-list", verifyToken(jwtSecret), async (req, res) => 
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getSettlementList(dbConnection, req);
 
@@ -232,8 +224,7 @@ collect.get("/get-settlement-details", verifyToken(jwtSecret), async (req, res) 
         const company = await companiesService.getById(companyId);
 
         const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = mysql2.createConnection(dbConfig);
-        dbConnection.connect();
+        dbConnection = await connectMySQL(dbConfig);
 
         const result = await getSettlementDetails(dbConnection, req, company);
 

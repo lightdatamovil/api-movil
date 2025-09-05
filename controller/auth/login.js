@@ -8,8 +8,8 @@ function generateToken(userId, idEmpresa, perfil) {
   return jwt.sign(payload, "ruteate", options);
 }
 
-export async function login(dbConnection, req) {
-  const { username, password, company } = req.body;
+export async function login(dbConnection, req, company) {
+  const { username, password } = req.body;
 
   let userAddress = {};
 

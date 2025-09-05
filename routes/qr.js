@@ -8,8 +8,7 @@ import { crearLog } from "../src/funciones/crear_log.js";
 import { getCantidadAsignaciones } from "../controller/qr/get_cantidad_asignaciones.js";
 import { altaEnvioFoto } from "../controller/qr/envio_foto.js";
 import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
-import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
-import mysql2 from "mysql2";
+import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
 
 const qr = Router();
 
@@ -26,8 +25,7 @@ qr.post("/driver-list", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await driverList(dbConnection);
 
@@ -54,8 +52,7 @@ qr.post("/cross-docking", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await crossDocking(dbConnection, req, company);
 
@@ -82,8 +79,7 @@ qr.post("/get-shipment-id", async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await getShipmentIdFromQr(dbConnection, req, company);
 
@@ -110,8 +106,7 @@ qr.post("/products-from-shipment", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await getProductsFromShipment(dbConnection, req);
 
@@ -138,8 +133,7 @@ qr.post("/enter-flex", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await enterFlex(dbConnection, req, company);
 
@@ -166,8 +160,7 @@ qr.post("/cantidad-asignaciones", verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await getCantidadAsignaciones(dbConnection, req);
 
@@ -195,8 +188,7 @@ qr.post('/alta-envio-foto', verifyToken(jwtSecret), async (req, res) => {
     const company = await companiesService.getById(companyId);
 
     const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    dbConnection = await connectMySQL(dbConfig);
 
     const result = await altaEnvioFoto(company, req);
 
