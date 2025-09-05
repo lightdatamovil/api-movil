@@ -1,102 +1,83 @@
 import { Router } from 'express';
-import verifyToken from '../src/funciones/verifyToken.js';
-import { verifyParamaters } from '../src/funciones/verifyParameters.js';
 import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
-import CustomException from '../classes/custom_exception.js';
 import { crearLog } from '../src/funciones/crear_log.js';
+import { companiesService, jwtSecret } from '../db.js';
+import { errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
+import mysql2 from 'mysql2';
 
 const registerVisitRoute = Router();
 
-registerVisitRoute.post('/register', verifyToken, async (req, res) => {
+registerVisitRoute.post('/register', verifyToken(jwtSecret), async (req, res) => {
     const startTime = performance.now();
-    const {
-        companyId,
-        userId,
-        shipmentId,
-        profile,
-        recieverDNI,
-        recieverName,
-        latitude,
-        longitude,
-        shipmentState,
-        observation,
-        appVersion,
-    } = req.body;
+
+    let dbConnection;
+
     try {
-        const mensajeError = verifyParamaters(req.body, [
-            'companyId',
-            'userId',
-            'shipmentId',
-            'shipmentState',
-            'observation',
-            'latitude',
-            'longitude',
-            'recieverName',
-            'recieverDNI'
-        ], true);
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en register', message: mensajeError });
-        }
+        verifyHeaders(req, []);
+        verifyAll(req, [], {
+            required: [
+                'shipmentId',
+                'shipmentState',
+                'observation',
+                'latitude',
+                'longitude',
+                'recieverName',
+                'recieverDNI',
+            ], optional: []
+        });
 
+        const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
-        const result = await registerVisit(
-            company,
-            userId,
-            shipmentId,
-            recieverDNI,
-            recieverName,
-            latitude,
-            longitude,
-            shipmentState,
-            observation,
-            appVersion,
-        );
 
-        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(result), "/register", true);
-        res.status(Status.ok).json({ body: result, message: "Visita registrada correctamente" });
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const result = await registerVisit(dbConnection, req, company);
+
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json();
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/register", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/register", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
     }
 });
 
-registerVisitRoute.post('/upload-image', verifyToken, async (req, res) => {
+registerVisitRoute.post('/upload-image', verifyToken(jwtSecret), async (req, res) => {
     const startTime = performance.now();
-    const { companyId, shipmentId, userId, profile, shipmentState, image, lineId } = req.body;
+
+    let dbConnection;
+
     try {
-        const mensajeError = verifyParamaters(req.body, [
-            'companyId',
-            'userId',
-            'shipmentId',
-            'shipmentState',
-            'image',
-            'lineId'
-        ], true);
-        if (mensajeError) {
-            throw new CustomException({ title: 'Error en upload-image', message: mensajeError });
-        }
+        verifyHeaders(req, []);
+        verifyAll(req, [], {
+            required: [
+                'shipmentId',
+                'shipmentState',
+                'image',
+                'lineId'
+            ], optional: []
+        });
 
+        const { companyId } = req.body;
         const company = await companiesService.getById(companyId);
-        const response = await uploadImage(company, shipmentId, userId, shipmentState, image, lineId);
 
-        crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(response), "/upload-image", true);
-        res.status(Status.ok).json({ message: "Imagen subida correctamente" });
+        const dbConfig = getProductionDbConfig(company);
+        dbConnection = mysql2.createConnection(dbConfig);
+        dbConnection.connect();
+
+        const result = await uploadImage(dbConnection, req, company);
+
+        crearLog(req, startTime, JSON.stringify(result), true);
+        res.status(Status.ok).json();
     } catch (error) {
-        if (error instanceof CustomException) {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error), "/upload-image", false);
-            res.status(400).json({ title: error.title, message: error.message });
-        } else {
-            crearLog(companyId, userId, profile, req.body, performance.now() - startTime, JSON.stringify(error.message), "/upload-image", false);
-            res.status(500).json({ message: 'Error interno del servidor' });
-        }
+        crearLog(req, startTime, JSON.stringify(error), false);
+        errorHandler(req, res, error);
     } finally {
+        if (dbConnection) dbConnection.end();
     }
 });
 
