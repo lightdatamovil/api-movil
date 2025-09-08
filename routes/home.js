@@ -8,11 +8,11 @@ import { getHomeData } from '../controller/home/get_home_data.js';
 
 const home = Router();
 
-home.post(
+home.get(
   '/home',
   buildHandler({
-    controller: async ({ db, req }) => {
-      const result = await getHomeData(db, req);
+    controller: async ({ db, req, company }) => {
+      const result = await getHomeData(db, req, company);
       return result;
     },
   })

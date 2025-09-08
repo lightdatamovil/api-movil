@@ -1,8 +1,7 @@
 import { CustomException, executeQuery, getFechaConHoraLocalDePais, getFechaLocalDePais } from "lightdata-tools";
 
-export async function getHomeData(dbConnection, req) {
-  const { company, userId } = req.user;
-  let { profile } = req.user;
+export async function getHomeData(dbConnection, req, company) {
+  let { profile, userId } = req.user;
 
   //! Esto es por el error que paso una vez que la app no tomaba el perfil
   if (profile == 0) {
@@ -189,8 +188,7 @@ export async function getHomeData(dbConnection, req) {
         const rowsPendientesOperador = await executeQuery(
           dbConnection,
           queryPendientes,
-          [],
-          true
+          []
         );
         infoADevolver.pendings = rowsPendientesOperador.length;
         // En Camino, Cerrados y Entregados HOY para operador
