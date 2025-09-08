@@ -1,5 +1,5 @@
 import { CustomException, executeQuery, getFechaConHoraLocalDePais, sendShipmentStateToStateMicroservice } from "lightdata-tools";
-import { queueEstados, rabbitUrl } from "../../db.js";
+import { queueEstados, rabbitUrl, urlEstadosMicroservice } from "../../db.js";
 
 export async function enterFlex(dbConnection, req, company) {
     const { dataQr } = req.body;
@@ -81,7 +81,7 @@ export async function enterFlex(dbConnection, req, company) {
             shipmentState = 7;
         }
 
-        await sendShipmentStateToStateMicroservice(queueEstados, rabbitUrl, 'apimovil', company, userId, shipmentState, shipmentId);
+        await sendShipmentStateToStateMicroservice(queueEstados, rabbitUrl, 'apimovil', company, userId, shipmentState, shipmentId, urlEstadosMicroservice);
 
         if (profile === 3) {
             await updateWhoPickedUp(dbConnection, userId, shipmentId);

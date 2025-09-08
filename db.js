@@ -9,6 +9,13 @@ dotenv.config({ path: process.env.ENV_FILE || ".env" });
 const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
+export const redisClient = redis.createClient({
+    socket: {
+        host: redisHost,
+        port: redisPort,
+    },
+    password: redisPassword,
+});
 
 /// Base de datos de apimovil
 const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
@@ -16,6 +23,16 @@ const apimovilDBUser = process.env.APIMOVIL_DB_USER;
 const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
 const apimovilDBName = process.env.APIMOVIL_DB_NAME;
 const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
+export function getDbConfig(companyId) {
+    return {
+        host: apimovilDBHost,
+        user: apimovilDBUser + companyId,
+        password: apimovilDBPassword,
+        database: apimovilDBName + companyId,
+        port: apimovilDBPort
+    };
+}
+
 
 /// Usuario y contraseña para los logs de la base de datos de apimovil
 const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
@@ -26,18 +43,13 @@ const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
 export const hostProductionDb = process.env.PRODUCTION_DB_HOST;
 export const portProductionDb = process.env.PRODUCTION_DB_PORT;
 
+/// MICROSERVICIO DE ESTADOS
 export const rabbitUrl = process.env.RABBIT_URL;
 export const queueEstados = process.env.QUEUE_ESTADOS;
+export const urlEstadosMicroservice = process.env.URL_ESTADOS_MICROSERVICE;
 
 export const jwtSecret = process.env.JWT_SECRET;
 
-export const redisClient = redis.createClient({
-    socket: {
-        host: redisHost,
-        port: redisPort,
-    },
-    password: redisPassword,
-});
 
 redisClient.on('error', (error) => {
     logRed(`Error al conectar con Redis: ${error.stack}`);
@@ -45,16 +57,6 @@ redisClient.on('error', (error) => {
 
 
 export const companiesService = new CompaniesService({ redisClient, redisKey: "empresasData" })
-
-export function getDbConfig(companyId) {
-    return {
-        host: apimovilDBHost,
-        user: apimovilDBUser + companyId,
-        password: apimovilDBPassword,
-        database: apimovilDBName + companyId,
-        port: apimovilDBPort
-    };
-}
 
 export const poolLocal = createPool({
     host: apimovilDBHost,

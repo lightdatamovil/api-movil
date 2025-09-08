@@ -1,4 +1,5 @@
 import axios from "axios";
+import { CustomException } from "lightdata-tools";
 
 
 export async function getTokenMLconMasParametros(clientId, accountId, companyId) {
