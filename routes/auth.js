@@ -24,6 +24,7 @@ auth.post(
     '/login',
     buildHandler({
         required: ['username', 'password', 'companyId'],
+        companyResolver: async ({ req }) => companiesService.getById(req.body.companyId),
         controller: async ({ db, req, company }) => {
             const result = await login(db, req, company);
             return result;
