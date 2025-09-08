@@ -1,81 +1,38 @@
 import { Router } from 'express';
+import { buildHandler } from './_handler.js';
 import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
-import { crearLog } from '../src/funciones/crear_log.js';
-import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
-import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 
 const registerVisitRoute = Router();
 
-registerVisitRoute.post('/register', verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
+registerVisitRoute.post(
+    '/register',
+    buildHandler({
+        required: [
+            'shipmentId',
+            'shipmentState',
+            'observation',
+            'latitude',
+            'longitude',
+            'recieverName',
+            'recieverDNI',
+        ],
+        controller: async ({ db, req, company }) => {
+            const result = await registerVisit(db, req, company);
+            return result;
+        },
+    })
+);
 
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], {
-            required: [
-                'shipmentId',
-                'shipmentState',
-                'observation',
-                'latitude',
-                'longitude',
-                'recieverName',
-                'recieverDNI',
-            ], optional: []
-        });
-
-        const { companyId } = req.body;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await registerVisit(dbConnection, req, company);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
-
-registerVisitRoute.post('/upload-image', verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], {
-            required: [
-                'shipmentId',
-                'shipmentState',
-                'image',
-                'lineId'
-            ], optional: []
-        });
-
-        const { companyId } = req.body;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await uploadImage(dbConnection, req, company);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
+registerVisitRoute.post(
+    '/upload-image',
+    buildHandler({
+        required: ['shipmentId', 'shipmentState', 'image', 'lineId'],
+        controller: async ({ db, req, company }) => {
+            const result = await uploadImage(db, req, company);
+            return result;
+        },
+    })
+);
 
 export default registerVisitRoute;

@@ -1,92 +1,60 @@
-import { Router } from "express";
-import { nextDeliver } from "../controller/shipments/next_deliver.js";
-import { shipmentDetails } from "../controller/shipments/get_shipment_details.js";
-import { shipmentList } from "../controller/shipments/get_shipment_list.js";
-import { crearLog } from "../src/funciones/crear_log.js";
-import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
-import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
+// routes/shipments.js
+import { Router } from 'express';
+import { buildHandler } from './_handler.js';
+import { companiesService } from '../db.js';
+
+import { shipmentList } from '../controller/shipments/get_shipment_list.js';
+import { shipmentDetails } from '../controller/shipments/get_shipment_details.js';
+import { nextDeliver } from '../controller/shipments/next_deliver.js';
 
 const shipments = Router();
 
-shipments.post("/shipment-list", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
+// Resolver company: token -> body.companyId
+const resolveCompany = async ({ req }) => {
+  const cid = req.user?.companyId ?? req.body?.companyId;
+  return cid ? companiesService.getById(cid) : null;
+};
 
-  let dbConnection;
+// POST /shipment-list
+shipments.post(
+  '/shipment-list',
+  buildHandler({
+    required: ['from', 'shipmentStates', 'isAssignedToday'],
+    companyResolver: resolveCompany,
+    controller: async ({ db, req, company }) => {
+      const result = await shipmentList(db, req, company);
+      return result; // 200 OK
+    },
+  })
+);
 
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ["from", "shipmentStates", "isAssignedToday"], optional: [] });
+// POST /shipment-details
+shipments.post(
+  '/shipment-details',
+  buildHandler({
+    required: ['shipmentId'],
+    companyResolver: resolveCompany, // opcional aquí, pero lo dejamos uniforme
+    controller: async ({ db, req }) => {
+      const result = await shipmentDetails(db, req);
+      return result; // 200 OK
+    },
+  })
+);
 
-    const { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await shipmentList(dbConnection, req, company);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-shipments.post("/shipment-details", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ['shipmentId'], optional: [] });
-
-    const { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await shipmentDetails(dbConnection, req);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-shipments.post("/next-visit", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ['shipmentId'], optional: [] });
-
-    const { companyId, userId, shipmentId } = req.body;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await nextDeliver(company, shipmentId, userId);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
+// POST /next-visit (no requiere DB)
+shipments.post(
+  '/next-visit',
+  buildHandler({
+    required: ['shipmentId'],
+    needsDb: false,
+    companyResolver: resolveCompany,
+    controller: async ({ req, company }) => {
+      const userId = req.user?.userId ?? req.body?.userId;
+      const { shipmentId } = req.body;
+      const result = await nextDeliver(company, shipmentId, userId);
+      return result; // 200 OK
+    },
+  })
+);
 
 export default shipments;

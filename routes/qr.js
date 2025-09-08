@@ -1,205 +1,90 @@
-import { Router } from "express";
-import { getShipmentIdFromQr } from "../controller/qr/get_shipment_id.js";
-import { getProductsFromShipment } from "../controller/qr/get_products.js";
-import { enterFlex } from "../controller/qr/enter_flex.js";
-import { driverList } from "../controller/qr/get_driver_list.js";
-import { crossDocking } from "../controller/qr/cross_docking.js";
-import { crearLog } from "../src/funciones/crear_log.js";
-import { getCantidadAsignaciones } from "../controller/qr/get_cantidad_asignaciones.js";
-import { altaEnvioFoto } from "../controller/qr/envio_foto.js";
-import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from "../db.js";
-import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from "lightdata-tools";
+import { Router } from 'express';
+import { buildHandler } from './_handler.js';
+import { driverList } from '../controller/qr/get_driver_list.js';
+import { crossDocking } from '../controller/qr/cross_docking.js';
+import { getShipmentIdFromQr } from '../controller/qr/get_shipment_id.js';
+import { getProductsFromShipment } from '../controller/qr/get_products.js';
+import { enterFlex } from '../controller/qr/enter_flex.js';
+import { getCantidadAsignaciones } from '../controller/qr/get_cantidad_asignaciones.js';
+import { altaEnvioFoto } from '../controller/qr/envio_foto.js';
 
 const qr = Router();
 
-qr.post("/driver-list", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
+qr.post(
+  '/driver-list',
+  buildHandler({
+    required: [],
+    controller: async ({ db }) => {
+      const result = await driverList(db);
+      return result;
+    },
+  })
+);
 
-  let dbConnection;
+qr.post(
+  '/cross-docking',
+  buildHandler({
+    required: ['dataQr'],
+    controller: async ({ db, req, company }) => {
+      const result = await crossDocking(db, req, company);
+      return result;
+    },
+  })
+);
 
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: [], optional: [] });
+qr.post(
+  '/get-shipment-id',
+  buildHandler({
+    required: ['dataQr'],
+    controller: async ({ db, req, company }) => {
+      const result = await getShipmentIdFromQr(db, req, company);
+      return result;
+    },
+  })
+);
 
-    const { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
+qr.post(
+  '/products-from-shipment',
+  buildHandler({
+    required: ['dataQr'],
+    controller: async ({ db, req }) => {
+      const result = await getProductsFromShipment(db, req);
+      return result;
+    },
+  })
+);
 
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
+qr.post(
+  '/enter-flex',
+  buildHandler({
+    required: ['dataQr'],
+    controller: async ({ db, req, company }) => {
+      const result = await enterFlex(db, req, company);
+      return result;
+    },
+  })
+);
 
-    const result = await driverList(dbConnection);
+qr.post(
+  '/cantidad-asignaciones',
+  buildHandler({
+    required: [],
+    controller: async ({ db, req }) => {
+      const result = await getCantidadAsignaciones(db, req);
+      return result;
+    },
+  })
+);
 
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-qr.post("/cross-docking", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ['dataQr'], optional: [] });
-
-    let { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await crossDocking(dbConnection, req, company);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-qr.post("/get-shipment-id", async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ['dataQr'], optional: [] });
-
-    let { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await getShipmentIdFromQr(dbConnection, req, company);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-qr.post("/products-from-shipment", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ['dataQr'], optional: [] });
-
-    let { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await getProductsFromShipment(dbConnection, req);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-qr.post("/enter-flex", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ['dataQr'], optional: [] });
-
-    const { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await enterFlex(dbConnection, req, company);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-qr.post("/cantidad-asignaciones", verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: [], optional: [] });
-
-    const { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await getCantidadAsignaciones(dbConnection, req);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.ok).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
-
-
-qr.post('/alta-envio-foto', verifyToken(jwtSecret), async (req, res) => {
-  const startTime = performance.now();
-
-  let dbConnection;
-
-  try {
-    verifyHeaders(req, []);
-    verifyAll(req, [], { required: ['image', 'driverId'], optional: [] });
-
-    const { companyId } = req.user;
-    const company = await companiesService.getById(companyId);
-
-    const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-    dbConnection = await connectMySQL(dbConfig);
-
-    const result = await altaEnvioFoto(company, req);
-
-    crearLog(req, startTime, JSON.stringify(result), true);
-    res.status(Status.created).json(result);
-  } catch (error) {
-    crearLog(req, startTime, JSON.stringify(error), false);
-    errorHandler(req, res, error);
-  } finally {
-    if (dbConnection) dbConnection.end();
-  }
-});
+qr.post(
+  '/alta-envio-foto',
+  buildHandler({
+    required: ['image', 'driverId'],
+    controller: async ({ req, company }) => {
+      const result = await altaEnvioFoto(company, req);
+      return result;
+    },
+  })
+);
 
 export default qr;

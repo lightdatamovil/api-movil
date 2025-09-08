@@ -9,10 +9,10 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { redisClient } from './db.js';
+import { jwtSecret, redisClient } from './db.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { logBlue, logRed, Status } from 'lightdata-tools';
+import { logBlue, logRed, Status, verifyToken } from 'lightdata-tools';
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
@@ -43,6 +43,7 @@ app.get('/ping', (req, res) => {
         await redisClient.connect();
 
         app.use('/api/auth', auth);
+        app.use(verifyToken(jwtSecret));
         app.use('/api/accounts', accounts);
         app.use('/api/shipments', shipments);
         app.use('/api/settlements', settlements);

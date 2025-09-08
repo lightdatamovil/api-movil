@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { executeQuery, getFechaConHoraLocalDePais } from 'lightdata-tools';
 
-export async function startRoute(dbConnection, req) {
-    const { company, userId, deviceFrom } = req.body;
+export async function startRoute(dbConnection, req, company) {
+    const { deviceFrom } = req.body;
+    const { userId } = req.user;
 
     const dateConHora = getFechaConHoraLocalDePais(company.pais);
     const hour = dateConHora.split(' ')[1];

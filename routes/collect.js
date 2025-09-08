@@ -1,241 +1,99 @@
 import { Router } from 'express';
-import { saveRoute } from '../controller/collect/save_route.js';
+import { buildHandler } from './_handler.js';
 import { getRoute } from '../controller/collect/get_route.js';
 import { startCollectRoute } from '../controller/collect/start_route.js';
+import { saveRoute } from '../controller/collect/save_route.js';
 import { getCollectDetails } from '../controller/collect/get_collect_details.js';
 import { shipmentsFromClient } from '../controller/collect/get_shipments_from_client.js';
 import { getCollectList } from '../controller/collect/get_collect_list.js';
 import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
-import { crearLog } from '../src/funciones/crear_log.js';
-import { hostProductionDb, portProductionDb, companiesService, jwtSecret } from '../db.js';
-import { connectMySQL, errorHandler, getProductionDbConfig, Status, verifyAll, verifyHeaders, verifyToken } from 'lightdata-tools';
 
 const collect = Router();
 
-collect.get("/get-route", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
+collect.get(
+    '/get-route',
+    buildHandler({
+        controller: async ({ db, req, company }) => {
+            const result = await getRoute(db, req, company);
+            return result;
+        },
+    })
+);
 
-    let dbConnection;
+collect.post(
+    '/start-route',
+    buildHandler({
+        controller: async ({ db }) => {
+            const result = await startCollectRoute(db);
+            return result;
+        },
+    })
+);
 
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], { required: [], optional: [] });
+collect.post(
+    '/save-route',
+    buildHandler({
+        required: ['operationDate', 'additionalRouteData', 'orders'],
+        controller: async ({ db, req, company }) => {
+            const result = await saveRoute(db, req, company);
+            return result;
+        },
+    })
+);
 
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
+collect.get(
+    '/get-collect-details',
+    buildHandler({
+        controller: async ({ db, req, company }) => {
+            const result = await getCollectDetails(db, req, company);
+            return result;
+        },
+    })
+);
 
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
+collect.get(
+    '/get-client-details',
+    buildHandler({
+        required: ['clientId'],
+        controller: async ({ db, req, company }) => {
+            const result = await shipmentsFromClient(db, req, company);
+            return result;
+        },
+    })
+);
 
-        const result = await getRoute(dbConnection, req, company);
+collect.get(
+    '/get-collect-list',
+    buildHandler({
+        required: ['from', 'to'],
+        controller: async ({ db, req }) => {
+            const result = await getCollectList(db, req);
+            return result;
+        },
+    })
+);
 
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
+collect.get(
+    '/get-settlement-list',
+    buildHandler({
+        required: ['from', 'to'],
+        controller: async ({ db, req }) => {
+            const result = await getSettlementList(db, req);
+            return result;
+        },
+    })
+);
 
-collect.post("/start-route", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], { required: [], optional: [] });
-
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await startCollectRoute(dbConnection);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
-
-collect.post("/save-route", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], {
-            required: [
-                'companyId',
-                'userId',
-                'operationDate',
-                'additionalRouteData',
-                'orders'
-            ], optional: []
-        });
-
-
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await saveRoute(dbConnection, req, company);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
-
-collect.get("/get-collect-details", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], { required: [], optional: [] });
-
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await getCollectDetails(dbConnection, req, company);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
-
-collect.get("/get-client-details", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], { required: ['clientId'], optional: [] });
-
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await shipmentsFromClient(dbConnection, req, company);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
-
-collect.get("/get-collect-list", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], { required: ['from', 'to'], optional: [] });
-
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await getCollectList(dbConnection, req);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
-
-collect.get("/get-settlement-list", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], { required: ['from', 'to'], optional: [] });
-
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await getSettlementList(dbConnection, req);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
-
-collect.get("/get-settlement-details", verifyToken(jwtSecret), async (req, res) => {
-    const startTime = performance.now();
-
-    let dbConnection;
-
-    try {
-        verifyHeaders(req, []);
-        verifyAll(req, [], { required: ['settlementId'], optional: [] });
-
-        const { companyId } = req.user;
-        const company = await companiesService.getById(companyId);
-
-        const dbConfig = getProductionDbConfig(company, hostProductionDb, portProductionDb);
-        dbConnection = await connectMySQL(dbConfig);
-
-        const result = await getSettlementDetails(dbConnection, req, company);
-
-        crearLog(req, startTime, JSON.stringify(result), true);
-        res.status(Status.ok).json(result);
-    } catch (error) {
-        crearLog(req, startTime, JSON.stringify(error), false);
-        errorHandler(req, res, error);
-    } finally {
-        if (dbConnection) dbConnection.end();
-    }
-});
+collect.get(
+    '/get-settlement-details',
+    buildHandler({
+        required: ['settlementId'],
+        controller: async ({ db, req, company }) => {
+            const result = await getSettlementDetails(db, req, company);
+            return result;
+        },
+    })
+);
 
 export default collect;
