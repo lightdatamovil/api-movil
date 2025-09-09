@@ -19,12 +19,18 @@ export async function shipmentDetails(company, shipmentId, userId) {
             long = shipmentData.destination_longitude * 1;
         }
 
+        // helper: remueve '#' y compacta espacios
+        const stripHashes = (v) =>
+            String(v ?? '')
+                .replace(/#/g, '')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
         var detallesEnvio = new Object();
         detallesEnvio["nombreDestinatario"] = shipmentData.destination_receiver_name;
         detallesEnvio["nombreCliente"] = "";
         detallesEnvio["didCliente"] = shipmentData.didCliente * 1;
-        detallesEnvio["domicilio1"] = shipmentData.destination_shipping_address_line;
-        detallesEnvio["domicilio2"] = "CP " + shipmentData.destination_shipping_zip_code + ", " + shipmentData.destination_city_name;
+        detallesEnvio["domicilio1"] = stripHashes(shipmentData.destination_shipping_address_line);
+        detallesEnvio["domicilio2"] = "CP " + stripHashes(shipmentData.destination_shipping_zip_code) + ", " + stripHashes(shipmentData.destination_city_name);
         detallesEnvio["telefono"] = shipmentData.destination_receiver_phone;
         detallesEnvio["observacionDomicilio"] = shipmentData.destination_comments;
         detallesEnvio["estadoActual"] = shipmentData.estado_envio;
