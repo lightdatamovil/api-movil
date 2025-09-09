@@ -1,25 +1,29 @@
+import { companiesService, hostProductionDb, portProductionDb } from "../../db.js";
 import { crearLog } from "./crear_log.js";
-import { buildHandler } from "lightdata-tools";
+import { buildHandler, getProductionDbConfig } from "lightdata-tools";
 
 export function buildHandlerWrapper({
     required,
     optional,
     headers,
-    needsDb,
     status,
-    companyResolver,
+    companyResolver2,
+    getDbConfig2,
     controller,
+    log2,
+    pool,
 }) {
     return buildHandler({
         required,
         optional,
         headers,
-        needsDb,
         status,
-        companyResolver,
         controller,
-        log: async ({ req, startTime, data, exito }) => {
+        companyResolver: companyResolver2 || (({ req }) => companiesService.getById(req.user.companyId)),
+        getDbConfig: getDbConfig2 || (({ company }) => getProductionDbConfig(company, hostProductionDb, portProductionDb)),
+        log: log2 || (async ({ req, startTime, data, exito }) => {
             await crearLog(req, startTime, JSON.stringify(data), exito);
-        },
-    })
+        }),
+        pool,
+    });
 }
