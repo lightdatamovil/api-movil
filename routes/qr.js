@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { buildHandler } from './_handler.js';
 import { driverList } from '../controller/qr/get_driver_list.js';
 import { crossDocking } from '../controller/qr/cross_docking.js';
 import { getShipmentIdFromQr } from '../controller/qr/get_shipment_id.js';
@@ -7,12 +6,13 @@ import { getProductsFromShipment } from '../controller/qr/get_products.js';
 import { enterFlex } from '../controller/qr/enter_flex.js';
 import { getCantidadAsignaciones } from '../controller/qr/get_cantidad_asignaciones.js';
 import { altaEnvioFoto } from '../controller/qr/envio_foto.js';
+import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const qr = Router();
 
 qr.post(
   '/driver-list',
-  buildHandler({
+  buildHandlerWrapper({
     required: [],
     controller: async ({ db }) => {
       const result = await driverList(db);
@@ -23,7 +23,7 @@ qr.post(
 
 qr.post(
   '/cross-docking',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['dataQr'],
     controller: async ({ db, req, company }) => {
       const result = await crossDocking(db, req, company);
@@ -34,7 +34,7 @@ qr.post(
 
 qr.post(
   '/get-shipment-id',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['dataQr'],
     controller: async ({ db, req, company }) => {
       const result = await getShipmentIdFromQr(db, req, company);
@@ -45,7 +45,7 @@ qr.post(
 
 qr.post(
   '/products-from-shipment',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['dataQr'],
     controller: async ({ db, req }) => {
       const result = await getProductsFromShipment(db, req);
@@ -56,7 +56,7 @@ qr.post(
 
 qr.post(
   '/enter-flex',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['dataQr'],
     controller: async ({ db, req, company }) => {
       const result = await enterFlex(db, req, company);
@@ -67,7 +67,7 @@ qr.post(
 
 qr.post(
   '/cantidad-asignaciones',
-  buildHandler({
+  buildHandlerWrapper({
     required: [],
     controller: async ({ db, req }) => {
       const result = await getCantidadAsignaciones(db, req);
@@ -78,7 +78,7 @@ qr.post(
 
 qr.post(
   '/alta-envio-foto',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['image', 'driverId'],
     controller: async ({ req, company }) => {
       const result = await altaEnvioFoto(company, req);

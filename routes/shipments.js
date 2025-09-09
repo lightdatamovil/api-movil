@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { buildHandler } from './_handler.js';
 import { shipmentList } from '../controller/shipments/get_shipment_list.js';
 import { shipmentDetails } from '../controller/shipments/get_shipment_details.js';
 import { nextDeliver } from '../controller/shipments/next_deliver.js';
+import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const shipments = Router();
 
 shipments.post(
   '/shipment-list',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['from', 'shipmentStates', 'isAssignedToday'],
     controller: async ({ db, req, company }) => {
       const result = await shipmentList(db, req, company);
@@ -19,7 +19,7 @@ shipments.post(
 
 shipments.post(
   '/shipment-details',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['shipmentId'],
     controller: async ({ db, req }) => {
       const result = await shipmentDetails(db, req);
@@ -30,7 +30,7 @@ shipments.post(
 
 shipments.post(
   '/next-visit',
-  buildHandler({
+  buildHandlerWrapper({
     required: ['shipmentId'],
     controller: async ({ db, req, company }) => {
       const result = await nextDeliver(db, req, company);

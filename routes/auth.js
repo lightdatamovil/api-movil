@@ -1,16 +1,16 @@
 import { Router } from 'express';
 import { verifyToken } from 'lightdata-tools';
 import { jwtSecret, companiesService } from '../db.js';
-import { buildHandler } from './_handler.js';
 import { identification } from '../controller/auth/identification.js';
 import { login } from '../controller/auth/login.js';
 import { whatsappMessagesList } from '../controller/auth/whatsappMessagesList.js';
+import { buildHandlerWrapperWrapper } from './accounts.js';
 
 const auth = Router();
 
 auth.post(
     '/company-identification',
-    buildHandler({
+    buildHandlerWrapperWrapper({
         required: ['companyCode'],
         companyResolver: async ({ req }) => companiesService.getByCode(req.body.companyCode),
         controller: async ({ db, company }) => {
@@ -22,7 +22,7 @@ auth.post(
 
 auth.post(
     '/login',
-    buildHandler({
+    buildHandlerWrapperWrapper({
         required: ['username', 'password', 'companyId'],
         companyResolver: async ({ req }) => companiesService.getById(req.body.companyId),
         controller: async ({ db, req, company }) => {
@@ -36,7 +36,7 @@ auth.post(
 auth.get(
     '/whatsapp-message-list',
     verifyToken(jwtSecret),
-    buildHandler({
+    buildHandlerWrapperWrapper({
         controller: async ({ db }) => {
             const result = await whatsappMessagesList(db);
             return result;

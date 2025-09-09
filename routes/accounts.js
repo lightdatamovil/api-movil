@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import { buildHandler } from './_handler.js';
 import { accountList } from '../controller/accounts/accountList.js';
+import { buildHandlerWrapperWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const accounts = Router();
 
 accounts.get(
 	'/account-list',
-	buildHandler({
+	buildHandlerWrapperWrapper({
 		controller: async ({ db, req }) => {
 			const result = await accountList(db, req);
 			return result;

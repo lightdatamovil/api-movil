@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { buildHandler } from './_handler.js';
 import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
+import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const registerVisitRoute = Router();
 
 registerVisitRoute.post(
     '/register',
-    buildHandler({
+    buildHandlerWrapper({
         required: [
             'shipmentId',
             'shipmentState',
@@ -26,7 +26,7 @@ registerVisitRoute.post(
 
 registerVisitRoute.post(
     '/upload-image',
-    buildHandler({
+    buildHandlerWrapper({
         required: ['shipmentId', 'shipmentState', 'image', 'lineId'],
         controller: async ({ db, req, company }) => {
             const result = await uploadImage(db, req, company);

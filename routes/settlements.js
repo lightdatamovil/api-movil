@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { buildHandler } from './_handler.js';
 import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
+import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const settlements = Router();
 
 settlements.post(
     '/settlement-list',
-    buildHandler({
+    buildHandlerWrapper({
         required: ['from', 'to'],
         controller: async ({ db, req }) => {
             const result = await getSettlementList(db, req);
@@ -19,7 +19,7 @@ settlements.post(
 
 settlements.post(
     '/settlement-details',
-    buildHandler({
+    buildHandlerWrapper({
         required: ['settlementId'],
         controller: async ({ db, req, company }) => {
             const result = await getSettlementDetails(db, req, company);
@@ -30,7 +30,7 @@ settlements.post(
 
 settlements.post(
     '/settlement-shipment-details',
-    buildHandler({
+    buildHandlerWrapper({
         controller: async ({ db, req, company }) => {
             const result = await getSettlementShipmentDetails(db, req, company);
             return result;
