@@ -46,6 +46,7 @@ export async function crossDocking(dbConnection, req, company) {
     const queryEnvios = `
             SELECT
                 e.estado_envio AS shipmentState,
+                e.ml_pack_id,
                 e.didCliente AS clientId,
                 e.didEnvioZona AS zoneId,
                 DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date,
@@ -94,6 +95,7 @@ export async function crossDocking(dbConnection, req, company) {
             zone: zones[row.zoneId]?.nombre || "Desconocido",
             driver: row.driver ?? "Sin asignar",
             order: row.orden ?? null,
+            mlPackId: row.ml_pack_id ?? null,
         }, message: "Datos obtenidos correctamente", success: true
     };
 }
