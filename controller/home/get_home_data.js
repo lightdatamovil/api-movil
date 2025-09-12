@@ -229,5 +229,25 @@ export async function getHomeData(dbConnection, req, company) {
       break;
   }
 
-  return { body: infoADevolver, message: "Datos obtenidos correctamente" };
+  let startedRoute;
+
+  if (req.user.profile == 3) {
+    const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
+
+    const resultQueryCadetesMovimientos = await executeQuery(dbConnection, sqlCadetesMovimientos, [userId]);
+
+    if (resultQueryCadetesMovimientos.length == 0) {
+      startedRoute = false;
+    } else {
+      startedRoute = resultQueryCadetesMovimientos[0].tipo == 0;
+    }
+
+  }
+  return {
+    body: {
+      homeData: infoADevolver,
+      startedRoute
+    },
+    message: "Datos obtenidos correctamente"
+  };
 }

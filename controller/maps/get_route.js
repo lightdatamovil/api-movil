@@ -107,11 +107,26 @@ export async function getRouteByUserId(dbConnection, req, company) {
         }
     }
 
+    let startedRoute;
+
+    if (req.user.profile == 3) {
+        const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
+
+        const resultQueryCadetesMovimientos = await executeQuery(dbConnection, sqlCadetesMovimientos, [userId]);
+
+        if (resultQueryCadetesMovimientos.length == 0) {
+            startedRoute = false;
+        } else {
+            startedRoute = resultQueryCadetesMovimientos[0].tipo == 0;
+        }
+    }
     return {
         body: {
             hasRoute: rutaResult.length > 0,
             shipments: shipments,
             additionalRouteData: additionalRouteData,
-        }, message: "Datos obtenidos correctamente"
+            startedRoute
+        },
+        message: "Datos obtenidos correctamente"
     };
 }

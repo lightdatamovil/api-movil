@@ -10,7 +10,7 @@ import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const qr = Router();
 
-qr.post(
+qr.get(
   '/driver-list',
   buildHandlerWrapper({
     required: [],

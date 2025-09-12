@@ -27,6 +27,11 @@ export async function identification(dbConnection, company) {
         longitude: depot.longitud,
         abreviation: 'dep',
     }));
+    const queryTexts =
+        "SELECT texto FROM `mensajeria_app` WHERE superado = 0 ORDER BY tipo ASC;";
+    const results = await executeQuery(dbConnection, queryTexts, []);
+
+    const messages = results.map((row) => row.texto);
 
     const result = {
         id: company.did * 1,
@@ -43,6 +48,7 @@ export async function identification(dbConnection, company) {
         hasBarcode: LogisticaConfig.hasBarcodeEnabled(company.did),
         hasProductsQr: LogisticaConfig.hasProductsQrEnabled(company.did),
         hasEnvioFoto: LogisticaConfig.hasEnvioFotoEnabled(company.did),
+        whatsappMessages: messages,
     };
 
     return { body: result, message: "Empresa identificada correctamente" };

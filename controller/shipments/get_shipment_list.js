@@ -1,4 +1,4 @@
-import { CustomException, executeQuery, getFechaLocalDePais } from "lightdata-tools";
+import { CustomException, executeQuery, getFechaLocalDePais, Status } from "lightdata-tools";
 import { companiesService } from "../../db.js";
 
 export async function shipmentList(dbConnection, req, company) {
@@ -48,7 +48,11 @@ export async function shipmentList(dbConnection, req, company) {
     : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${date} 23:59:59'`;
 
   if (shipmentStates.length == 0) {
-    return [];
+    throw new CustomException({
+      title: "Error en los estados",
+      message: "Debe seleccionar al menos un estado de envío",
+      status: Status.badRequest
+    });
   }
 
   const estadosQuery = `(${shipmentStates.join(",")})`;
@@ -132,7 +136,7 @@ export async function shipmentList(dbConnection, req, company) {
     ORDER BY rp.orden ASC
     `;
 
-  const rows = await executeQuery(dbConnection, query, []);
+  const rows = await executeQuery(dbConnection, query, [], true);
   const lista = [];
   for (const row of rows) {
     const direccion1 = row.address_line && row.address_line.trim() !== ""
