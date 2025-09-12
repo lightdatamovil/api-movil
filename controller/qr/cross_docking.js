@@ -54,6 +54,7 @@ export async function crossDocking(dataQr, company, userId) {
         const queryEnvios = `
             SELECT
                 e.estado_envio AS shipmentState,
+                e.ml_pack_id AS mlPackId,   
                 e.didCliente AS clientId,
                 e.didEnvioZona AS zoneId,
                 DATE_FORMAT(e.fecha_inicio, '%d/%m/%Y') AS date,
@@ -101,6 +102,7 @@ export async function crossDocking(dataQr, company, userId) {
             zone: zones[row.zoneId]?.nombre || "Desconocido",
             driver: row.driver ?? "Sin asignar",
             order: row.orden ?? null,
+            mlPackId: row.mlPackId || null
         };
     } catch (error) {
         logRed(`Error en crossDocking: ${JSON.stringify(error)}`);
