@@ -87,7 +87,10 @@ export async function crearLog(req, tiempo, resultado, exito) {
     ];
 
     await executeQueryFromPool(poolLocal, sql, values);
-    logGreen(`${new Date().toISOString()} Log creado correctamente`);
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const fechaFormateada = `${now.getFullYear()}-09-22 ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    logGreen(`${fechaFormateada} Log creado correctamente`);
     logGreen(`Endpoint: ${endpointClean} | Usuario: ${userId} | Empresa: ${companyId} | Perfil: ${profile}`);
     logPurple(`En ${tiempo} ms | Éxito: ${exito ? "sí" : "no"}`);
 }
