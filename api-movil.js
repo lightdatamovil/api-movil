@@ -9,14 +9,12 @@ import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
 import collect from './routes/collect.js';
-import { jwtSecret, redisClient } from './db.js';
+import { jwtSecret, port, redisClient, jwtIssuer, jwtAudience } from './db.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { logBlue, logRed, Status, verifyToken } from 'lightdata-tools';
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
-
-const PORT = process.env.PORT;
 
 const app = express();
 
@@ -43,7 +41,7 @@ app.get('/ping', (req, res) => {
         await redisClient.connect();
 
         app.use('/api/auth', auth);
-        app.use(verifyToken(jwtSecret));
+        app.use(verifyToken({ jwtSecret, jwtIssuer, jwtAudience }));
         app.use('/api/accounts', accounts);
         app.use('/api/shipments', shipments);
         app.use('/api/settlements', settlements);
@@ -54,8 +52,8 @@ app.get('/ping', (req, res) => {
         app.use("/api/collect", collect)
         app.use("/api/register-visit", registerVisitRoute);
 
-        app.listen(PORT, '0.0.0.0', () => {
-            logBlue(`Worker ${process.pid} escuchando en el puerto ${PORT}`);
+        app.listen(port, '0.0.0.0', () => {
+            logBlue(`Worker ${process.pid} escuchando en el puerto ${port}`);
         });
     } catch (err) {
         logRed(`Error al iniciar el servidor: ${err}`);

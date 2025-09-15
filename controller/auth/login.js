@@ -55,11 +55,18 @@ export async function login(dbConnection, req, company) {
     });
   }
 
-  const token = generateToken(jwtSecret, {
-    userId: user.did,
-    companyId: company.did,
-    profile: user.perfil
-  }, {}, 3600 * 24 * 30);
+  const token = generateToken({
+    jwtSecret,
+    payload: {
+      userId: user.did,
+      companyId: company.did,
+      profile: user.perfil
+    },
+    options: {},
+    expiresIn: 3600 * 24 * 30,
+    issuer: "https://apimovil2.lightdata.app",
+    audience: "lightdata-apis",
+  });
 
   let userHomeLatitude, userHomeLongitude;
   if (user.direccion != "") {

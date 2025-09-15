@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { verifyToken } from 'lightdata-tools';
-import { jwtSecret, companiesService } from '../db.js';
+import { jwtSecret, jwtIssuer, jwtAudience, companiesService } from '../db.js';
 import { identification } from '../controller/auth/identification.js';
 import { login } from '../controller/auth/login.js';
 import { whatsappMessagesList } from '../controller/auth/whatsappMessagesList.js';
@@ -35,7 +35,7 @@ auth.post(
 //! Protegido: requiere token; company desde req.user
 auth.get(
     '/whatsapp-message-list',
-    verifyToken(jwtSecret),
+    verifyToken({ jwtSecret, jwtIssuer, jwtAudience }),
     buildHandlerWrapper({
         controller: async ({ db }) => {
             const result = await whatsappMessagesList(db);

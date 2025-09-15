@@ -5,6 +5,7 @@ import { CompaniesService, logRed } from 'lightdata-tools';
 
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
+export const port = process.env.PORT;
 /// Redis para obtener las empresas
 const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
@@ -49,7 +50,8 @@ export const queueEstados = process.env.QUEUE_ESTADOS;
 export const urlEstadosMicroservice = process.env.URL_ESTADOS_MICROSERVICE;
 
 export const jwtSecret = process.env.JWT_SECRET;
-
+export const jwtIssuer = process.env.JWT_ISSUER;
+export const jwtAudience = process.env.JWT_AUDIENCE;
 
 redisClient.on('error', (error) => {
     logRed(`Error al conectar con Redis: ${error.stack}`);
