@@ -1,4 +1,4 @@
-import { executeQueryFromPool, getHeaders, logGreen } from "lightdata-tools";
+import { executeQueryFromPool, getHeaders, logGreen, logPurple } from "lightdata-tools";
 import { poolLocal } from "../../db.js";
 
 export async function crearLog(req, tiempo, resultado, exito) {
@@ -47,7 +47,6 @@ export async function crearLog(req, tiempo, resultado, exito) {
     if (deviceId) bodyObj.deviceId = deviceId;
     if (brand) bodyObj.brand = brand;
 
-
     // ---------- mascarado según endpoint ----------
     if (endpointClean === "/company-identification" && (exito ? 1 : 0) === 1) {
         resultadoObj.image = "Imagen eliminada por logs";
@@ -61,8 +60,8 @@ export async function crearLog(req, tiempo, resultado, exito) {
         try { return JSON.stringify(obj); } catch { return JSON.stringify({ _error: "stringify_failed" }); }
     };
     // Si tu columna es TEXT mediano y te preocupa tamaño, podés truncar:
-    const BODY_MAX = 65000; // ajustá según tu columna
-    const RESULT_MAX = 65000;
+    const BODY_MAX = 65; // ajustá según tu columna
+    const RESULT_MAX = 65;
 
     let bodyStr = safeStringify(bodyObj);
     if (bodyStr.length > BODY_MAX) bodyStr = bodyStr.slice(0, BODY_MAX - 3) + "...";
@@ -77,9 +76,9 @@ export async function crearLog(req, tiempo, resultado, exito) {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const values = [
-        companyId,           // puede ser 0 si no hay token ni headers/body
-        userId,              // idem
-        profile,             // idem
+        companyId,
+        userId,
+        profile,
         bodyStr,
         tiempo,
         resultadoStr,
@@ -88,5 +87,7 @@ export async function crearLog(req, tiempo, resultado, exito) {
     ];
 
     await executeQueryFromPool(poolLocal, sql, values);
-    logGreen(`${new Date().toISOString()}} Log creado correctamente`);
+    logGreen(`${new Date().toISOString()} Log creado correctamente`);
+    logGreen(`Endpoint: ${endpointClean} | Usuario: ${userId} | Empresa: ${companyId} | Perfil: ${profile}`);
+    logPurple(`En ${tiempo} ms | Éxito: ${exito ? "sí" : "no"}`);
 }

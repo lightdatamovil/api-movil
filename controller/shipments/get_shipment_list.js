@@ -206,7 +206,7 @@ export async function shipmentList(dbConnection, req, company) {
   // estados
   paramsFinal.push(...shipmentStates);
 
-  const rows = await executeQuery(dbConnection, sql, paramsFinal, true);
+  const rows = await executeQuery(dbConnection, sql, paramsFinal);
 
   // ---------- Mapeo ----------
   const lista = [];
