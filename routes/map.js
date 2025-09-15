@@ -6,7 +6,7 @@ import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const map = Router();
 
-map.post(
+map.get(
     '/get-route-by-user',
     buildHandlerWrapper({
         controller: async ({ db, req, company }) => {

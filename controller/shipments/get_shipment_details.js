@@ -1,7 +1,7 @@
 import { CustomException, executeQuery } from "lightdata-tools";
 
 export async function shipmentDetails(dbConnection, req) {
-    const { shipmentId } = req.body;
+    const { shipmentId } = req.query;
     const { userId } = req.user;
     let shipmentData = await shipmentInformation(dbConnection, shipmentId);
 

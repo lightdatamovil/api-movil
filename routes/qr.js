@@ -13,7 +13,6 @@ const qr = Router();
 qr.get(
   '/driver-list',
   buildHandlerWrapper({
-    required: [],
     controller: async ({ db }) => {
       const result = await driverList(db);
       return result;
@@ -65,7 +64,7 @@ qr.post(
   })
 );
 
-qr.post(
+qr.get(
   '/cantidad-asignaciones',
   buildHandlerWrapper({
     required: [],

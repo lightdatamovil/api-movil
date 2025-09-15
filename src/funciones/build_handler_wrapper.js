@@ -12,12 +12,14 @@ export function buildHandlerWrapper({
     controller,
     log2,
     pool,
+    requiredParams,
 }) {
     return buildHandler({
         required,
         optional,
         headers,
         status,
+        requiredParams,
         controller,
         companyResolver: companyResolver2 || (({ req }) => companiesService.getById(req.user.companyId)),
         getDbConfig: getDbConfig2 || (({ company }) => getProductionDbConfig(company, hostProductionDb, portProductionDb)),

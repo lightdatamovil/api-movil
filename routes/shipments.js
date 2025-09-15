@@ -6,10 +6,10 @@ import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
 
 const shipments = Router();
 
-shipments.post(
+shipments.get(
   '/shipment-list',
   buildHandlerWrapper({
-    required: ['from', 'shipmentStates', 'isAssignedToday'],
+    requiredParams: ['from', 'shipmentStates', 'isAssignedToday'],
     controller: async ({ db, req, company }) => {
       const result = await shipmentList(db, req, company);
       return result;
@@ -17,10 +17,10 @@ shipments.post(
   })
 );
 
-shipments.post(
+shipments.get(
   '/shipment-details',
   buildHandlerWrapper({
-    required: ['shipmentId'],
+    requiredParams: ['shipmentId'],
     controller: async ({ db, req }) => {
       const result = await shipmentDetails(db, req);
       return result;
