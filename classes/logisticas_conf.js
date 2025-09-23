@@ -14,7 +14,7 @@ export default class LogisticaConf {
     static hasMultiDepot = [];
     static hasAppPro = [];
     static hasObligatoryImageOnRegisterVisit = [108];
-    static hasObligatoryDniAndNameOnRegisterVisit = [97];
+    static hasObligatoryDniAndNameOnRegisterVisit = [97, 217];
 
     static hasBarcodeEnabled(did) {
         return String(did) in this.tieneBarcode;
