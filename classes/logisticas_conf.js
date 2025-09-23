@@ -15,7 +15,8 @@ export default class LogisticaConf {
     static hasAppPro = [];
     static hasObligatoryImageOnRegisterVisit = [108];
     static hasObligatoryDniAndNameOnRegisterVisit = [97, 217];
-    static adminsCanRegisterVisit = [144];
+    static adminsCanRegisterVisit = [144, 162];
+    static driversWithoutProcessingPlant = [108];
 
     static hasBarcodeEnabled(did) {
         return String(did) in this.tieneBarcode;
@@ -47,5 +48,9 @@ export default class LogisticaConf {
 
     static adminsCanRegisterVisitEnabled(did) {
         return this.adminsCanRegisterVisit.includes(did * 1);
+    }
+
+    static driversWithoutProcessingPlantEnabled(did) {
+        return this.driversWithoutProcessingPlant.includes(did * 1);
     }
 }

@@ -51,6 +51,7 @@ export async function identification(company) {
             hasProductsQr: LogisticaConf.hasProductsQrEnabled(company.did),
             hasEnvioFoto: LogisticaConf.hasEnvioFotoEnabled(company.did),
             adminsCanRegisterVisits: LogisticaConf.adminsCanRegisterVisitEnabled(company.did),
+            driversWithoutProcessingPlant: LogisticaConf.driversWithoutProcessingPlantEnabled(company.did),
         };
 
         return result;
