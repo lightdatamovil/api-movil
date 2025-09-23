@@ -93,7 +93,6 @@ export async function login(dbConnection, req, company) {
       profile: user.perfil,
       email: user.email,
       profilePicture: "",
-      hasShipmentProductsQr: company.did == 200 || company.did == 274,
       phone: user.telefono,
       token,
       houses: userHouses,
