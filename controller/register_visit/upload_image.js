@@ -39,8 +39,8 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
         if (companyId == 334 && trueSiNadie) {
             console.log("Entro en la condicion especial de nadie JJJM");
             //insertar conFoto = 1 en envios historial
-            const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ? AND estado = ? and elim = 0 and superado = 0 ORDER BY fecha DESC LIMIT 1";
-            await executeQuery(dbConnection, updateQuery, [shipmentId, shipmentState]);
+            const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ?  and elim = 0 and superado = 0 LIMIT 1";
+            await executeQuery(dbConnection, updateQuery, [shipmentId], true);
         }
 
         return {
