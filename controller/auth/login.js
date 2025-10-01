@@ -96,7 +96,7 @@ export async function login(dbConnection, req, company) {
       phone: user.telefono,
       token,
       houses: userHouses,
-      version: "1.0.85",
+      version: "1.0.87",
     },
     message: "Usuario logueado correctamente"
   };

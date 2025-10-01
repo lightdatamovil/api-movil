@@ -48,7 +48,7 @@ export async function identification(dbConnection, company) {
         hasBarcode: LogisticaConfig.hasBarcodeEnabled(company.did),
         hasProductsQr: LogisticaConfig.hasProductsQrEnabled(company.did),
         hasEnvioFoto: LogisticaConfig.hasEnvioFotoEnabled(company.did),
-        adminsCanRegisterVisit: LogisticaConfig.adminsCanRegisterVisitEnabled(company.did),
+        adminsCanRegisterVisits: LogisticaConfig.adminsCanRegisterVisitEnabled(company.did),
         driversWithoutProcessingPlant: LogisticaConfig.driversWithoutProcessingPlantEnabled(company.did),
         whatsappMessages: messages,
     };
