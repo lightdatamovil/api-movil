@@ -1,11 +1,12 @@
 
-import { CustomException, executeQuery, getFechaConHoraLocalDePais } from 'lightdata-tools';
+import { executeQuery, getFechaLocalDePais } from 'lightdata-tools';
 
-
-// 
 export async function saveRoute(dbConnection, req, company) {
     const { userId } = req.user;
-    const { additionalRouteData, orders } = req.body;
+    const { additionalRouteData, clients, cantidad, distancia, total_km, total_minutos } = req.body;
+
+    const date = getFechaLocalDePais(company.pais);
+
     let didAsuperar = 0;
 
     const rows = await executeQuery(
@@ -15,51 +16,54 @@ export async function saveRoute(dbConnection, req, company) {
     );
 
     if (rows.length == 0) {
-        throw new CustomException({
-            title: 'Error en guardar ruta.',
-            message: 'No se encontró una ruta para superar.',
-        });
-    }
+        const queryInsert = `INSERT INTO colecta_ruta (desde, fechaOperativa, didChofer, fecha, cantidad, distancia, total_km, total_minutos, dataRuta, quien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    didAsuperar = rows[0].did;
-
-    await executeQuery(
-        dbConnection,
-        "UPDATE colecta_ruta SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ? LIMIT 1",
-        [didAsuperar]
-    );
-
-    await executeQuery(
-        dbConnection,
-        "UPDATE colecta_ruta_paradas SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuta = ?",
-        [didAsuperar]
-    );
-    const date = getFechaConHoraLocalDePais(company.pais);
-    // TODO: Que significa este 2??
-    const result = await executeQuery(
-        dbConnection,
-        "INSERT INTO colecta_ruta (desde, fecha, fechaOperativa, didChofer, quien, dataRuta) VALUES (?, ?, ?, ?, ?, ?)",
-        [2, date, date, userId, userId, JSON.stringify(additionalRouteData)]
-    );
-
-    const newId = result.insertId;
-
-    if (orders.length === 0) {
-        throw new CustomException({
-            title: 'Error en guardar ruta.',
-            message: 'No se encontraron paradas para la ruta.',
-        });
-    }
-
-    const insertParadas = orders.map(({ orden, cliente, ordenLlegada }) =>
-        executeQuery(
+        const result = await executeQuery(
             dbConnection,
-            "INSERT INTO colecta_ruta_paradas (didRuta, didCliente, orden, demora, fecha_colectado, quien) VALUES (?, ?, ?, ?, ?, ?)",
-            [newId, cliente, orden, ordenLlegada, date, userId]
-        )
+            queryInsert,
+            [2, date, userId, date, cantidad, distancia, total_km, total_minutos, JSON.stringify(additionalRouteData), userId]
+        );
+        didAsuperar = result.insertId;
+
+        const updateQuery = `UPDATE colecta_ruta SET did = ? WHERE id = ?`;
+        await executeQuery(dbConnection, updateQuery, [didAsuperar, didAsuperar]);
+    } else {
+        didAsuperar = rows[0].did;
+
+        await executeQuery(
+            dbConnection,
+            "UPDATE colecta_ruta SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ? LIMIT 1",
+            [didAsuperar]
+        );
+
+        await executeQuery(
+            dbConnection,
+            "UPDATE colecta_ruta_paradas SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuta = ?",
+            [didAsuperar]
+        );
+        //* EL 2 SIGNIFICA APP
+        await executeQuery(
+            dbConnection,
+            "INSERT INTO colecta_ruta (desde, fechaOperativa, didChofer, fecha, cantidad, distancia, total_km, total_minutos, dataRuta, quien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [2, date, userId, date, cantidad, distancia, total_km, total_minutos, JSON.stringify(additionalRouteData), userId]
+        );
+    }
+
+    const values = clients.map(({ orden, cliente, ordenLlegada }) =>
+        [didAsuperar, cliente, orden, ordenLlegada, date, userId]
     );
 
-    await Promise.all(insertParadas);
+    const placeholders = values.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
+
+    const sql = `
+    INSERT INTO colecta_ruta_paradas 
+        (didRuta, didCliente, orden, demora, fecha_colectado, quien) 
+    VALUES ${placeholders}
+    `;
+
+    const params = values.flat();
+
+    await executeQuery(dbConnection, sql, params);
 
     return { message: "Ruta guardada correctamente" };
 }
