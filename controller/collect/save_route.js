@@ -42,28 +42,63 @@ export async function saveRoute(dbConnection, req, company) {
             [didAsuperar]
         );
         //* EL 2 SIGNIFICA APP
-        await executeQuery(
+        const idn = await executeQuery(
             dbConnection,
-            "INSERT INTO colecta_ruta (desde, fechaOperativa, didChofer, fecha, cantidad, distancia, total_km, total_minutos, dataRuta, quien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [2, date, userId, date, cantidad, distancia, total_km, total_minutos, JSON.stringify(additionalRouteData), userId]
+            "INSERT INTO colecta_ruta (desde, fechaOperativa, didChofer, fecha, cantidad, distancia, total_km, total_minutos, dataRuta, quien, camino) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [2, date, userId, date, cantidad, distancia, total_km, total_minutos, JSON.stringify(additionalRouteData), userId, JSON.stringify({ camino: camino })]
         );
+
+        const updateQuery = `UPDATE colecta_ruta SET did = ? WHERE id = ?`;
+        await executeQuery(dbConnection, updateQuery, [didAsuperar, idn.insertId]);
     }
 
-    const values = clients.map(({ orden, cliente, ordenLlegada }) =>
-        [didAsuperar, cliente, orden, ordenLlegada, date, userId]
-    );
+    // 1) Armo las tuplas base (sin didDeposito)
+    const rows2 = clients.map(({ orden, cliente, ordenLlegada }) => [
+        didAsuperar,      // didRuta
+        cliente,          // didCliente
+        orden,            // orden
+        ordenLlegada,     // demora
+        date,             // fecha_colectado (yyyy-mm-dd)
+        userId,           // quien
+    ]);
 
-    const placeholders = values.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
+    // 2) Armo el derived table como SELECT ... UNION ALL ...
+    const rowSelects = rows2
+        .map(() => "SELECT ? AS didRuta, ? AS didCliente, ? AS orden, ? AS demora, ? AS fecha_colectado, ? AS quien")
+        .join(" UNION ALL ");
 
+    const params = rows2.flat();
+
+    // 3) INSERT ... SELECT joineando con clientes_direcciones para resolver didDeposito
     const sql = `
-    INSERT INTO colecta_ruta_paradas 
-        (didRuta, didCliente, orden, demora, fecha_colectado, quien) 
-    VALUES ${placeholders}
-    `;
-
-    const params = values.flat();
+INSERT INTO colecta_ruta_paradas
+  (didRuta, didCliente, didDeposito, orden, demora, fecha_colectado, quien)
+SELECT
+  r.didRuta,
+  r.didCliente,
+  a.didDeposito,
+  r.orden,
+  r.demora,
+  r.fecha_colectado,
+  r.quien
+FROM (
+  ${rowSelects}
+) AS r
+LEFT JOIN (
+  SELECT
+    cd.cliente AS didCliente,
+    MIN(cd.did) AS didDeposito   -- elegimos una dirección válida por cliente
+  FROM clientes_direcciones cd
+  WHERE cd.superado = 0 AND cd.elim = 0
+  GROUP BY cd.cliente
+) a ON a.didCliente = r.didCliente
+-- Si querés forzar que exista depósito:
+-- WHERE a.didDeposito IS NOT NULL
+`;
 
     await executeQuery(dbConnection, sql, params);
+
+
 
     return { message: "Ruta guardada correctamente" };
 }

@@ -32,6 +32,7 @@ export async function getRoute(dbConnection, req, company) {
         clients = stopsResult.map(row => ({
             orden: row.orden ? Number(row.orden) : null,
             didCliente: row.didCliente ? Number(row.didCliente) : null,
+            didDeposito: row.didDeposito ? Number(row.didDeposito) : null,
             calle: row.calle,
             numero: row.numero,
             ciudad: row.ciudad,
@@ -72,6 +73,7 @@ export async function getRoute(dbConnection, req, company) {
         clients = paradasResult.map(row => ({
             orden: row.orden ? Number(row.orden) : null,
             didCliente: row.didCliente ? Number(row.didCliente) : null,
+            didDeposito: row.didDeposito ? Number(row.didDeposito) : null,
             latitud: row.ilat ? Number(row.ilat) : null,
             longitud: row.ilong ? Number(row.ilong) : null,
             nombreCliente: row.nombreCliente || null
