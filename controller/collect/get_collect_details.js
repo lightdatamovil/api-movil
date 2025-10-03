@@ -1,43 +1,33 @@
-import { executeQuery, getFechaLocalDePais } from 'lightdata-tools';
+import { executeQuery } from 'lightdata-tools';
 
-export async function getCollectDetails(dbConnection, req, company) {
+export async function getCollectDetails(dbConnection, req) {
     const { userId } = req.user;
-    const datetime = getFechaLocalDePais(company.pais);
-    const clientesResult = await executeQuery(
-        dbConnection,
-        "SELECT did, nombre_fantasia FROM clientes WHERE superado=0 AND elim=0"
-    );
-
-    let Aclientes = {};
-
-    clientesResult.forEach(row => {
-        Aclientes[row.did] = row.nombre_fantasia;
-    });
-
+    const { date } = req.params;
+    console.log('Request params:', req.params);
+    const q2 = `
+    SELECT did 
+    FROM colecta_ruta
+    WHERE elim = 0 AND superado = 0 AND didChofer = ? AND fecha = ?
+    `;
+    const routeResult = await executeQuery(dbConnection, q2, [userId, date], true);
     const enviosResult = await executeQuery(
         dbConnection,
-        `SELECT didCliente, didEnvio 
-             FROM colecta_asignacion 
-             WHERE superado = 0 AND elim = 0 AND didChofer = ? AND fecha = ? `,
-        [userId, datetime]
+        `SELECT dataJson
+         FROM colecta_asignaciones
+         WHERE superado = 0 AND elim = 0 AND didChofer = ? AND fecha = ?
+         `,
+        [userId, date], true
     );
 
-    let collectDetails = {};
+    const res = Object.keys(enviosResult[0].dataJson).map(k => k);
 
-    enviosResult.forEach(row => {
-        if (!collectDetails[row.didCliente]) {
-            collectDetails[row.didCliente] = {
-                nombre_fantasia: Aclientes[row.didCliente] || "Cliente desconocido",
-                total: 0
-            };
-        }
-        collectDetails[row.didCliente].total += 1;
-    });
+    const q = `
+    SELECT c.did, c.nombre_fantasia, crp.orden
+    FROM clientes as c
+    LEFT JOIN colecta_ruta_paradas as crp ON (c.did = crp.didCliente AND crp.elim = 0 and crp.superado = 0)
+    WHERE c.did IN (?) and c.superado = 0 AND c.elim = 0 and crp.didRuta = ?
+    `;
+    const clientes = await executeQuery(dbConnection, q, [res, routeResult[0].did], true);
 
-    let respuesta = Object.entries(collectDetails).map(([id, data]) => ({
-        id,
-        ...data
-    }));
-
-    return { body: respuesta, message: "Colecta obtenida correctamente" };
+    return { body: clientes, message: "Colecta obtenida correctamente" };
 }

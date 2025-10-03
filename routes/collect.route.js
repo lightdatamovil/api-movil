@@ -43,12 +43,13 @@ collect.post(
 );
 
 collect.get(
-    '/get-collect-details',
+    '/get-collect-details/:date',
     buildHandlerWrapper({
-        controller: async ({ db, req, company }) => {
-            const result = await getCollectDetails(db, req, company);
+        controller: async ({ db, req }) => {
+            const result = await getCollectDetails(db, req);
             return result;
         },
+        requiredParams: ['date'],
     })
 );
 
