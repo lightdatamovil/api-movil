@@ -3,7 +3,7 @@ import { executeQuery, getFechaLocalDePais } from 'lightdata-tools';
 
 export async function saveRoute(dbConnection, req, company) {
     const { userId } = req.user;
-    const { additionalRouteData, clients, cantidad, distancia, total_km, total_minutos } = req.body;
+    const { additionalRouteData, clients, cantidad, distancia, total_km, total_minutos, camino } = req.body;
 
     const date = getFechaLocalDePais(company.pais);
 
@@ -16,12 +16,12 @@ export async function saveRoute(dbConnection, req, company) {
     );
 
     if (rows.length == 0) {
-        const queryInsert = `INSERT INTO colecta_ruta (desde, fechaOperativa, didChofer, fecha, cantidad, distancia, total_km, total_minutos, dataRuta, quien) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const queryInsert = `INSERT INTO colecta_ruta (desde, fechaOperativa, didChofer, fecha, cantidad, distancia, total_km, total_minutos, dataRuta, quien, camino) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const result = await executeQuery(
             dbConnection,
             queryInsert,
-            [2, date, userId, date, cantidad, distancia, total_km, total_minutos, JSON.stringify(additionalRouteData), userId]
+            [2, date, userId, date, cantidad, distancia, total_km, total_minutos, JSON.stringify(additionalRouteData), userId, JSON.stringify({ camino: camino })]
         );
         didAsuperar = result.insertId;
 

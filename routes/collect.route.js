@@ -34,7 +34,7 @@ collect.post(
 collect.post(
     '/save-route',
     buildHandlerWrapper({
-        required: ['operationDate', 'additionalRouteData', 'orders'],
+        required: ['additionalRouteData', 'clients', 'cantidad', 'distancia', 'total_km', 'total_minutos', 'camino'],
         controller: async ({ db, req, company }) => {
             const result = await saveRoute(db, req, company);
             return result;
