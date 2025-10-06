@@ -9,7 +9,7 @@ const shipments = Router();
 shipments.get(
   '/shipment-list',
   buildHandlerWrapper({
-    requiredParams: ['from', 'shipmentStates', 'isAssignedToday'],
+    requiredParams: ['from', 'to', 'shipmentStates', 'isAssignedToday'],
     controller: async ({ db, req, company }) => {
       const result = await shipmentList(db, req, company);
       return result;

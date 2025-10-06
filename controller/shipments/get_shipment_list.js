@@ -26,6 +26,7 @@ export async function shipmentList(dbConnection, req, company) {
 
   // ---------- Query params ----------
   const fromDate = normalizeDate(toStr(q.from));
+  const toDate = normalizeDate(toStr(q.to));
   const shipmentStates = parseStates(q.shipmentStates);
   const isAssignedToday = toBool(q.isAssignedToday, false);
 
@@ -201,7 +202,7 @@ export async function shipmentList(dbConnection, req, company) {
   if (isAssignedToday) {
     paramsFinal.push(`${date} 00:00:00`);
   } else {
-    paramsFinal.push(`${fromDate} 00:00:00`, `${date} 23:59:59`);
+    paramsFinal.push(`${fromDate} 00:00:00`, `${toDate} 23:59:59`);
   }
   // estados
   paramsFinal.push(...shipmentStates);
