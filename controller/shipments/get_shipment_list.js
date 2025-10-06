@@ -9,6 +9,7 @@ export async function shipmentList(
   userId,
   profile,
   from,
+  to,
   shipmentStates,
   isAssignedToday
 ) {
@@ -58,7 +59,7 @@ export async function shipmentList(
     const a = isAssignedToday ? "" : "LEFT";
     const c = isAssignedToday
       ? `AND ea.autofecha > '${date} 00:00:00'`
-      : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${date} 23:59:59'`;
+      : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${to ?? date} 23:59:59'`;
 
     if (shipmentStates.length == 0) {
       return [];

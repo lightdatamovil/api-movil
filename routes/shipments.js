@@ -18,6 +18,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
     userId,
     profile,
     from,
+    to,
     shipmentStates,
     isAssignedToday,
     date,
@@ -29,7 +30,6 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
         "companyId",
         "userId",
         "profile",
-        "from",
         "shipmentStates",
         "isAssignedToday",
       ],
@@ -49,6 +49,7 @@ shipments.post("/shipment-list", verifyToken, async (req, res) => {
       userId,
       profile,
       from,
+      to,
       shipmentStates,
       isAssignedToday,
       date
