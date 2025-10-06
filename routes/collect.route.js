@@ -54,20 +54,20 @@ collect.get(
 );
 
 collect.get(
-    '/get-client-details',
+    '/get-client-details/:clientId',
     buildHandlerWrapper({
-        required: ['clientId'],
-        controller: async ({ db, req, company }) => {
-            const result = await shipmentsFromClient(db, req, company);
+        requiredParams: ['clientId'],
+        controller: async ({ db, req }) => {
+            const result = await shipmentsFromClient(db, req);
             return result;
         },
     })
 );
 
 collect.get(
-    '/get-collect-list',
+    '/get-collect-list/:from/:to',
     buildHandlerWrapper({
-        required: ['from', 'to'],
+        requiredParams: ['from', 'to'],
         controller: async ({ db, req }) => {
             const result = await getCollectList(db, req);
             return result;
