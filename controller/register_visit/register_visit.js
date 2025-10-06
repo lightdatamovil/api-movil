@@ -33,10 +33,7 @@ export async function registerVisit(dbConnection, req, company) {
   }
 
   // Para wynflex si esta entregado
-  if (
-
-    company.did == 72 || company.did == 125
-  ) {
+  if (company.did == 72 || company.did == 125) {
     const queryEnvios =
       "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
