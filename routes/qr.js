@@ -183,9 +183,7 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
     }
   } finally {
     const endTime = performance.now();
-    logPurple(
-      `Tiempo de ejecución products-from-shipment: ${endTime - startTime} ms`
-    );
+    logPurple(`Tiempo de ejecución products-from-shipment: ${endTime - startTime} ms`);
   }
 });
 

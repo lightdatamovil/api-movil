@@ -115,9 +115,7 @@ shipments.post("/shipment-details", verifyToken, async (req, res) => {
     }
   } finally {
     const endTime = performance.now();
-    logPurple(
-      `Tiempo de ejecución shipment-details: ${endTime - startTime} ms`
-    );
+    logPurple(`Tiempo de ejecución shipment-details: ${endTime - startTime} ms`);
   }
 });
 

@@ -1,7 +1,7 @@
 import { getProdDbConfig, executeQuery } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
-import { logCyan, logPurple, logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 
@@ -29,7 +29,6 @@ export async function altaEnvioFoto(company, req) {
         'Content-Type': 'application/json'
       }
     });
-    logPurple(`Response de altaEnvioFoto: ${JSON.stringify(response.data)}`);
 
     if (!response.data) {
       throw new CustomException({
@@ -84,7 +83,6 @@ export async function altaEnvioFoto(company, req) {
           'Content-Type': 'application/json'
         }
       });
-      logPurple(`Response de asignacion de envio: ${JSON.stringify(response_assign.data)}`);
       if (!response_assign.data) {
         throw new CustomException({
           title: 'Error en asignacion de envio',
