@@ -181,7 +181,7 @@ export async function registerVisit(
           contadorEstadoNadie++;
           if (contadorEstadoNadie > 2) {
             throw new CustomException({
-              title: "Demasiados estados 6 y 9",
+              title: "Alcanzaste el limite de estados nadie",
               message: "No se puede registrar la visita porque hay más de dos estados nadie.",
             });
           }

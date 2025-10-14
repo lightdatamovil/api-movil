@@ -40,8 +40,8 @@ export function logPurple(message) {
 }
 
 export function logCyan(message) {
-    if (isLocal) {
-        console.log(`\x1b[36m%s\x1b[0m`, `💎 ${message}
---------------------------------------------------`);
-    }
+    //     if (isLocal) {
+    //         console.log(`\x1b[36m%s\x1b[0m`, `💎 ${message}
+    // --------------------------------------------------`);
+    //     }
 }
