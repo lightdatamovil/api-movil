@@ -15,7 +15,7 @@ export default class LogisticaConf {
     static hasAppPro = [];
     static hasObligatoryImageOnRegisterVisit = [108];
     static hasObligatoryDniAndNameOnRegisterVisit = [97, 217];
-    static adminsCanRegisterVisit = [144, 162, 198];
+    static adminsCanRegisterVisit = [144, 162, 198, 202];
     static driversWithoutProcessingPlant = [108];
 
     static hasBarcodeEnabled(did) {
