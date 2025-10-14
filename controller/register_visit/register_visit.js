@@ -173,6 +173,22 @@ export async function registerVisit(
       }
     }
 
+    if (company.did == 167) {
+      let contadorEstadoNadie = 0;
+      for (const row of choferRows2) {
+        const estado = Number(row?.estado);
+        if (estado === 6 || estado === 9) {
+          contadorEstadoNadie++;
+          if (contadorEstadoNadie > 2) {
+            throw new CustomException({
+              title: "Demasiados estados 6 y 9",
+              message: "No se puede registrar la visita porque hay más de dos estados nadie.",
+            });
+          }
+        }
+      }
+    }
+
     // si el currentShipmentState es nadie (6) estadoInert = 10 sino shipmentState
     if (hayEstado6 && shipmentState == 5) {
       estadoInsert = 9;
