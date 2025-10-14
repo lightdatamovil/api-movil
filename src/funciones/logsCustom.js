@@ -33,10 +33,10 @@ export function logYellow(message) {
 }
 
 export function logPurple(message) {
-    //     if (isLocal) {
-    //         console.log(`\x1b[35m%s\x1b[0m`, `💜 ${message}
-    // --------------------------------------------------`);;
-    //     }
+    if (isLocal) {
+        console.log(`\x1b[35m%s\x1b[0m`, `💜 ${message}
+    --------------------------------------------------`);;
+    }
 }
 
 export function logCyan(message) {
