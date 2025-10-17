@@ -2,6 +2,8 @@ import redis from 'redis';
 import dotenv from 'dotenv';
 import { logRed, logYellow } from './src/funciones/logsCustom.js';
 import mysql2 from 'mysql2';
+import https from 'https';
+import axios from 'axios';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 /// Redis para obtener las empresas
@@ -20,7 +22,18 @@ const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
 const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
 const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
 const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
+export const httpsAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 100,
+    timeout: 10000, // tiempo máximo de socket en ms
+    family: 4, // fuerza IPv4, evita delay IPv6
+});
 
+// 🔹 Axios preconfigurado (usa el agente y timeout)
+export const axiosInstance = axios.create({
+    httpsAgent,
+    timeout: 5000, // 5 segundos máximo por request
+});
 // Produccion
 const hostProductionDb = process.env.PRODUCTION_DB_HOST;
 const portProductionDb = process.env.PRODUCTION_DB_PORT;
