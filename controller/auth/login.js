@@ -1,43 +1,20 @@
 import crypto from "crypto";
 import { CustomException, generateToken, LightdataORM } from "lightdata-tools";
 import { jwtSecret } from "../../db.js";
+import MapConstants from "../../src/constants/map.js";
 
-export async function login(dbConnection, req, company) {
+export async function login({ db, req, company }) {
   const { username, password } = req.body;
 
-  const userResult = await LightdataORM.select({
-    dbConnection,
+  const [user] = await LightdataORM.select({
+    dbConnection: db,
     table: "sistema_usuarios",
     where: { usuario: username },
     select: `
-      did, bloqueado, nombre, apellido, email, telefono, pass, elim, usuario, token_fcm, direccion
-    `
+      did, bloqueado, email, telefono, pass, usuario, direccion
+    `,
+    throwIfNotExists: true,
   });
-
-  if (!userResult.length) {
-    throw new CustomException({
-      title: "Usuario inválido",
-      message: "Usuario no encontrado en el sistema",
-    });
-  }
-
-  const user = userResult[0];
-
-  const accessResult = await LightdataORM.select({
-    dbConnection,
-    table: "sistema_usuarios_accesos",
-    where: { usuario: user.did },
-    select: "perfil"
-  });
-
-  if (!accessResult.length) {
-    throw new CustomException({
-      title: "Acceso denegado",
-      message: "El usuario no tiene accesos registrados",
-    });
-  }
-
-  user.perfil = accessResult[0].perfil;
 
   if (user.bloqueado === 1) {
     throw new CustomException({
@@ -45,6 +22,16 @@ export async function login(dbConnection, req, company) {
       message: "El usuario se encuentra bloqueado",
     });
   }
+
+  const [perfil] = await LightdataORM.select({
+    dbConnection: db,
+    table: "sistema_usuarios_accesos",
+    where: { usuario: user.did },
+    select: "perfil",
+    throwIfNotExists: true
+  });
+
+  user.perfil = perfil;
 
   const hashPassword = crypto.createHash("sha256").update(password).digest("hex");
 
@@ -69,6 +56,7 @@ export async function login(dbConnection, req, company) {
   });
 
   let userHomeLatitude, userHomeLongitude;
+
   if (user.direccion) {
     try {
       const direccion = JSON.parse(user.direccion);
@@ -81,9 +69,10 @@ export async function login(dbConnection, req, company) {
   }
 
   const houses = [];
+
   if (userHomeLatitude && userHomeLongitude) {
     houses.push({
-      id: 0,
+      id: MapConstants.inicioEnCasa,
       name: "Casa",
       abreviation: "casa",
       latitude: userHomeLatitude,
@@ -96,7 +85,7 @@ export async function login(dbConnection, req, company) {
     username: user.usuario,
     profile: user.perfil,
     email: user.email,
-    profilePicture: "",
+    profilePicture: user.imagen,
     phone: user.telefono,
     token,
     houses,

@@ -1,4 +1,4 @@
-import { LightdataORM, CustomException, Status } from "lightdata-tools";
+import { LightdataORM } from "lightdata-tools";
 
 export async function accountList({ db, req }) {
     const { userId, profile } = req.user;
@@ -10,7 +10,7 @@ export async function accountList({ db, req }) {
     const results = await LightdataORM.select({
         db,
         table: "clientes_cuentas",
-        where: { ...where, didCliente: userId },
+        where: where,
         select: `
             id, did, tipoCuenta, dataCuenta, ML_user, ML_id_vendedor,
             tn_id, tn_url, woo_api, woo_secreto, woo_web,
@@ -18,16 +18,9 @@ export async function accountList({ db, req }) {
             vtex_url, vtex_key, vtex_token, ingreso_automatico,
             fala_key, fala_userid, jumpseller_login, jumpseller_token,
             fulfillment, me1, sync_woo, flexdata
-        `
+        `,
+        throwIfNotExists: true,
     });
-
-    if (!results.length) {
-        throw new CustomException({
-            title: "Sin cuentas",
-            message: "No se encontraron cuentas asociadas al usuario.",
-            status: Status.notFound,
-        });
-    }
 
     const data = results.map(row => {
         let accountName = "";

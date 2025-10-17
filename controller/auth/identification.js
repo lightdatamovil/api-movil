@@ -1,9 +1,9 @@
 import { LightdataORM, LogisticaConfig, logRed } from "lightdata-tools";
 import { axiosInstance } from "../../db.js";
 
-export async function identification(dbConnection, company) {
+export async function identification({ db, company }) {
     const depotsResult = await LightdataORM.select({
-        dbConnection,
+        dbConnection: db,
         table: "depositos",
         select: "id, latitud, longitud, nombre, cod"
     });
@@ -16,7 +16,7 @@ export async function identification(dbConnection, company) {
         const imageBuffer = Buffer.from(response.data, "binary");
         imageBase64 = imageBuffer.toString("base64");
     } catch (error) {
-        logRed(error.message);
+        logRed(error);
         imageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8v+d+AAAAWElEQVRIDbXBAQEAAAABIP6PzgpV+QUwbGR2rqlzdkcNoiCqk73A0B9H5KLVmr4YdTiO8gaCGg8VmYWqJf2zxeI1icT24tFS0hDJ01gg7LMEx6qI3SCqA6Uq8gRJbAqioBgCRH0CpvI0dpjlGr6hQJYtsDRS0BQ==";
     }
 
@@ -29,7 +29,7 @@ export async function identification(dbConnection, company) {
     }));
 
     const messagesResult = await LightdataORM.select({
-        dbConnection,
+        dbConnection: db,
         table: "mensajeria_app",
         select: "texto"
     });
@@ -46,11 +46,7 @@ export async function identification(dbConnection, company) {
         colectaPro: false,
         obligatoryImageOnRegisterVisit: LogisticaConfig.hasObligatoryImageOnRegisterVisitEnabled(company.did),
         obligatoryDniAndNameOnRegisterVisit: LogisticaConfig.hasObligatoryDniAndNameOnRegisterVisitEnabled(company.did),
-        depots: LogisticaConfig.hasMultiDepotEnabled(company.did)
-            ? depots
-            : depots.length > 0
-                ? [depots[0]]
-                : [],
+        depots: LogisticaConfig.hasMultiDepotEnabled(company.did) ? depots : depots.length > 0 ? [depots[0]] : [],
         image: imageBase64,
         hasBarcode: LogisticaConfig.hasBarcodeEnabled(company.did),
         hasProductsQr: LogisticaConfig.hasProductsQrEnabled(company.did),
@@ -64,6 +60,6 @@ export async function identification(dbConnection, company) {
         success: true,
         data,
         message: "Empresa identificada correctamente",
-        meta: { depots: depots.length, messages: messages.length }
+        meta: {}
     };
 }
