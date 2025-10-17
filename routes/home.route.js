@@ -10,30 +10,21 @@ const home = Router();
 home.get(
   '/home',
   buildHandlerWrapper({
-    controller: async ({ db, req, company }) => {
-      const result = await getHomeData(db, req, company);
-      return result;
-    },
+    controller: async ({ db, req, company }) => await getHomeData({ db, req, company }),
   })
 );
 
 home.post(
   '/start-route',
   buildHandlerWrapper({
-    controller: async ({ db, req, company }) => {
-      const result = await startRoute(db, req, company);
-      return result;
-    },
+    controller: async ({ db, req, company }) => await startRoute({ db, req, company }),
   })
 );
 
 home.post(
   '/end-route',
   buildHandlerWrapper({
-    controller: async ({ db, req }) => {
-      const result = await finishRoute(db, req);
-      return result;
-    },
+    controller: async ({ db, req }) => await finishRoute({ db, req }),
   })
 );
 

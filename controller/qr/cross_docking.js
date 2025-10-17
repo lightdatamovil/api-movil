@@ -96,6 +96,8 @@ export async function crossDocking(dbConnection, req, company) {
             driver: row.driver ?? "Sin asignar",
             order: row.orden ?? null,
             mlPackId: row.ml_pack_id ?? null,
-        }, message: "Datos obtenidos correctamente", success: true
+        },
+        message: "Datos obtenidos correctamente",
+        success: true
     };
 }

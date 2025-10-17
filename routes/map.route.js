@@ -9,10 +9,7 @@ const map = Router();
 map.get(
     '/get-route-by-user',
     buildHandlerWrapper({
-        controller: async ({ db, req, company }) => {
-            const result = await getRouteByUserId(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await getRouteByUserId({ db, req, company }),
     })
 );
 
@@ -20,10 +17,7 @@ map.post(
     '/geolocalize',
     buildHandlerWrapper({
         required: ['shipmentId', 'latitude', 'longitude'],
-        controller: async ({ company, req }) => {
-            const result = await geolocalize(company, req);
-            return result;
-        },
+        controller: async ({ company, req }) => await geolocalize({ company, req }),
     })
 );
 
@@ -31,10 +25,7 @@ map.post(
     '/save-route',
     buildHandlerWrapper({
         required: ['orders', 'distance', 'totalDelay', 'additionalRouteData'],
-        controller: async ({ db, req, company }) => {
-            const result = await saveRoute(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await saveRoute({ db, req, company }),
     })
 );
 

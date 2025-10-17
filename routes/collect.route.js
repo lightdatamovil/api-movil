@@ -14,20 +14,14 @@ const collect = Router();
 collect.get(
     '/get-route',
     buildHandlerWrapper({
-        controller: async ({ db, req, company }) => {
-            const result = await getRoute(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await getRoute({ db, req, company }),
     })
 );
 
 collect.post(
     '/start-route',
     buildHandlerWrapper({
-        controller: async ({ db }) => {
-            const result = await startCollectRoute(db);
-            return result;
-        },
+        controller: async ({ db }) => await startCollectRoute({ db }),
     })
 );
 
@@ -35,21 +29,15 @@ collect.post(
     '/save-route',
     buildHandlerWrapper({
         required: ['additionalRouteData', 'clients', 'cantidad', 'distancia', 'total_km', 'total_minutos', 'camino'],
-        controller: async ({ db, req, company }) => {
-            const result = await saveRoute(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await saveRoute({ db, req, company }),
     })
 );
 
 collect.get(
     '/get-collect-details/:date',
     buildHandlerWrapper({
-        controller: async ({ db, req }) => {
-            const result = await getCollectDetails(db, req);
-            return result;
-        },
         requiredParams: ['date'],
+        controller: async ({ db, req }) => await getCollectDetails({ db, req }),
     })
 );
 
@@ -57,10 +45,7 @@ collect.get(
     '/get-client-details/:clientId',
     buildHandlerWrapper({
         requiredParams: ['clientId'],
-        controller: async ({ db, req }) => {
-            const result = await shipmentsFromClient(db, req);
-            return result;
-        },
+        controller: async ({ db, req }) => await shipmentsFromClient({ db, req }),
     })
 );
 
@@ -68,10 +53,7 @@ collect.get(
     '/get-collect-list/:from/:to',
     buildHandlerWrapper({
         requiredParams: ['from', 'to'],
-        controller: async ({ db, req }) => {
-            const result = await getCollectList(db, req);
-            return result;
-        },
+        controller: async ({ db, req }) => await getCollectList({ db, req }),
     })
 );
 
@@ -79,10 +61,7 @@ collect.get(
     '/get-settlement-list',
     buildHandlerWrapper({
         required: ['from', 'to'],
-        controller: async ({ db, req }) => {
-            const result = await getSettlementList(db, req);
-            return result;
-        },
+        controller: async ({ db, req }) => await getSettlementList({ db, req }),
     })
 );
 
@@ -90,10 +69,7 @@ collect.get(
     '/get-settlement-details',
     buildHandlerWrapper({
         required: ['settlementId'],
-        controller: async ({ db, req, company }) => {
-            const result = await getSettlementDetails(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await getSettlementDetails({ db, req, company }),
     })
 );
 

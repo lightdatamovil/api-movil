@@ -10,10 +10,7 @@ users.post(
     '/edit-user',
     buildHandlerWrapper({
         required: ['email', 'phone'],
-        controller: async ({ db, req }) => {
-            const result = await editUser(db, req);
-            return result;
-        },
+        controller: async ({ db, req }) => await editUser({ db, req }),
     })
 );
 
@@ -21,10 +18,7 @@ users.post(
     '/change-password',
     buildHandlerWrapper({
         required: ['oldPassword', 'newPassword'],
-        controller: async ({ db, req }) => {
-            const result = await changePassword(db, req);
-            return result;
-        },
+        controller: async ({ db, req }) => await changePassword({ db, req }),
     })
 );
 
@@ -33,10 +27,7 @@ users.post(
     buildHandlerWrapper({
         needsDb: false,
         required: ['image'],
-        controller: async ({ req, company }) => {
-            const result = await changeProfilePicture(req, company);
-            return result;
-        },
+        controller: async ({ req, company }) => await changeProfilePicture({ req, company }),
     })
 );
 

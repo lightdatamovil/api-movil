@@ -1,4 +1,4 @@
-import { LightdataORM, executeQuery, getFechaLocalDePais, logCyan } from "lightdata-tools";
+import { LightdataORM, executeQuery, getFechaLocalDePais } from "lightdata-tools";
 
 export async function getRoute(dbConnection, req, company) {
     const { userId } = req.user;
@@ -49,7 +49,6 @@ export async function getRoute(dbConnection, req, company) {
         });
 
         if (enviosResult.length === 0) {
-            logCyan("No route or no envios found");
             return {
                 success: true,
                 data: [],

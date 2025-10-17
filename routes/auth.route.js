@@ -13,10 +13,7 @@ auth.post(
     buildHandlerWrapper({
         required: ['companyCode'],
         companyResolver2: async ({ req }) => companiesService.getByCode(req.body.companyCode),
-        controller: async ({ db, company }) => {
-            const result = await identification(db, company);
-            return result;
-        },
+        controller: async ({ db, company }) => await identification({ db, company }),
     })
 );
 
@@ -25,10 +22,7 @@ auth.post(
     buildHandlerWrapper({
         required: ['username', 'password', 'companyId'],
         companyResolver2: async ({ req }) => companiesService.getById(req.body.companyId),
-        controller: async ({ db, req, company }) => {
-            const result = await login(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await login({ db, req, company }),
     })
 );
 
@@ -37,10 +31,7 @@ auth.get(
     '/whatsapp-message-list',
     verifyToken({ jwtSecret, jwtIssuer, jwtAudience }),
     buildHandlerWrapper({
-        controller: async ({ db }) => {
-            const result = await whatsappMessagesList(db);
-            return result;
-        },
+        controller: async ({ db }) => await whatsappMessagesList({ db }),
     })
 );
 

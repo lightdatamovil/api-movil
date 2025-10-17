@@ -13,10 +13,7 @@ const qr = Router();
 qr.get(
   '/driver-list',
   buildHandlerWrapper({
-    controller: async ({ db }) => {
-      const result = await driverList(db);
-      return result;
-    },
+    controller: async ({ db }) => await driverList({ db }),
   })
 );
 
@@ -24,10 +21,7 @@ qr.post(
   '/cross-docking',
   buildHandlerWrapper({
     required: ['dataQr'],
-    controller: async ({ db, req, company }) => {
-      const result = await crossDocking(db, req, company);
-      return result;
-    },
+    controller: async ({ db, req, company }) => await crossDocking({ db, req, company }),
   })
 );
 
@@ -35,10 +29,7 @@ qr.post(
   '/get-shipment-id',
   buildHandlerWrapper({
     required: ['dataQr'],
-    controller: async ({ db, req, company }) => {
-      const result = await getShipmentIdFromQr(db, req, company);
-      return result;
-    },
+    controller: async ({ db, req, company }) => await getShipmentIdFromQr({ db, req, company }),
   })
 );
 
@@ -46,10 +37,7 @@ qr.post(
   '/products-from-shipment',
   buildHandlerWrapper({
     required: ['dataQr'],
-    controller: async ({ db, req }) => {
-      const result = await getProductsFromShipment(db, req);
-      return result;
-    },
+    controller: async ({ db, req }) => await getProductsFromShipment({ db, req }),
   })
 );
 
@@ -57,21 +45,14 @@ qr.post(
   '/enter-flex',
   buildHandlerWrapper({
     required: ['dataQr'],
-    controller: async ({ db, req, company }) => {
-      const result = await enterFlex(db, req, company);
-      return result;
-    },
+    controller: async ({ db, req, company }) => await enterFlex({ db, req, company }),
   })
 );
 
 qr.get(
   '/cantidad-asignaciones',
   buildHandlerWrapper({
-    required: [],
-    controller: async ({ db, req }) => {
-      const result = await getCantidadAsignaciones(db, req);
-      return result;
-    },
+    controller: async ({ db, req }) => await getCantidadAsignaciones({ db, req }),
   })
 );
 
@@ -79,10 +60,7 @@ qr.post(
   '/alta-envio-foto',
   buildHandlerWrapper({
     required: ['image', 'driverId'],
-    controller: async ({ req, company }) => {
-      const result = await altaEnvioFoto(company, req);
-      return result;
-    },
+    controller: async ({ req, company }) => await altaEnvioFoto({ company, req }),
   })
 );
 

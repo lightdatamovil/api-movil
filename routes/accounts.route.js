@@ -7,10 +7,7 @@ const accounts = Router();
 accounts.get(
 	'/account-list',
 	buildHandlerWrapper({
-		controller: async ({ db, req }) => {
-			const result = await accountList(db, req);
-			return result;
-		},
+		controller: async ({ db, req }) => await accountList({ db, req }),
 	})
 );
 

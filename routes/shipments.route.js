@@ -10,10 +10,7 @@ shipments.get(
   '/shipment-list',
   buildHandlerWrapper({
     requiredParams: ['from', 'to', 'shipmentStates', 'isAssignedToday'],
-    controller: async ({ db, req, company }) => {
-      const result = await shipmentList(db, req, company);
-      return result;
-    },
+    controller: async ({ db, req, company }) => await shipmentList({ db, req, company }),
   })
 );
 
@@ -21,10 +18,7 @@ shipments.get(
   '/shipment-details',
   buildHandlerWrapper({
     requiredParams: ['shipmentId'],
-    controller: async ({ db, req }) => {
-      const result = await shipmentDetails(db, req);
-      return result;
-    },
+    controller: async ({ db, req }) => await shipmentDetails({ db, req }),
   })
 );
 
@@ -32,10 +26,7 @@ shipments.post(
   '/next-visit',
   buildHandlerWrapper({
     required: ['shipmentId'],
-    controller: async ({ db, req, company }) => {
-      const result = await nextDeliver(db, req, company);
-      return result;
-    },
+    controller: async ({ db, req, company }) => await nextDeliver({ db, req, company }),
   })
 );
 

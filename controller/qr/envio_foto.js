@@ -1,12 +1,10 @@
 import axios from "axios";
-import { CustomException, executeQuery, logCyan, logYellow } from "lightdata-tools";
+import { CustomException, executeQuery, logYellow } from "lightdata-tools";
+import { axiosInstance, urlAltaEnvio, urlFotoEnviosUploadImage } from "../../db.js";
 
 export async function altaEnvioFoto(dbConnection, req, company) {
   const { image, userId, address, driverId, appVersion, brand, model, androidVersion, deviceId, deviceFrom, profile } = req.body;
 
-
-  // ajustar a endpoint
-  const url = `https://altaenvios.lightdata.com.ar/api/altaEnvio`;
   const companyId = company.did;
   const enviosDireccionesDestino = { calle: address };
 
@@ -15,7 +13,7 @@ export async function altaEnvioFoto(dbConnection, req, company) {
     "data": { idEmpresa: companyId, quien: userId, enviosDireccionesDestino: enviosDireccionesDestino, elim: 69, lote: "envioFoto" },
   };
 
-  const response = await axios.post(url, reqBody, {
+  const response = await axiosInstance.post(urlAltaEnvio, reqBody, {
     headers: {
       'Content-Type': 'application/json'
     }
@@ -30,9 +28,8 @@ export async function altaEnvioFoto(dbConnection, req, company) {
     const shipmentId = response.data.did;
 
     const reqBody = { image, shipmentId, companyId };
-    const url = 'https://files.lightdata.app/upload_foto_envios.php';
 
-    const res = await axios.post(url, reqBody, {
+    const res = await axios.post(urlFotoEnviosUploadImage, reqBody, {
       headers: {
         'Content-Type': 'application/json'
       }
@@ -47,14 +44,13 @@ export async function altaEnvioFoto(dbConnection, req, company) {
       const server = 1;
 
       const reqBody = { image, shipmentId, companyId };
-      const url = 'https://files.lightdata.app/upload_foto_envios.php';
+      const url = urlFotoEnviosUploadImage;
 
       const res = await axios.post(url, reqBody, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      logCyan(`Response de subida de imagen: ${JSON.stringify(res.data)}`);
       if (!res.data) {
         throw new CustomException({
           title: 'Error en subida de imagen',
@@ -84,7 +80,6 @@ export async function altaEnvioFoto(dbConnection, req, company) {
         deviceId: deviceId
       };
 
-      logCyan(`ReqBody Asignar: ${JSON.stringify(req_body_asignar)}`);
       const response_assign = await axios.post(url_assignment, req_body_asignar, {
         headers: {
           'Content-Type': 'application/json'

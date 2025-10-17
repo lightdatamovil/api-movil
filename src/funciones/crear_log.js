@@ -1,7 +1,7 @@
 import { executeQueryFromPool, getHeaders, logGreen, logPurple } from "lightdata-tools";
 import { poolLocal } from "../../db.js";
 
-export async function crearLog(req, tiempo, resultado, exito) {
+export async function crearLog({ req, tiempo, resultado, exito }) {
     // ---------- helpers ----------
     const toInt = (v, def = null) => {
         const n = parseInt(v ?? "", 10);

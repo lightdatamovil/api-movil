@@ -17,10 +17,7 @@ registerVisitRoute.post(
             'recieverName',
             'recieverDNI',
         ],
-        controller: async ({ db, req, company }) => {
-            const result = await registerVisit(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await registerVisit({ db, req, company }),
     })
 );
 
@@ -28,10 +25,7 @@ registerVisitRoute.post(
     '/upload-image',
     buildHandlerWrapper({
         required: ['shipmentId', 'shipmentState', 'image', 'lineId'],
-        controller: async ({ db, req, company }) => {
-            const result = await uploadImage(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await uploadImage({ db, req, company }),
     })
 );
 

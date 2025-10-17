@@ -1,6 +1,6 @@
 import { LightdataORM, CustomException, Status } from "lightdata-tools";
 
-export async function accountList(dbConnection, req) {
+export async function accountList({ db, req }) {
     const { userId, profile } = req.user;
 
     const where = profile == 2
@@ -8,7 +8,7 @@ export async function accountList(dbConnection, req) {
         : {};
 
     const results = await LightdataORM.select({
-        dbConnection,
+        db,
         table: "clientes_cuentas",
         where: { ...where, didCliente: userId },
         select: `

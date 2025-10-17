@@ -10,10 +10,7 @@ settlements.get(
     '/settlement-list',
     buildHandlerWrapper({
         requiredParams: ['from', 'to'],
-        controller: async ({ db, req }) => {
-            const result = await getSettlementList(db, req);
-            return result;
-        },
+        controller: async ({ db, req }) => await getSettlementList({ db, req }),
     })
 );
 
@@ -21,20 +18,13 @@ settlements.get(
     '/settlement-details',
     buildHandlerWrapper({
         requiredParams: ['settlementId'],
-        controller: async ({ db, req, company }) => {
-            const result = await getSettlementDetails(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await getSettlementDetails({ db, req, company }),
     })
 );
-
 settlements.get(
     '/settlement-shipment-details',
     buildHandlerWrapper({
-        controller: async ({ db, req, company }) => {
-            const result = await getSettlementShipmentDetails(db, req, company);
-            return result;
-        },
+        controller: async ({ db, req, company }) => await getSettlementShipmentDetails({ db, req, company }),
     })
 );
 
