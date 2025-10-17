@@ -196,7 +196,7 @@ export async function registerVisit(
     } else { estadoInsert = shipmentState; }
 
     const response = await sendShipmentStateToStateMicroserviceAPI({
-      urlEstadosMicroservice: "https://serverestado.lightdata.app/estados",
+      urlEstadosMicroservice: "http://10.70.0.69:13000/estados",
       axiosInstance,
       company,
       userId,
