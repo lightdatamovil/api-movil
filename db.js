@@ -1,9 +1,8 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
-import { logRed } from './src/funciones/logsCustom.js';
 import https from 'https';
 import axios from 'axios';
-import { CompaniesService } from 'lightdata-tools';
+import { CompaniesService, logRed } from 'lightdata-tools';
 import { createPool } from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 

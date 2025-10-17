@@ -1,5 +1,5 @@
 import { LightdataORM, LogisticaConfig, logRed } from "lightdata-tools";
-import { axiosInstance } from "../db.js";
+import { axiosInstance } from "../../db.js";
 
 export async function identification(dbConnection, company) {
     const depotsResult = await LightdataORM.select({
