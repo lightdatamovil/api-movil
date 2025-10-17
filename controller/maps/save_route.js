@@ -1,46 +1,43 @@
-import { executeQuery, getFechaLocalDePais } from 'lightdata-tools';
+import { getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
 
 export async function saveRoute(dbConnection, req, company) {
     const { userId } = req.user;
     let { orders, distance, totalDelay, additionalRouteData } = req.body;
-    let routeId = 0;
 
-    const rows = await executeQuery(dbConnection, "SELECT did FROM `ruteo` WHERE superado = 0 AND elim = 0 AND didChofer = ?", [userId]);
-    if (rows.length > 0) {
-        routeId = rows[0].did;
-    }
-
-    if (routeId !== 0) {
-        await executeQuery(dbConnection, "UPDATE `ruteo` SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ?", [routeId]);
-        // TODO: Verificar si es necesario actualizar las paradas
-        // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
-    }
     const dateConHora = getFechaLocalDePais(company.pais);
     if (company.did == 4) {
-        // distancia dividir por 1000 redondear por dos decimales
         distance = Math.round((distance / 1000) * 100) / 100;
     }
-    // TODO: Que significa este 2??
-    const result = await executeQuery(
-        dbConnection,
-        "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        [2, dateConHora, dateConHora, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)]
-    );
 
-    const newId = result.insertId;
+    const [newId] = await LightdataORM.insert({
+        table: "ruteo",
+        values: {
+            desde: 2,
+            fecha: dateConHora,
+            fechaOperativa: dateConHora,
+            didChofer: userId,
+            distancia: distance,
+            tiempo: totalDelay,
+            quien: userId,
+            dataDeRuta: JSON.stringify(additionalRouteData)
+        },
+        dbConnection
+    });
 
-    const querySetDid = "UPDATE ruteo SET did = ? WHERE superado=0 AND elim=0 AND id = ? LIMIT 1";
-    await executeQuery(dbConnection, querySetDid, [newId, newId]);
-
-    for (const order of orders) {
-        const { index, shipmentId, arrivalTime } = order;
-
-        await executeQuery(
-            dbConnection,
-            "INSERT INTO ruteo_paradas (didRuteo, tipoParada, didPaquete, retira, didCliente, didDireccion, orden, hora_llegada) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [newId, 1, shipmentId, 0, 0, 0, index, arrivalTime]
-        );
-    }
+    await LightdataORM.insert({
+        table: "ruteo_paradas",
+        values: orders.map(order => ({
+            didRuteo: newId,
+            tipoParada: 1,
+            didPaquete: order.shipmentId,
+            retira: 0,
+            didCliente: 0,
+            didDireccion: 0,
+            orden: order.index,
+            hora_llegada: order.arrivalTime
+        })),
+        dbConnection
+    });
 
     return { message: "Ruta guardada correctamente" };
 }

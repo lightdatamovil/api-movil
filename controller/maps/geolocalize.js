@@ -1,26 +1,36 @@
-import { CustomException, executeQuery } from "lightdata-tools";
+import { LightdataORM } from "lightdata-tools";
 
 export async function geolocalize(dbConnection, req) {
     const { shipmentId, latitude, longitude } = req.body;
-    const queryShipment = `SELECT did FROM envios WHERE did = ${shipmentId}`;
 
-    const resultQuery = await executeQuery(dbConnection, queryShipment);
+    await LightdataORM.select({
+        table: "envios",
+        where: { did: shipmentId },
+        dbConnection,
+        select: ['did'],
+        throwIfNotExists: true,
+    });
 
-    if (resultQuery.length > 0) {
+    await LightdataORM.update({
+        table: "envios",
+        data: {
+            destination_latitude: latitude,
+            destination_longitude: longitude
+        },
+        where: { did: shipmentId },
+        dbConnection
+    });
 
-        const queryUpdateShipment = `UPDATE envios SET destination_latitude = ${latitude}, destination_longitude = ${longitude}  WHERE did = ${shipmentId}`;
+    await LightdataORM.update({
+        table: "envios_direcciones_destino",
+        data: {
+            latitud: latitude,
+            longitud: longitude
+        },
+        where: { didEnvio: shipmentId },
+        dbConnection
+    });
 
-        await executeQuery(dbConnection, queryUpdateShipment);
+    return { message: "Geolocalización registrada correctamente" };
 
-        const queryUpdateAddress = `UPDATE envios_direcciones_destino SET latitud = ${latitude}, longitud = ${longitude}  WHERE didEnvio = ${shipmentId}`;
-
-        await executeQuery(dbConnection, queryUpdateAddress);
-
-        return { message: "Geolocalización registrada correctamente" };
-    } else {
-        throw new CustomException({
-            title: 'Error geolocalizando',
-            message: 'El envío no existe',
-        });
-    }
 }

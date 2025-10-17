@@ -1,5 +1,5 @@
 import MapConstants from '../../src/constants/map.js';
-import { executeQuery, getFechaLocalDePais } from 'lightdata-tools';
+import { executeQuery, getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
 
 export async function getRouteByUserId(dbConnection, req, company) {
     const { userId } = req.user;
@@ -8,9 +8,15 @@ export async function getRouteByUserId(dbConnection, req, company) {
     let additionalRouteData;
     const date = getFechaLocalDePais(company.pais);
 
-    const rutaQuery = "SELECT id FROM `ruteo` WHERE superado=0 AND elim=0 AND fechaOperativa = ? AND didChofer = ?";
-    const rutaResult = await executeQuery(dbConnection, rutaQuery, [date, userId]);
-
+    const rutaResult = await LightdataORM.select({
+        table: "ruteo",
+        where: {
+            fechaOperativa: date,
+            didChofer: userId
+        },
+        dbConnection,
+        select: ['id']
+    });
     if (rutaResult.length > 0) {
         const getRouteShipmentsQuery = `
                 SELECT e.did, e.destination_shipping_address_line, e.destination_latitude, e.destination_longitude,  
@@ -111,7 +117,6 @@ export async function getRouteByUserId(dbConnection, req, company) {
 
     if (req.user.profile == 3) {
         const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
-
         const resultQueryCadetesMovimientos = await executeQuery(dbConnection, sqlCadetesMovimientos, [userId]);
 
         if (resultQueryCadetesMovimientos.length == 0) {
