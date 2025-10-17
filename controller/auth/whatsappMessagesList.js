@@ -1,10 +1,19 @@
-import { executeQuery } from "lightdata-tools";
+import { LightdataORM } from "lightdata-tools";
 
 export async function whatsappMessagesList(dbConnection) {
-  const queryTexts =
-    "SELECT texto FROM `mensajeria_app` WHERE superado = 0 ORDER BY tipo ASC;";
-  const results = await executeQuery(dbConnection, queryTexts, []);
+  const results = await LightdataORM.select({
+    dbConnection,
+    table: "mensajeria_app",
+    where: {},
+    select: "texto"
+  });
 
-  return { body: results.map((row) => row.texto), message: "Mensajes traidos correctamente" };
+  const data = results.map(r => r.texto);
 
+  return {
+    success: true,
+    data,
+    message: "Mensajes traídos correctamente",
+    meta: { total: data.length }
+  };
 }

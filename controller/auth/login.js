@@ -1,41 +1,43 @@
 import crypto from "crypto";
-import { CustomException, executeQuery, generateToken } from "lightdata-tools";
+import { CustomException, generateToken, LightdataORM } from "lightdata-tools";
 import { jwtSecret } from "../../db.js";
 
 export async function login(dbConnection, req, company) {
   const { username, password } = req.body;
 
-  let userAddress = {};
+  const userResult = await LightdataORM.select({
+    dbConnection,
+    table: "sistema_usuarios",
+    where: { usuario: username },
+    select: `
+      did, bloqueado, nombre, apellido, email, telefono, pass, elim, usuario, token_fcm, direccion
+    `
+  });
 
-  const userQuery = `SELECT
-    u.did,
-    u.bloqueado,
-    u.nombre,
-    u.apellido,
-    u.email,
-    u.telefono,
-    u.pass,
-    u.elim,
-    u.usuario,
-    u.token_fcm,
-    a.perfil,
-    u.direccion
-    FROM sistema_usuarios as u
-    JOIN sistema_usuarios_accesos as a on (a.elim=0 and a.superado=0 and a.usuario = u.did)
-    WHERE u.usuario = ? AND u.elim=0 and u.superado=0 `;
-
-  const resultsFromUserQuery = await executeQuery(dbConnection, userQuery, [
-    username,
-  ]);
-
-  if (resultsFromUserQuery.length === 0) {
+  if (!userResult.length) {
     throw new CustomException({
       title: "Usuario inválido",
       message: "Usuario no encontrado en el sistema",
     });
   }
 
-  const user = resultsFromUserQuery[0];
+  const user = userResult[0];
+
+  const accessResult = await LightdataORM.select({
+    dbConnection,
+    table: "sistema_usuarios_accesos",
+    where: { usuario: user.did },
+    select: "perfil"
+  });
+
+  if (!accessResult.length) {
+    throw new CustomException({
+      title: "Acceso denegado",
+      message: "El usuario no tiene accesos registrados",
+    });
+  }
+
+  user.perfil = accessResult[0].perfil;
 
   if (user.bloqueado === 1) {
     throw new CustomException({
@@ -44,10 +46,8 @@ export async function login(dbConnection, req, company) {
     });
   }
 
-  const hashPassword = crypto
-    .createHash("sha256")
-    .update(password)
-    .digest("hex");
+  const hashPassword = crypto.createHash("sha256").update(password).digest("hex");
+
   if (user.pass !== hashPassword) {
     throw new CustomException({
       title: "Contraseña incorrecta",
@@ -60,7 +60,7 @@ export async function login(dbConnection, req, company) {
     payload: {
       userId: user.did,
       companyId: company.did,
-      profile: user.perfil
+      profile: user.perfil,
     },
     options: {},
     expiresIn: 3600 * 24 * 30,
@@ -69,16 +69,20 @@ export async function login(dbConnection, req, company) {
   });
 
   let userHomeLatitude, userHomeLongitude;
-  if (user.direccion != "") {
-    userAddress = JSON.parse(user.direccion);
-    userHomeLatitude = userAddress.lat;
-    userHomeLongitude = userAddress.lng;
+  if (user.direccion) {
+    try {
+      const direccion = JSON.parse(user.direccion);
+      userHomeLatitude = direccion.lat;
+      userHomeLongitude = direccion.lng;
+    } catch {
+      userHomeLatitude = null;
+      userHomeLongitude = null;
+    }
   }
 
-  const userHouses = [];
-
+  const houses = [];
   if (userHomeLatitude && userHomeLongitude) {
-    userHouses.push({
+    houses.push({
       id: 0,
       name: "Casa",
       abreviation: "casa",
@@ -86,18 +90,23 @@ export async function login(dbConnection, req, company) {
       longitude: userHomeLongitude,
     });
   }
+
+  const data = {
+    id: user.did,
+    username: user.usuario,
+    profile: user.perfil,
+    email: user.email,
+    profilePicture: "",
+    phone: user.telefono,
+    token,
+    houses,
+    version: "1.0.87",
+  };
+
   return {
-    body: {
-      id: user.did,
-      username: user.usuario,
-      profile: user.perfil,
-      email: user.email,
-      profilePicture: "",
-      phone: user.telefono,
-      token,
-      houses: userHouses,
-      version: "1.0.87",
-    },
-    message: "Usuario logueado correctamente"
+    success: true,
+    data,
+    message: "Usuario logueado correctamente",
+    meta: {},
   };
 }
