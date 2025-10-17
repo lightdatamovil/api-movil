@@ -5,10 +5,10 @@ import os from "os";
 const isLocal = true;
 
 export function logGreen(message) {
-    if (isLocal) {
-        console.log(`\x1b[32m%s\x1b[0m`, `✅ ${message}
-    --------------------------------------------------`);
-    }
+    // if (isLocal) {
+    //     console.log(`\x1b[32m%s\x1b[0m`, `✅ ${message}
+    // --------------------------------------------------`);
+    // }
 }
 
 export function logRed(message) {
