@@ -2,7 +2,7 @@ import { executeQuery, getFechaLocalDePais } from 'lightdata-tools';
 
 export async function saveRoute(dbConnection, req, company) {
     const { userId } = req.user;
-    const { orders, distance, totalDelay, additionalRouteData } = req.body;
+    let { orders, distance, totalDelay, additionalRouteData } = req.body;
     let routeId = 0;
 
     const rows = await executeQuery(dbConnection, "SELECT did FROM `ruteo` WHERE superado = 0 AND elim = 0 AND didChofer = ?", [userId]);
@@ -16,6 +16,10 @@ export async function saveRoute(dbConnection, req, company) {
         // await executeQuery(dbConnection, "UPDATE `ruteo_paradas` SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuteo = ?", [routeId]);
     }
     const dateConHora = getFechaLocalDePais(company.pais);
+    if (company.did == 4) {
+        // distancia dividir por 1000 redondear por dos decimales
+        distance = Math.round((distance / 1000) * 100) / 100;
+    }
     // TODO: Que significa este 2??
     const result = await executeQuery(
         dbConnection,

@@ -1,6 +1,5 @@
-import { CustomException, executeQuery, getFechaConHoraLocalDePais, sendShipmentStateToStateMicroservice } from "lightdata-tools";
-import { queueEstados, rabbitUrl, urlEstadosMicroservice } from "../../db.js";
-
+import { CustomException, executeQuery, getFechaConHoraLocalDePais, sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
+import { axiosInstance } from "../../db.js";
 export async function enterFlex(dbConnection, req, company) {
     const { dataQr } = req.body;
     const { userId, profile } = req.user;
@@ -81,19 +80,31 @@ export async function enterFlex(dbConnection, req, company) {
             shipmentState = 7;
         }
 
-        await sendShipmentStateToStateMicroservice(queueEstados, rabbitUrl, 'apimovil', company, userId, shipmentState, shipmentId, urlEstadosMicroservice);
+        await sendShipmentStateToStateMicroserviceAPI({
+            urlEstadosMicroservice: "https://serverestado.lightdata.app/estados",
+            axiosInstance,
+            company,
+            userId,
+            estado: shipmentState,
+            shipmentId,
+            latitude: 0,
+            longitude: 0
+        });
+        // await setShipmentState(dbConnection, shipmentId, shipmentState, "");
 
         if (profile === 3) {
             await updateWhoPickedUp(dbConnection, userId, shipmentId);
         }
 
-        return { message: "Datos obtenidos correctamente" };
+        return;
 
     } else {
+
         throw new CustomException({
             title: 'Error ingresando al Flex',
             message: 'El envío ya está cargado'
         });
+
     }
 }
 

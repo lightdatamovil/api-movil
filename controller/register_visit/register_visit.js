@@ -1,22 +1,30 @@
 import axios from "axios";
+import {
+  CustomException,
+  executeQuery,
+  sendShipmentStateToStateMicroserviceAPI,
+} from "lightdata-tools";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { CustomException, executeQuery, getFechaConHoraLocalDePais } from "lightdata-tools";
-
+import { axiosInstance } from "../../db.js";
 
 export async function registerVisit(dbConnection, req, company) {
-  const { shipmentId, shipmentState, observation, appVersion, recieverDNI, recieverName, latitude, longitude, } = req.body;
+  const {
+    shipmentId,
+    shipmentState,
+    observation,
+    recieverDNI,
+    recieverName,
+    latitude,
+    longitude,
+  } = req.body;
   const { userId } = req.user;
-  const date = getFechaConHoraLocalDePais(company.pais);
-  const queryEnviosHistorial =
+
+  // 1️⃣ Validar envío existente y estado actual
+  const queryEstadoActual =
     "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
+  const estadoActualRows = await executeQuery(dbConnection, queryEstadoActual, [shipmentId]);
 
-  const estadoActualRows = await executeQuery(
-    dbConnection,
-    queryEnviosHistorial,
-    [shipmentId]
-  );
-
-  if (estadoActualRows.length == 0) {
+  if (estadoActualRows.length === 0) {
     throw new CustomException({
       title: "Error en registro de visita",
       message: "No se encontró el envío",
@@ -25,31 +33,23 @@ export async function registerVisit(dbConnection, req, company) {
 
   const currentShipmentState = estadoActualRows[0].estado;
 
-  if (estadoActualRows.length > 0 && currentShipmentState == 8) {
+  if (currentShipmentState == 8) {
     throw new CustomException({
       title: "El envío ya fue cancelado",
       message: "El envío ya fue cancelado",
     });
   }
 
-  // Para wynflex si esta entregado
-  if (company.did == 72 || company.did == 125) {
+  // 2️⃣ Validar en MercadoLibre si corresponde (Wynflex)
+  if (company.did === 72 || company.did === 125) {
     const queryEnvios =
       "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
-
-    const envioRows = await executeQuery(dbConnection, queryEnvios, [
-      shipmentId,
-    ]);
+    const envioRows = await executeQuery(dbConnection, queryEnvios, [shipmentId]);
 
     if (envioRows.length > 0 && envioRows[0].flex === 1) {
       const queryMLShipment =
         "SELECT ml_shipment_id FROM envios WHERE superado = 0 AND elim = 0 AND did = ? LIMIT 1";
-
-      const mlshipmentRows = await executeQuery(
-        dbConnection,
-        queryMLShipment,
-        [shipmentId]
-      );
+      const mlshipmentRows = await executeQuery(dbConnection, queryMLShipment, [shipmentId]);
 
       if (mlshipmentRows.length > 0) {
         const token = await getTokenMLconMasParametros(
@@ -58,10 +58,7 @@ export async function registerVisit(dbConnection, req, company) {
           company.did
         );
 
-        const dataML = await mlShipment(
-          token,
-          mlshipmentRows[0].ml_shipment_id
-        );
+        const dataML = await mlShipment(token, mlshipmentRows[0].ml_shipment_id);
 
         if (!dataML || dataML.status !== "delivered") {
           throw new CustomException({
@@ -73,48 +70,31 @@ export async function registerVisit(dbConnection, req, company) {
     }
   }
 
-  // if (currentShipmentState == 5 || currentShipmentState == 9 || currentShipmentState == 14 || currentShipmentState == 17) {
-  //   throw new CustomException({
-  //     title: "No es posible registrar visita",
-  //     message: "El envío ya fue entregado o devuelto al cliente",
-  //   });
-  // }
-
-  const queryRuteoParadas =
+  // 3️⃣ Cerrar parada en ruteo_paradas
+  const queryCerrarParada =
     "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
+  await executeQuery(dbConnection, queryCerrarParada, [shipmentId]);
 
-  await executeQuery(dbConnection, queryRuteoParadas, [shipmentId]);
-
-  const queryRuteo =
-    "SELECT didRuteo FROM ruteo_paradas WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
-
-  const rutaRows = await executeQuery(dbConnection, queryRuteo, [shipmentId]);
+  // 4️⃣ Si todas las paradas de la ruta están cerradas, marcar ruteo como superado
+  const queryRuta = "SELECT didRuteo FROM ruteo_paradas WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
+  const rutaRows = await executeQuery(dbConnection, queryRuta, [shipmentId]);
 
   if (rutaRows.length > 0) {
     const didRuta = rutaRows[0].didRuteo;
-
-    const queryRuteoParadas =
-      "SELECT didPaquete, cerrado FROM ruteo_paradas WHERE superado = 0 AND elim = 0 AND didRuteo = ?";
-
-    const enviosRutaRows = await executeQuery(
-      dbConnection,
-      queryRuteoParadas,
-      [didRuta]
-    );
+    const queryParadasRuta =
+      "SELECT cerrado FROM ruteo_paradas WHERE superado = 0 AND elim = 0 AND didRuteo = ?";
+    const enviosRutaRows = await executeQuery(dbConnection, queryParadasRuta, [didRuta]);
 
     const cierroRuta = enviosRutaRows.every((envio) => envio.cerrado === 1);
-
     if (cierroRuta) {
-      const queryRuteo =
-        "UPDATE ruteo SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ?";
-
-      await executeQuery(dbConnection, queryRuteo, [didRuta]);
+      const queryCerrarRuta = "UPDATE ruteo SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ?";
+      await executeQuery(dbConnection, queryCerrarRuta, [didRuta]);
     }
   }
 
+  // 5️⃣ Registrar datos del receptor (envios_recibe)
   const queryEnviosRecibe =
     "INSERT INTO envios_recibe (didEnvio, dni, nombre, ilat, ilong, quien) VALUES (?, ?, ?, ?, ?, ?)";
-
   await executeQuery(dbConnection, queryEnviosRecibe, [
     shipmentId,
     recieverDNI,
@@ -124,54 +104,60 @@ export async function registerVisit(dbConnection, req, company) {
     userId,
   ]);
 
-  const queryEnvios =
-    "SELECT choferAsignado, estado_envio FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
-  const choferRows = await executeQuery(dbConnection, queryEnvios, [
-    shipmentId,
-  ]);
 
-  const queryEnviosNoEntregado =
-    "SELECT estado FROM envios_historial WHERE  elim = 0 AND didEnvio = ?";
-  const choferRows2 = await executeQuery(dbConnection, queryEnviosNoEntregado, [
-    shipmentId
-  ], true);
+  const queryEstadosPrevios =
+    "SELECT estado FROM envios_historial WHERE elim = 0 AND didEnvio = ?";
+  const estadosPrevios = await executeQuery(dbConnection, queryEstadosPrevios, [shipmentId]);
 
 
-  const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
-  let estadoInsert;
+  // 7️⃣ Validaciones de empresa
+  if (company.did === 4 && currentShipmentState === 5) {
+    throw new CustomException({
+      title: "El envío ya fue entregado",
+      message: "El envío ya fue entregado",
+    });
+  }
 
-  // Verifica si existe al menos un registro con estado == 6
-  let hayEstado6 = Array.isArray(choferRows2) && choferRows2.some(r => Number(r?.estado) === 6);
-
-  if (company.did == 4) {
-    if (currentShipmentState == 5) {
-      throw new CustomException({
-        title: "El envío ya fue entregado",
-        message: "El envío ya fue entregado",
-      });
+  if (company.did === 167) {
+    let contadorEstadoNadie = 0;
+    for (const row of estadosPrevios) {
+      const estado = Number(row?.estado);
+      if (estado === 6 || estado === 9) contadorEstadoNadie++;
+      if (contadorEstadoNadie > 2) {
+        throw new CustomException({
+          title: "Límite de estados 'nadie'",
+          message: "No se puede registrar la visita porque hay más de dos estados 'nadie'.",
+        });
+      }
     }
   }
 
-  // si el currentShipmentState es nadie (6) estadoInert = 10 sino shipmentState
-  if (hayEstado6 && shipmentState == 5) {
+  // 8️⃣ Determinar estadoInsert
+  const hayEstado6 = estadosPrevios.some((r) => Number(r.estado) === 6);
+  let estadoInsert;
+  if (hayEstado6 && shipmentState === 5) {
     estadoInsert = 9;
-  } else if (hayEstado6 && shipmentState == 6) {
-    // exceepcion pocurrier
-    estadoInsert = (company.did == 4) ? 6 : 10;
-  } else { estadoInsert = shipmentState; }
+  } else if (hayEstado6 && shipmentState === 6) {
+    estadoInsert = company.did === 4 ? 6 : 10;
+  } else {
+    estadoInsert = shipmentState;
+  }
 
+  // 9️⃣ Enviar al microservicio de estados
+  const response = await sendShipmentStateToStateMicroserviceAPI({
+    urlEstadosMicroservice: "http://10.70.0.69:13000/estados",
+    axiosInstance,
+    company,
+    userId,
+    estado: estadoInsert,
+    shipmentId,
+    latitude,
+    longitude,
+  });
 
+  const idInsertado = response.id;
 
-  const queryInsertEnviosHistorial =
-    "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
-  const historialResult = await executeQuery(
-    dbConnection,
-    queryInsertEnviosHistorial,
-    [shipmentId, estadoInsert, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId], true
-  );
-
-  const idInsertado = historialResult.insertId;
-
+  // 11️⃣ Actualizar envíos y asignaciones
   const updates = [
     {
       query:
@@ -179,13 +165,12 @@ export async function registerVisit(dbConnection, req, company) {
       values: [shipmentId, idInsertado],
     },
     {
-      query:
-        "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0",
+      query: "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND elim = 0 AND did = ?",
       values: [estadoInsert, shipmentId],
     },
     {
       query:
-        "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0",
+        "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND elim = 0 AND didEnvio = ? AND elim = 0",
       values: [estadoInsert, shipmentId],
     },
   ];
@@ -194,46 +179,40 @@ export async function registerVisit(dbConnection, req, company) {
     await executeQuery(dbConnection, query, values);
   }
 
+  // 12️⃣ Insertar observación si corresponde
   if (observation) {
     const queryInsertObservaciones =
       "INSERT INTO envios_observaciones (didEnvio, observacion, quien) VALUES (?, ?, ?)";
-
-    const obsResult = await executeQuery(
-      dbConnection,
-      queryInsertObservaciones,
-      [shipmentId, observation, userId]
-    );
-
-    const queryUpdateEnviosObservaciones =
-      "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
-
-    await executeQuery(dbConnection, queryUpdateEnviosObservaciones, [
+    const obsResult = await executeQuery(dbConnection, queryInsertObservaciones, [
       shipmentId,
-      obsResult.insertId,
+      observation,
+      userId,
     ]);
+
+    const queryUpdateObservaciones =
+      "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
+    await executeQuery(dbConnection, queryUpdateObservaciones, [shipmentId, obsResult.insertId]);
   }
 
+  // ✅ Retornar respuesta final
   return {
     body: {
       lineId: idInsertado,
       shipmentState: estadoInsert,
-    }, message: "Visita registrada correctamente"
+    },
+    message: "Visita registrada correctamente",
   };
 }
 
+// 🔧 Función auxiliar MercadoLibre
 async function mlShipment(token, shipmentId) {
   const url = `https://api.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
-
   try {
     const { data } = await axios.get(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
-
     return data;
   } catch (error) {
-    if (error instanceof CustomException) {
-      throw error;
-    }
     throw new CustomException({
       title: "Error obteniendo datos de MercadoLibre",
       message: error.message,

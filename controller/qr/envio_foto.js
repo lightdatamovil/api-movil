@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CustomException, executeQuery } from "lightdata-tools";
+import { CustomException, executeQuery, logCyan, logYellow } from "lightdata-tools";
 
 export async function altaEnvioFoto(dbConnection, req, company) {
   const { image, userId, address, driverId, appVersion, brand, model, androidVersion, deviceId, deviceFrom, profile } = req.body;
@@ -28,7 +28,6 @@ export async function altaEnvioFoto(dbConnection, req, company) {
     });
   } else {
     const shipmentId = response.data.did;
-    const server = 1;
 
     const reqBody = { image, shipmentId, companyId };
     const url = 'https://files.lightdata.app/upload_foto_envios.php';
@@ -43,41 +42,62 @@ export async function altaEnvioFoto(dbConnection, req, company) {
         title: 'Error en subida de imagen',
         message: 'No se pudo subir la imagen',
       });
-    }
+    } else {
+      const shipmentId = response.data.did;
+      const server = 1;
 
-    const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
+      const reqBody = { image, shipmentId, companyId };
+      const url = 'https://files.lightdata.app/upload_foto_envios.php';
 
-    await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId], true);
-
-    const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
-
-    const companyId2 = parseInt(company.did, 10);
-    const req_body_asignar = {
-      shipmentId: shipmentId,
-      userId: userId,
-      driverId: driverId,
-      deviceFrom: deviceFrom,
-      profile: profile,
-      companyId: companyId2,
-      appVersion: appVersion,
-      brand: brand,
-      model: model,
-      androidVersion: androidVersion,
-      deviceId: deviceId
-    };
-
-    const response_assign = await axios.post(url_assignment, req_body_asignar, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    if (!response_assign.data) {
-      throw new CustomException({
-        title: 'Error en asignacion de envio',
-        message: 'No se pudo asignar el envio',
+      const res = await axios.post(url, reqBody, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+      logCyan(`Response de subida de imagen: ${JSON.stringify(res.data)}`);
+      if (!res.data) {
+        throw new CustomException({
+          title: 'Error en subida de imagen',
+          message: 'No se pudo subir la imagen',
+        });
+      }
+
+      const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
+
+      await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId], true);
+      logYellow(`Imagen subida correctamente para el envio: ${shipmentId}`);
+
+      const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
+
+      const companyId2 = parseInt(company.did, 10);
+      const req_body_asignar = {
+        shipmentId: shipmentId,
+        userId: userId,
+        driverId: driverId,
+        deviceFrom: deviceFrom,
+        profile: profile,
+        companyId: companyId2,
+        appVersion: appVersion,
+        brand: brand,
+        model: model,
+        androidVersion: androidVersion,
+        deviceId: deviceId
+      };
+
+      logCyan(`ReqBody Asignar: ${JSON.stringify(req_body_asignar)}`);
+      const response_assign = await axios.post(url_assignment, req_body_asignar, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response_assign.data) {
+        throw new CustomException({
+          title: 'Error en asignacion de envio',
+          message: 'No se pudo asignar el envio',
+        });
+      }
+      return shipmentId;
     }
-    return { body: shipmentId, message: "Envio - imagen registrada correctamente" };
   }
 }
 

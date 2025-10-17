@@ -1,8 +1,10 @@
 import redis from 'redis';
 import dotenv from 'dotenv';
-import { createPool } from 'mysql2/promise';
-import { CompaniesService, logRed } from 'lightdata-tools';
-
+import { logRed } from './src/funciones/logsCustom.js';
+import https from 'https';
+import axios from 'axios';
+import { CompaniesService } from 'lightdata-tools';
+import { createPool } from 'mysql2';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 export const port = process.env.PORT;
@@ -10,6 +12,31 @@ export const port = process.env.PORT;
 const redisHost = process.env.REDIS_HOST;
 const redisPort = process.env.REDIS_PORT;
 const redisPassword = process.env.REDIS_PASSWORD;
+
+/// Base de datos de apimovil
+const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
+const apimovilDBUser = process.env.APIMOVIL_DB_USER;
+const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
+const apimovilDBName = process.env.APIMOVIL_DB_NAME;
+const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
+
+/// Usuario y contraseña para los logs de la base de datos de apimovil
+const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
+const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
+const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
+export const httpsAgent = new https.Agent({
+    keepAlive: true,
+    maxSockets: 100,
+    timeout: 10000, // tiempo máximo de socket en ms
+    family: 4, // fuerza IPv4, evita delay IPv6
+});
+
+// 🔹 Axios preconfigurado (usa el agente y timeout)
+export const axiosInstance = axios.create({
+    httpsAgent,
+    timeout: 5000, // 5 segundos máximo por request
+});
+
 export const redisClient = redis.createClient({
     socket: {
         host: redisHost,
@@ -18,12 +45,6 @@ export const redisClient = redis.createClient({
     password: redisPassword,
 });
 
-/// Base de datos de apimovil
-const apimovilDBHost = process.env.APIMOVIL_DB_HOST;
-const apimovilDBUser = process.env.APIMOVIL_DB_USER;
-const apimovilDBPassword = process.env.APIMOVIL_DB_PASSWORD;
-const apimovilDBName = process.env.APIMOVIL_DB_NAME;
-const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
 export function getDbConfig(companyId) {
     return {
         host: apimovilDBHost,
@@ -33,12 +54,6 @@ export function getDbConfig(companyId) {
         port: apimovilDBPort
     };
 }
-
-
-/// Usuario y contraseña para los logs de la base de datos de apimovil
-const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
-const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
-const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
 
 // Produccion
 export const hostProductionDb = process.env.PRODUCTION_DB_HOST;
