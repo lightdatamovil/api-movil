@@ -204,7 +204,6 @@ export async function registerVisit(
       latitude,
       longitude
     });
-    console.log(`sendShipmentStateToStateMicroserviceAPI took ${endTime - startTime} milliseconds`);
     const idInsertado = response.id;
     const updates = [
       {
