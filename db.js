@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import https from 'https';
 import axios from 'axios';
 import { CompaniesService, logRed } from 'lightdata-tools';
-import { createPool } from 'mysql2';
+import mysql from 'mysql2/promise';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 export const port = process.env.PORT;
@@ -78,7 +78,7 @@ redisClient.on('error', (error) => {
 
 export const companiesService = new CompaniesService({ redisClient, redisKey: "empresasData" })
 
-export const poolLocal = createPool({
+export const poolLocal = mysql.createPool({
     host: apimovilDBHost,
     user: apimovilDbUserForLogs,
     password: apimovilDbPasswordForLogs,

@@ -53,7 +53,7 @@ app.get('/ping', (req, res) => {
         app.use("/api/register-visit", registerVisitRoute);
 
         app.listen(port, '0.0.0.0', () => {
-            logBlue(`Worker ${process.pid} escuchando en el puerto ${port}`);
+            logBlue(`Servidor API Móvil escuchando en el puerto ${port}`);
         });
     } catch (err) {
         logRed(`Error al iniciar el servidor: ${err}`);

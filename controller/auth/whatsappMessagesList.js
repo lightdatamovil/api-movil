@@ -1,10 +1,9 @@
 import { LightdataORM } from "lightdata-tools";
 
-export async function whatsappMessagesList(dbConnection) {
+export async function whatsappMessagesList({ db }) {
   const data = await LightdataORM.select({
-    dbConnection,
+    dbConnection: db,
     table: "mensajeria_app",
-    where: {},
     select: "texto"
   });
 

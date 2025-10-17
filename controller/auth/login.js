@@ -11,7 +11,7 @@ export async function login({ db, req, company }) {
     table: "sistema_usuarios",
     where: { usuario: username },
     select: `
-      did, bloqueado, email, telefono, pass, usuario, direccion
+      did, bloqueado, email, telefono, pass, usuario, direccion, imagen
     `,
     throwIfNotExists: true,
   });
@@ -23,15 +23,13 @@ export async function login({ db, req, company }) {
     });
   }
 
-  const [perfil] = await LightdataORM.select({
+  const [sistemaUsuariosRow] = await LightdataORM.select({
     dbConnection: db,
     table: "sistema_usuarios_accesos",
     where: { usuario: user.did },
     select: "perfil",
     throwIfNotExists: true
   });
-
-  user.perfil = perfil;
 
   const hashPassword = crypto.createHash("sha256").update(password).digest("hex");
 
@@ -47,7 +45,7 @@ export async function login({ db, req, company }) {
     payload: {
       userId: user.did,
       companyId: company.did,
-      profile: user.perfil,
+      profile: sistemaUsuariosRow.perfil,
     },
     options: {},
     expiresIn: 3600 * 24 * 30,
@@ -83,7 +81,7 @@ export async function login({ db, req, company }) {
   const data = {
     id: user.did,
     username: user.usuario,
-    profile: user.perfil,
+    profile: sistemaUsuariosRow.perfil,
     email: user.email,
     profilePicture: user.imagen,
     phone: user.telefono,

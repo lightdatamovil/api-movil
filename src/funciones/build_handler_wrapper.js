@@ -22,9 +22,13 @@ export function buildHandlerWrapper({
         requiredParams,
         controller,
         companyResolver: companyResolver2 || (({ req }) => companiesService.getById(req.user.companyId)),
-        getDbConfig: getDbConfig2 || (({ company }) => getProductionDbConfig(company, hostProductionDb, portProductionDb)),
+        getDbConfig: getDbConfig2 || (({ company }) => getProductionDbConfig({
+            host: hostProductionDb,
+            port: portProductionDb,
+            company,
+        })),
         log: log2 || (async ({ req, durationMs, data, exito }) => {
-            await crearLog(req, durationMs, JSON.stringify(data), exito);
+            await crearLog({ req, tiempo: durationMs, resultado: JSON.stringify(data), exito });
         }),
         pool,
     });

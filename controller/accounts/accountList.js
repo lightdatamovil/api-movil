@@ -8,7 +8,7 @@ export async function accountList({ db, req }) {
         : {};
 
     const results = await LightdataORM.select({
-        db,
+        dbConnection: db,
         table: "clientes_cuentas",
         where: where,
         select: `

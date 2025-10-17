@@ -1,4 +1,4 @@
-import { executeQueryFromPool, getHeaders, logGreen, logPurple } from "lightdata-tools";
+import { executeQueryFromPool, getHeaders, logGray, logGreen, logPurple } from "lightdata-tools";
 import { poolLocal } from "../../db.js";
 
 export async function crearLog({ req, tiempo, resultado, exito }) {
@@ -70,7 +70,7 @@ export async function crearLog({ req, tiempo, resultado, exito }) {
     if (resultadoStr.length > RESULT_MAX) resultadoStr = resultadoStr.slice(0, RESULT_MAX - 3) + "...";
 
     // ---------- INSERT ----------
-    const sql = `
+    const query = `
       INSERT INTO logs_v2
         (empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -86,11 +86,13 @@ export async function crearLog({ req, tiempo, resultado, exito }) {
         exito ? 1 : 0,
     ];
 
-    await executeQueryFromPool(poolLocal, sql, values);
+    await executeQueryFromPool({ pool: poolLocal, query, values });
     const now = new Date();
     const pad = (n) => String(n).padStart(2, "0");
     const fechaFormateada = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    logGray("----- ----- ----- ----- ----- ----- ----- ----- ----- -----");
     logGreen(`${fechaFormateada} Log creado correctamente`);
     logGreen(`Endpoint: ${endpointClean} | Usuario: ${userId} | Empresa: ${companyId} | Perfil: ${profile}`);
     logPurple(`En ${tiempo} ms | Éxito: ${exito ? "sí" : "no"}`);
+    logGray("----- ----- ----- ----- ----- ----- ----- ----- ----- -----");
 }
