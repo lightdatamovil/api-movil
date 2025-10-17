@@ -24,6 +24,7 @@ const apimovilDBPort = process.env.APIMOVIL_DB_PORT;
 const apimovilDbUserForLogs = process.env.APIMOVIL_DB_USER_FOR_LOGS;
 const apimovilDbPasswordForLogs = process.env.APIMOVIL_DB_PASSWORD_FOR_LOGS;
 const apimovilDbNameForLogs = process.env.APIMOVIL_DB_NAME_FOR_LOGS;
+
 export const httpsAgent = new https.Agent({
     keepAlive: true,
     maxSockets: 100,
@@ -63,6 +64,7 @@ export const portProductionDb = process.env.PRODUCTION_DB_PORT;
 export const rabbitUrl = process.env.RABBIT_URL;
 export const queueEstados = process.env.QUEUE_ESTADOS;
 export const urlEstadosMicroservice = process.env.URL_ESTADOS_MICROSERVICE;
+export const urlEstadosMicroserviceLote = process.env.URL_ESTADOS_MICROSERVICE_LOTE;
 
 export const jwtSecret = process.env.JWT_SECRET;
 export const jwtIssuer = process.env.JWT_ISSUER;

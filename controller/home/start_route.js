@@ -1,17 +1,27 @@
-import axios from 'axios';
-import { executeQuery, getFechaConHoraLocalDePais } from 'lightdata-tools';
+import { executeQuery, getFechaConHoraLocalDePais, LightdataORM, sendShipmentStateToStateMicroserviceLoteAPI } from 'lightdata-tools';
+import { urlEstadosMicroserviceLote, axiosInstance } from '../../db.js';
 
 export async function startRoute(dbConnection, req, company) {
-    const { deviceFrom } = req.body;
     const { userId } = req.user;
 
     const dateConHora = getFechaConHoraLocalDePais(company.pais);
     const hour = dateConHora.split(' ')[1];
-    const sqlInsertMovimiento = "INSERT INTO cadetes_movimientos (didCadete, tipo,desde) VALUES (?, ?,?)";
-    await executeQuery(dbConnection, sqlInsertMovimiento, [userId, 0, 3]);
+    await LightdataORM.insert({
+        dbConnection,
+        table: "cadetes_movimientos",
+        data: {
+            didCadete: userId,
+            tipo: 0,
+            desde: 3
+        }
+    });
 
-    const sqlUpdateRuteo = "UPDATE ruteo SET hs_inicioApp = ? WHERE superado=0 AND elim=0 AND didChofer = ?";
-    await executeQuery(dbConnection, sqlUpdateRuteo, [hour, userId]);
+    await LightdataORM.update({
+        table: "ruteo",
+        dbConnection,
+        data: { hs_inicioApp: hour },
+        where: { didChofer: userId }
+    });
 
     const dias = 3;
 
@@ -30,7 +40,10 @@ export async function startRoute(dbConnection, req, company) {
     const envios = await executeQuery(dbConnection, queryEnviosAsignadosHoy, [userId, dias]);
 
     if (envios.length > 0) {
-        shipmentIds = envios.map(envio => envio.didEnvio); const q = `SELECT did, estado_envio FROM envios WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
+        shipmentIds = envios.map(envio => envio.didEnvio);
+        const q = `SELECT did, estado_envio 
+        FROM envios 
+        WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
         const enviosPendientes = await executeQuery(dbConnection, q, [[5, 7, 8, 9, 14], shipmentIds]);
 
         let enCaminoIds = enviosPendientes
@@ -44,28 +57,25 @@ export async function startRoute(dbConnection, req, company) {
 
         // distinciones why --  porque se hace esta distincion
         if ((company.did == 22 || company.did == 20) && enCaminoIds.length > 0) {
-            await fsetestadoMasivoMicroservicio(company.did, enCaminoIds, deviceFrom, dateConHora, userId, 11);
+            await sendShipmentStateToStateMicroserviceLoteAPI({
+                urlEstadosMicroservice: urlEstadosMicroserviceLote,
+                axiosInstance,
+                company,
+                userId,
+                shipmentsDids: enCaminoIds,
+                estado: 11,
+            });
         }
         if (pendientesIds.length > 0) {
-            await fsetestadoMasivoMicroservicio(company.did, pendientesIds, deviceFrom, dateConHora, userId, 2);
+            await sendShipmentStateToStateMicroserviceLoteAPI({
+                urlEstadosMicroservice: urlEstadosMicroserviceLote,
+                axiosInstance,
+                company,
+                userId,
+                shipmentsDids: pendientesIds,
+                estado: 2,
+            });
         }
     }
     return { message: 'Ruta comenzada exitosamente' };
-}
-
-async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
-    const message = {
-        didempresa: companyId,
-        estado: onTheWayState,
-        subestado: null,
-        estadoML: null,
-        fecha: dateConHora,
-        quien: userId,
-        latitud: null,
-        longitud: null,
-        operacion: "masivo",
-        didenvios: shipmentIds
-    };
-    const url = "https://serverestado.lightdata.app/estados/lote";
-    await axios.post(url, message);
 }
