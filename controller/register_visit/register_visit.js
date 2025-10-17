@@ -194,7 +194,6 @@ export async function registerVisit(
       // exceepcion pocurrier
       estadoInsert = (company.did == 4) ? 6 : 10;
     } else { estadoInsert = shipmentState; }
-    const startTime = performance.now();
     const response = await sendShipmentStateToStateMicroserviceAPI({
       urlEstadosMicroservice: "http://10.70.0.69:13000/estados",
       axiosInstance,
@@ -205,7 +204,6 @@ export async function registerVisit(
       latitude,
       longitude
     });
-    const endTime = performance.now();
     console.log(`sendShipmentStateToStateMicroserviceAPI took ${endTime - startTime} milliseconds`);
     const idInsertado = response.id;
     const updates = [
