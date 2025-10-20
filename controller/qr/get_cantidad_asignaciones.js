@@ -19,7 +19,7 @@ export async function getCantidadAsignaciones(company, userId, profile) {
                     AND superado = 0
                     AND elim = 0
                     GROUP BY operador;`;
-        const result = await executeQuery(dbConnection, query, [userId], true);
+        const result = await executeQuery(dbConnection, query, [userId]);
 
         if (result.length === 0) {
             return [];

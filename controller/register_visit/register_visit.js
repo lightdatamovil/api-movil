@@ -1,10 +1,11 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery, axiosInstance } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
+import { sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
 
 
 export async function registerVisit(
@@ -17,14 +18,12 @@ export async function registerVisit(
   longitude,
   shipmentState,
   observation,
-  appVersion,
 ) {
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
 
   try {
-    const date = getFechaConHoraLocalDePais(company.pais);
     const queryEnviosHistorial =
       "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
 
@@ -154,7 +153,7 @@ export async function registerVisit(
       "SELECT estado FROM envios_historial WHERE  elim = 0 AND didEnvio = ?";
     const choferRows2 = await executeQuery(dbConnection, queryEnviosNoEntregado, [
       shipmentId
-    ], true);
+    ]);
 
 
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
@@ -195,25 +194,19 @@ export async function registerVisit(
       // exceepcion pocurrier
       estadoInsert = (company.did == 4) ? 6 : 10;
     } else { estadoInsert = shipmentState; }
-
-
-
-    const queryInsertEnviosHistorial =
-      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
-    const historialResult = await executeQuery(
-      dbConnection,
-      queryInsertEnviosHistorial,
-      [shipmentId, estadoInsert, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId], true
-    );
-
-    const idInsertado = historialResult.insertId;
-
+    const response = await sendShipmentStateToStateMicroserviceAPI({
+      urlEstadosMicroservice: "http://10.70.0.69:13000/estados",
+      axiosInstance,
+      company,
+      userId,
+      estado: estadoInsert,
+      shipmentId,
+      latitude,
+      longitude,
+      desde: "Registro de Visita App"
+    });
+    const idInsertado = response.id;
     const updates = [
-      {
-        query:
-          "UPDATE envios_historial SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?",
-        values: [shipmentId, idInsertado],
-      },
       {
         query:
           "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0",

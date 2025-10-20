@@ -31,7 +31,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
 
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
-        await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState], true);
+        await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
 
         // construir un bool si shipmentState es 5 || 10 en true
         const trueSiNadie = (shipmentState === 6 || shipmentState === 10);
@@ -40,7 +40,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
             console.log("Entro en la condicion especial de nadie JJJM");
             //insertar conFoto = 1 en envios historial
             const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ?  and elim = 0 and superado = 0 LIMIT 1";
-            await executeQuery(dbConnection, updateQuery, [shipmentId], true);
+            await executeQuery(dbConnection, updateQuery, [shipmentId]);
         }
 
         return {
