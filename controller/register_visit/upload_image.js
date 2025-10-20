@@ -1,6 +1,5 @@
 import { CustomException, executeQuery, LightdataORM } from "lightdata-tools";
-import { urlRegisterVisitUploadImage } from "../../db.JS";
-import { axiosInstance } from "../../db";
+import { urlRegisterVisitUploadImage, axiosInstance } from "../../db.js";
 
 export async function uploadImage(dbConnection, req, company) {
     const companyId = company.did;
