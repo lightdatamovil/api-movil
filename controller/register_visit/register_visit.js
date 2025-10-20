@@ -203,7 +203,7 @@ export async function registerVisit(
       shipmentId,
       latitude,
       longitude,
-      desde: "Registro de Visita App"
+      desde: "APP NUEVA-MS estados",
     });
     const idInsertado = response.id;
     const updates = [
