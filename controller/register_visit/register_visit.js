@@ -37,15 +37,7 @@ export async function registerVisit(dbConnection, req, company) {
       dbConnection,
       table: "envios",
       where: { did: shipmentId, flex: 1 },
-      select: "didCliente, didCuenta, flex",
-      throwIfNotExists: true,
-    });
-
-    const [mlEnvio] = await LightdataORM.select({
-      dbConnection,
-      table: "envios",
-      where: { did: shipmentId },
-      select: "ml_shipment_id",
+      select: "didCliente, didCuenta, ml_shipment_id",
       throwIfNotExists: true,
     });
 
@@ -55,7 +47,7 @@ export async function registerVisit(dbConnection, req, company) {
       company.did
     );
 
-    const dataML = await getMlShipment(token, mlEnvio.ml_shipment_id);
+    const dataML = await getMlShipment(token, envio.ml_shipment_id);
 
     if (!dataML || dataML.status !== "delivered") {
       throw new CustomException({
@@ -117,7 +109,7 @@ export async function registerVisit(dbConnection, req, company) {
   const estadosPrevios = await LightdataORM.select({
     dbConnection,
     table: "envios_historial",
-    where: { didEnvio: shipmentId },
+    where: { didEnvio: shipmentId, superado: [0, 1] },
     select: "estado",
   });
 
@@ -166,13 +158,6 @@ export async function registerVisit(dbConnection, req, company) {
   const idInsertado = response.id;
 
   await Promise.all([
-    LightdataORM.update({
-      dbConnection,
-      table: "envios",
-      where: { did: shipmentId },
-      data: { estado_envio: estadoInsert },
-      quien: userId,
-    }),
     LightdataORM.update({
       dbConnection,
       table: "envios_asignaciones",

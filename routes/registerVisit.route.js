@@ -17,6 +17,7 @@ registerVisitRoute.post(
             'recieverName',
             'recieverDNI',
         ],
+        optional: ['images'],
         controller: async ({ db, req, company }) => await registerVisit({ db, req, company }),
     })
 );
