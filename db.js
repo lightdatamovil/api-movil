@@ -71,6 +71,7 @@ export const jwtAudience = process.env.JWT_AUDIENCE;
 
 export const urlAltaEnvio = process.env.URL_ALTA_ENVIO;
 export const urlFotoEnviosUploadImage = process.env.URL_FOTO_ENVIOS_UPLOAD_IMAGE;
+export const urlRegisterVisitUploadImage = process.env.URL_REGISTER_VISIT_UPLOAD_IMAGE;
 
 redisClient.on('error', (error) => {
     logRed(`Error al conectar con Redis: ${error.stack}`);

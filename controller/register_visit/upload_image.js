@@ -1,14 +1,14 @@
-import axios from "axios";
-import { CustomException, executeQuery } from "lightdata-tools";
+import { CustomException, executeQuery, LightdataORM } from "lightdata-tools";
+import { urlRegisterVisitUploadImage } from "../../db.JS";
+import { axiosInstance } from "../../db";
 
 export async function uploadImage(dbConnection, req, company) {
     const companyId = company.did;
     const { shipmentId, userId, shipmentState, image, lineId } = req.body;
     const reqBody = { imagen: image, didenvio: shipmentId, quien: userId, idEmpresa: companyId };
     const server = 1;
-    const url = 'https://files.lightdata.app/upload.php';
 
-    const response = await axios.post(url, reqBody, {
+    const response = await axiosInstance.post(urlRegisterVisitUploadImage, reqBody, {
         headers: {
             'Content-Type': 'application/json'
         }
@@ -21,16 +21,27 @@ export async function uploadImage(dbConnection, req, company) {
         });
     }
 
-    const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
+    await LightdataORM.insert({
+        dbConnection,
+        table: 'envios_fotos',
+        data: {
+            didEnvio: shipmentId,
+            nombre: response.data,
+            server: server,
+            quien: userId,
+            id_estado: lineId,
+            estado: shipmentState
+        },
+        quien: userId
+    });
 
-    await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
-
-    // construir un bool si shipmentState es 5 || 10 en true
-    const trueSiNadie = (shipmentState === 6 || shipmentState === 10);
-
-    if (companyId == 334 && trueSiNadie) {
-        console.log("Entro en la condicion especial de nadie JJJM");
-        //insertar conFoto = 1 en envios historial
+    if (companyId == 334 && (shipmentState == 6 || shipmentState == 10)) {
+        await LightdataORM.update({
+            dbConnection,
+            table: 'envios_historial',
+            data: { conFoto: 1 },
+            where: { didEnvio: shipmentId },
+        })
         const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ?  and elim = 0 and superado = 0 LIMIT 1";
         await executeQuery(dbConnection, updateQuery, [shipmentId], true);
     }
