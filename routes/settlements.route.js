@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
 import { getSettlementShipmentDetails } from '../controller/settlements/get_settlement_shipment_details.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const settlements = Router();
 

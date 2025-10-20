@@ -11,7 +11,7 @@ export async function saveRoute(dbConnection, req, company) {
 
     const [newId] = await LightdataORM.insert({
         table: "ruteo",
-        values: {
+        data: {
             desde: 2,
             fecha: dateConHora,
             fechaOperativa: dateConHora,
@@ -26,7 +26,7 @@ export async function saveRoute(dbConnection, req, company) {
 
     await LightdataORM.insert({
         table: "ruteo_paradas",
-        values: orders.map(order => ({
+        data: orders.map(order => ({
             didRuteo: newId,
             tipoParada: 1,
             didPaquete: order.shipmentId,

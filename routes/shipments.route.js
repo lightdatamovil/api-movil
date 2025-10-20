@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { shipmentList } from '../controller/shipments/get_shipment_list.js';
 import { shipmentDetails } from '../controller/shipments/get_shipment_details.js';
 import { nextDeliver } from '../controller/shipments/next_deliver.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const shipments = Router();
 

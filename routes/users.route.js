@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { editUser } from '../controller/user/edit_user.js';
 import { changePassword } from '../controller/user/change_password.js';
 import { changeProfilePicture } from '../controller/user/change_profile_picture.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const users = Router();
 

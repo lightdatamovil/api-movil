@@ -4,7 +4,7 @@ import { jwtSecret, jwtIssuer, jwtAudience, companiesService } from '../db.js';
 import { identification } from '../controller/auth/identification.js';
 import { login } from '../controller/auth/login.js';
 import { whatsappMessagesList } from '../controller/auth/whatsappMessagesList.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const auth = Router();
 

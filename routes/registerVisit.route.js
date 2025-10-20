@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { registerVisit } from '../controller/register_visit/register_visit.js';
 import { uploadImage } from '../controller/register_visit/upload_image.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const registerVisitRoute = Router();
 

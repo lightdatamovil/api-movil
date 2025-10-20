@@ -1,4 +1,4 @@
-import { axiosInstance } from "../../db.js";
+import { axiosInstance } from "../../../db.js";
 
 export async function getToken(sellerid) {
     const dia = new Date().toISOString().slice(0, 10).replace(/-/g, '');

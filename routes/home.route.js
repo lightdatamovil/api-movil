@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { startRoute } from '../controller/home/start_route.js';
 import { finishRoute } from '../controller/home/finish_route.js';
 import { getHomeData } from '../controller/home/get_home_data.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const home = Router();
 

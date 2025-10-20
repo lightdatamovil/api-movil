@@ -1,6 +1,6 @@
 import { executeQuery } from "lightdata-tools";
 
-export async function getCantidadAsignaciones(dbConnection, req) {
+export async function getCantidadAsignaciones({ db, req }) {
     const { userId, profile } = req.user;
 
     const query = `SELECT
@@ -15,7 +15,7 @@ export async function getCantidadAsignaciones(dbConnection, req) {
                     AND superado = 0
                     AND elim = 0
                     GROUP BY operador;`;
-    const result = await executeQuery(dbConnection, query, [userId], true);
+    const result = await executeQuery(db, query, [userId], true);
 
     if (result.length === 0) {
         return [];

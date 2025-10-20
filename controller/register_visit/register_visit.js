@@ -1,6 +1,6 @@
 import axios from "axios";
 import { CustomException, executeQuery, sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
-import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
+import { getTokenMLconMasParametros } from "../../src/functions/ml/getTokenMLconMasParametros.js";
 import { axiosInstance } from "../../db.js";
 
 export async function registerVisit(dbConnection, req, company) {

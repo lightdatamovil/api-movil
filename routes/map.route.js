@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getRouteByUserId } from '../controller/maps/get_route.js';
 import { geolocalize } from '../controller/maps/geolocalize.js';
 import { saveRoute } from '../controller/maps/save_route.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const map = Router();
 

@@ -6,7 +6,7 @@ import { getProductsFromShipment } from '../controller/qr/get_products.js';
 import { enterFlex } from '../controller/qr/enter_flex.js';
 import { getCantidadAsignaciones } from '../controller/qr/get_cantidad_asignaciones.js';
 import { altaEnvioFoto } from '../controller/qr/envio_foto.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const qr = Router();
 

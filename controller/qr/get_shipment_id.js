@@ -1,8 +1,8 @@
-import { CustomException, executeQuery, LogisticaConfig } from "lightdata-tools";
+import { LightdataORM, LogisticaConfig } from "lightdata-tools";
 
-
-export async function getShipmentIdFromQr(dbConnection, req, company) {
+export async function getShipmentIdFromQr({ db, req, company }) {
     const { dataQr } = req.body;
+
     let shipmentId;
 
     const isLocal = Object.prototype.hasOwnProperty.call(dataQr, "local");
@@ -10,54 +10,63 @@ export async function getShipmentIdFromQr(dbConnection, req, company) {
     if (isLocal) {
         shipmentId = dataQr.did;
 
-        if (company.did != dataQr.empresa) {
-            const queryEnviosExteriores = `SELECT didLocal FROM envios_exteriores WHERE didExterno = ? AND didEmpresa = ?`;
-            const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
+        if (company.did !== dataQr.empresa) {
+            const [result] = await LightdataORM.select({
+                dbConnection: db,
+                table: "envios_exteriores",
+                where: {
+                    didExterno: shipmentId,
+                    didEmpresa: dataQr.empresa
+                },
+                select: "didLocal",
+                throwIfNotExists: true
+            });
 
-            if (resultQueryEnviosExteriores.length == 0) {
-                return { message: "El envío no pertenece a la empresa", success: false };
-            }
-
-            shipmentId = resultQueryEnviosExteriores[0].didLocal;
+            shipmentId = result.didLocal;
         }
     } else {
-        if (LogisticaConfig.hasBarcodeEnabled(company.did) && !Object.prototype.hasOwnProperty.call(dataQr, "sender_id") && !Object.prototype.hasOwnProperty.call(dataQr, "t")) {
+        const hasBarcode = LogisticaConfig.hasBarcodeEnabled(company.did);
+        const hasSender = Object.prototype.hasOwnProperty.call(dataQr, "sender_id");
+        const hasType = Object.prototype.hasOwnProperty.call(dataQr, "t");
 
-            const senderId = LogisticaConfig.getSenderId(company.did)
+        if (hasBarcode && !hasSender && !hasType) {
+            const senderId = LogisticaConfig.getSenderId(company.did);
 
-            const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr, senderId], true);
+            const [result] = await LightdataORM.select({
+                dbConnection: db,
+                table: "envios",
+                where: {
+                    ml_shipment_id: dataQr,
+                    didCliente: senderId
+                },
+                select: "did",
+                throwIfNotExists: true
+            });
 
-            if (resultQueryEnvios.length == 0) {
-                throw new CustomException({
-                    title: 'Error obteniendo el ID del envío',
-                    message: 'No se encontró el envío',
-                });
-            }
-            shipmentId = `${resultQueryEnvios[0].did}`;
-
+            shipmentId = result.did;
         } else {
-            const mlShipmentId = dataQr.id;
-            const sellerId = dataQr.sender_id;
-            const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND ml_vendedor_id = ? and superado = 0 AND elim = 0`;
+            const [result] = await LightdataORM.select({
+                dbConnection: db,
+                table: "envios",
+                where: {
+                    ml_shipment_id: dataQr.id,
+                    ml_vendedor_id: dataQr.sender_id
+                },
+                select: "did",
+                throwIfNotExists: true
+            });
 
-            const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [mlShipmentId, sellerId]);
-
-            if (resultQueryEnvios.length == 0) {
-                throw new CustomException({
-                    title: 'Error obteniendo el ID del envío',
-                    message: 'No se encontró el envío',
-                });
-            }
-            shipmentId = `${resultQueryEnvios[0].did}`;
-
+            shipmentId = result.did;
         }
-
     }
 
     return {
         success: true,
-        body: shipmentId,
+        data: { shipmentId: Number(shipmentId) },
         message: "Datos obtenidos correctamente",
+        meta: {
+            isLocal,
+            companyId: company.did
+        }
     };
 }

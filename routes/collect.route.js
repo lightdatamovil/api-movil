@@ -7,7 +7,7 @@ import { shipmentsFromClient } from '../controller/collect/get_shipments_from_cl
 import { getCollectList } from '../controller/collect/get_collect_list.js';
 import { getSettlementList } from '../controller/settlements/get_settlement_list.js';
 import { getSettlementDetails } from '../controller/settlements/get_settlement_details.js';
-import { buildHandlerWrapper } from '../src/funciones/build_handler_wrapper.js';
+import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
 
 const collect = Router();
 

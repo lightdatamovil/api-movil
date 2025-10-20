@@ -1,4 +1,4 @@
-import { axiosInstance } from "../../db.js";
+import { axiosInstance } from "../../../db.js";
 
 export async function getShipmentFromMLByTracking({ shipmentId, accessToken }) {
     if (!shipmentId || !accessToken) {

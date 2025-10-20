@@ -1,13 +1,13 @@
 import { CustomException, executeQuery, getFechaConHoraLocalDePais, getFechaLocalDePais } from "lightdata-tools";
 
-export async function getHomeData(dbConnection, req, company) {
+export async function getHomeData({ db, req, company }) {
   let { profile, userId } = req.user;
 
   //! Esto es por el error que paso una vez que la app no tomaba el perfil
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
-    const rows = await executeQuery(dbConnection, query, [userId]);
+    const rows = await executeQuery({ db, query, values: [userId] });
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
@@ -57,7 +57,7 @@ export async function getHomeData(dbConnection, req, company) {
     deliveredToday: 0,
   };
   async function fetchCount(query) {
-    const rows = await executeQuery(dbConnection, query, []);
+    const rows = await executeQuery({ dbConnection: db, query });
     return rows && rows.length ? parseInt(rows[0].total, 10) : 0;
   }
 
@@ -90,11 +90,7 @@ export async function getHomeData(dbConnection, req, company) {
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateConHora}', INTERVAL 7 DAY) AND '${dateConHora}'
                     AND eh.estado IN (${estadosPendientes})
                 `;
-        const rowsPendientes = await executeQuery(
-          dbConnection,
-          queryPendientes,
-          []
-        );
+        const rowsPendientes = await executeQuery({ db, queryPendientes });
         infoADevolver.pendings = rowsPendientes.length;
 
         // En Camino, Cerrados y Entregados HOY (fecha actual)
@@ -108,11 +104,7 @@ export async function getHomeData(dbConnection, req, company) {
                     AND superado = 0 
                     AND DATE(fecha) = CURDATE()
                 `;
-        const rowsHistorial = await executeQuery(
-          dbConnection,
-          queryHistorial,
-          []
-        );
+        const rowsHistorial = await executeQuery(db, queryHistorial);
         if (rowsHistorial && rowsHistorial.length > 0) {
           infoADevolver.onTheWay =
             parseInt(rowsHistorial[0].enCamino, 10) || 0;
@@ -143,7 +135,7 @@ export async function getHomeData(dbConnection, req, company) {
                 `;
 
         const rowsCE = await executeQuery(
-          dbConnection,
+          db,
           queryCerradosYEntregados,
           []
         );
@@ -186,7 +178,7 @@ export async function getHomeData(dbConnection, req, company) {
                     GROUP BY eh.didEnvio
                 `;
         const rowsPendientesOperador = await executeQuery(
-          dbConnection,
+          db,
           queryPendientes,
           []
         );
@@ -209,7 +201,7 @@ export async function getHomeData(dbConnection, req, company) {
                     AND DATE(eh.fecha) = CURDATE()
                 `;
         const rowsHistorialOperador = await executeQuery(
-          dbConnection,
+          db,
           queryHistorial,
           []
         );
@@ -234,7 +226,7 @@ export async function getHomeData(dbConnection, req, company) {
   if (req.user.profile == 3) {
     const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
 
-    const resultQueryCadetesMovimientos = await executeQuery(dbConnection, sqlCadetesMovimientos, [userId]);
+    const resultQueryCadetesMovimientos = await executeQuery(db, sqlCadetesMovimientos, [userId]);
 
     if (resultQueryCadetesMovimientos.length == 0) {
       startedRoute = false;

@@ -2,7 +2,7 @@ import axios from "axios";
 import { CustomException, executeQuery, logYellow } from "lightdata-tools";
 import { axiosInstance, urlAltaEnvio, urlFotoEnviosUploadImage } from "../../db.js";
 
-export async function altaEnvioFoto(dbConnection, req, company) {
+export async function altaEnvioFoto({ db, req, company }) {
   const { image, userId, address, driverId, appVersion, brand, model, androidVersion, deviceId, deviceFrom, profile } = req.body;
 
   const companyId = company.did;
@@ -60,7 +60,7 @@ export async function altaEnvioFoto(dbConnection, req, company) {
 
       const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
 
-      await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId], true);
+      await executeQuery(db, insertQuery, [shipmentId, res.data, server, userId], true);
       logYellow(`Imagen subida correctamente para el envio: ${shipmentId}`);
 
       const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;

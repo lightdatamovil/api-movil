@@ -1,7 +1,6 @@
 import imageType from 'image-type';
-import axios from 'axios';
-
 import { CustomException, getFechaLocalDePais } from 'lightdata-tools';
+import { axiosInstance } from '../../db.js';
 
 export async function changeProfilePicture(req, company) {
     const { image } = req.body;
@@ -12,9 +11,9 @@ export async function changeProfilePicture(req, company) {
 
         const decodedData = Buffer.from(imageB64[1], 'base64');
 
-        const imageType = await getImageType(decodedData);
+        const imgType = await imageType(decodedData);
         const token = getFechaLocalDePais(company.pais);
-        if (imageType) {
+        if (imgType) {
             const data = {
                 operador: "guardarImagen",
                 didempresa: company.did,
@@ -30,7 +29,7 @@ export async function changeProfilePicture(req, company) {
                 },
             };
 
-            const response = await axios.post('https://files.lightdata.app/upload_perfil.php', data, config)
+            const response = await axiosInstance.post('https://files.lightdata.app/upload_perfil.php', data, config)
 
             if (response.data.error) {
                 throw new CustomException({
@@ -47,9 +46,4 @@ export async function changeProfilePicture(req, company) {
             });
         }
     }
-}
-
-async function getImageType(buffer) {
-    const type = await imageType(buffer);
-    return type ? type.mime : null;
 }

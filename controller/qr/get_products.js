@@ -1,101 +1,79 @@
-import axios from 'axios';
-import { getToken } from '../../src/funciones/getTokenML.js';
-import { CustomException, executeQuery } from 'lightdata-tools';
+import { getItemData } from "../../src/functions/ml/getItemData.js";
+import { getSaleDetails } from "../../src/functions/ml/getSaleDetails.js";
+import { getShipmentDetails } from "../../src/functions/ml/getShipmentDetails.js";
+import { getToken } from "../../src/functions/ml/getTokenML.js";
+import { CustomException, LightdataORM } from "lightdata-tools";
 
-export async function getProductsFromShipment(dbConnection, req) {
+export async function getProductsFromShipment({ db, req }) {
     const { dataQr } = req.body;
-
     const shipmentId = dataQr.id;
+    const senderId = dataQr.sender_id;
 
-    const senderid = dataQr.sender_id;
+    const token = await getToken(senderId);
 
-    const token = await getToken(senderid);
+    const shipmentData = await getShipmentDetails(shipmentId, token);
 
-    const Ashipment = await getShipmentDetails(shipmentId, token);
-    if (Ashipment.receiver_id) {
-        const Aventa = await getSaleDetails(Ashipment.order_id, token);
-        const Aorder_items = Aventa.order_items || [];
+    if (!shipmentData?.receiver_id) {
+        throw new CustomException({
+            title: "Error obteniendo productos del envío",
+            message: "No se encontró el receptor del envío.",
+        });
+    }
 
-        const Aitems = [];
-        for (const Aitem of Aorder_items) {
-            const itemdata = Aitem.item;
-            const cantidadpedida = Aitem.quantity;
-            const descripcion = itemdata.title;
-            const sku = itemdata.seller_sku;
-            const iditem = itemdata.id;
-            const variation_id = itemdata.variation_id;
+    const saleData = await getSaleDetails(shipmentData.order_id, token);
+    const orderItems = saleData.order_items || [];
 
-            let stock = 0;
-            let imagen = '';
+    const items = [];
+    for (const item of orderItems) {
+        const itemData = item.item;
+        const cantidadPedida = item.quantity;
+        const descripcion = itemData.title;
+        const sku = itemData.seller_sku;
+        const idItem = itemData.id;
+        const variationId = itemData.variation_id;
 
-            if (variation_id) {
-                const dataitem = await getItemData(iditem, token);
-                const Avariations = dataitem.variations;
-                for (const variant of Avariations) {
-                    if (variant.id === variation_id) {
-                        stock = variant.available_quantity;
-                        imagen = `https://http2.mlstatic.com/D_${variant.picture_ids[0]}-O.jpg`;
-                    }
-                }
-            } else {
-                const dataitem = await getItemData(iditem, token);
-                imagen = dataitem.pictures[0]?.secure_url || '';
-                stock = dataitem.available_quantity;
+        let stock = 0;
+        let imagen = "";
+
+        if (variationId) {
+            const dataItem = await getItemData(idItem, token);
+            const variation = dataItem.variations?.find(v => v.id === variationId);
+            if (variation) {
+                stock = variation.available_quantity || 0;
+                imagen = `https://http2.mlstatic.com/D_${variation.picture_ids?.[0]}-O.jpg`;
             }
-            const q = 'SELECT ean FROM fulfillment_productos WHERE sku = ?';
-            const res = await executeQuery(dbConnection, q, [sku]);
-            Aitems.push({
-                imagen: imagen,
-                stock: stock,
-                cantidadpedida: cantidadpedida,
-                descripcion: descripcion,
-                variacion: "",
-                sku: sku,
-                ean: res[0]?.ean || 'Sin informacion',
-            });
+        } else {
+            const dataItem = await getItemData(idItem, token);
+            imagen = dataItem.pictures?.[0]?.secure_url || "";
+            stock = dataItem.available_quantity || 0;
         }
 
-        return { body: Aitems, message: "Datos obtenidos correctamente" };
-    } else {
-        throw new CustomException({
-            title: 'Error obteniendo productos del envío',
-            message: 'No se encontró el receptor del envío',
+        const result = await LightdataORM.select({
+            dbConnection: db,
+            table: "fulfillment_productos",
+            where: { sku },
+            select: "ean",
+        });
+
+        items.push({
+            imagen,
+            stock,
+            cantidadPedida,
+            descripcion,
+            variacion: "",
+            sku,
+            ean: result[0]?.ean || "Sin información",
         });
     }
+
+    return {
+        success: true,
+        data: items,
+        message: "Datos obtenidos correctamente",
+        meta: {
+            totalItems: items.length,
+            shipmentId,
+            senderId,
+        },
+    };
 }
-
-async function getShipmentDetails(shipmentId, token) {
-    const url = `https://api.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
-
-    try {
-        const response = await axios.get(url, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        return response.data;
-    } catch (error) {
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error obteniendo detalles del envío',
-            message: error.message,
-            stack: error.stack
-        });
-    }
-}
-
-async function getSaleDetails(idventa, token) {
-    const url = `https://api.mercadolibre.com/orders/${idventa}?access_token=${token}`;
-    const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
-    return response.data;
-}
-
-async function getItemData(iditem, token) {
-    const url = `https://api.mercadolibre.com/items/${iditem}?access_token=${token}`;
-    const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
-    return response.data;
-}
-

@@ -1,4 +1,4 @@
-import { axiosInstance } from "../../db.js";
+import { axiosInstance } from "../../../db.js";
 
 export async function getOrderFromML({ orderId, accessToken }) {
     const url = `https://api.mercadolibre.com/orders/${orderId}`;

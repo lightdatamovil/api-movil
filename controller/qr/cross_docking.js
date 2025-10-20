@@ -1,7 +1,7 @@
-import { CustomException, executeQuery, getFechaLocalDePais, LogisticaConfig } from "lightdata-tools";
+import { CustomException, executeQuery, getFechaLocalDePais, LightdataORM, LogisticaConfig } from "lightdata-tools";
 import { companiesService } from "../../db.js";
 
-export async function crossDocking(dbConnection, req, company) {
+export async function crossDocking({ db, req, company }) {
     const { dataQr } = req.body;
     let shipmentId;
     let queryWhereId = '';
@@ -11,23 +11,16 @@ export async function crossDocking(dbConnection, req, company) {
         shipmentId = dataQr.did;
 
         if (company.did != dataQr.empresa) {
-            const queryEnviosExteriores = `
-                    SELECT didLocal
-                    FROM envios_exteriores
-                    WHERE didExterno = ?
-                    AND didEmpresa = ?
-                `;
-            const resultQueryEnviosExteriores = await executeQuery(dbConnection, queryEnviosExteriores, [shipmentId, dataQr.empresa]);
-
-            if (resultQueryEnviosExteriores.length == 0) {
-                throw new CustomException({
-                    title: "Error en crossDocking",
-                    message: "El envío no pertenece a la empresa"
-                });
-            }
-
+            const resultQueryEnviosExteriores = await LightdataORM.select({
+                table: "envios_exteriores",
+                dbConnection: db,
+                where: {
+                    didExterno: shipmentId,
+                    didEmpresa: company.did,
+                },
+                throwIfNotExists: true
+            });
             shipmentId = resultQueryEnviosExteriores[0].didLocal;
-
         }
         queryWhereId = `WHERE e.did = ${shipmentId} AND e.superado = 0 AND e.elim = 0`;
     } else {
@@ -72,7 +65,7 @@ export async function crossDocking(dbConnection, req, company) {
             ${queryWhereId}
             LIMIT 1
         `;
-    const envioData = await executeQuery(dbConnection, queryEnvios, []);
+    const envioData = await executeQuery(db, queryEnvios, []);
 
     if (envioData.length === 0) {
         throw new CustomException({
@@ -83,9 +76,9 @@ export async function crossDocking(dbConnection, req, company) {
 
     const row = envioData[0];
 
-    const clients = await companiesService.getClientsByCompany(dbConnection, company.did);
+    const clients = await companiesService.getClientsByCompany(db, company.did);
 
-    const zones = await companiesService.getZonesByCompany(dbConnection, company.did);
+    const zones = await companiesService.getZonesByCompany(db, company.did);
 
     return {
         body: {
