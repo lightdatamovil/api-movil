@@ -77,7 +77,7 @@ async function getHistorial(dbConnection, shipmentId) {
     let historial = [];
 
     try {
-        const queryEnviosHistorial = "SELECT estado, date_format(fecha,'%d/%m/%Y %H:%i:%s') AS fecha FROM envios_historial WHERE didenvio = " + shipmentId + " ORDER BY fecha ASC ";
+        const queryEnviosHistorial = "SELECT estado, date_format(fecha,'%d/%m/%Y %H:%i:%s') AS fecha FROM envios_historial WHERE elim = 0 AND didenvio = " + shipmentId + "  ORDER BY fecha ASC ";
 
         const resultQueryEnviosHistorial = await executeQuery(dbConnection, queryEnviosHistorial, []);
 
