@@ -153,7 +153,7 @@ export async function registerVisit(
       "SELECT estado FROM envios_historial WHERE  elim = 0 AND didEnvio = ?";
     const choferRows2 = await executeQuery(dbConnection, queryEnviosNoEntregado, [
       shipmentId
-    ], true);
+    ]);
 
 
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;

@@ -38,7 +38,7 @@ export async function saveRoute(company, userId, orders, distance, totalDelay, a
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [2, dateConHora, dateConHora, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)], true
+            [2, dateConHora, dateConHora, userId, distance, totalDelay, userId, JSON.stringify(additionalRouteData)]
         );
 
         const newId = result.insertId;
