@@ -1,7 +1,7 @@
-import axios from "axios";
 import { CustomException, executeQuery, sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
 import { getTokenMLconMasParametros } from "../../src/functions/ml/getTokenMLconMasParametros.js";
 import { axiosInstance } from "../../db.js";
+import { getMlShipment } from "../../src/functions/ml/getMlShipment.js";
 
 export async function registerVisit(dbConnection, req, company) {
   const {
@@ -54,7 +54,7 @@ export async function registerVisit(dbConnection, req, company) {
           company.did
         );
 
-        const dataML = await mlShipment(token, mlshipmentRows[0].ml_shipment_id);
+        const dataML = await getMlShipment(token, mlshipmentRows[0].ml_shipment_id);
 
         if (!dataML || dataML.status !== "delivered") {
           throw new CustomException({
@@ -149,6 +149,7 @@ export async function registerVisit(dbConnection, req, company) {
     shipmentId,
     latitude,
     longitude,
+    desde: "Registrar Visita App"
   });
 
   const idInsertado = response.id;
@@ -198,21 +199,4 @@ export async function registerVisit(dbConnection, req, company) {
     },
     message: "Visita registrada correctamente",
   };
-}
-
-// 🔧 Función auxiliar MercadoLibre
-async function mlShipment(token, shipmentId) {
-  const url = `https://api.mercadolibre.com/shipments/${shipmentId}?access_token=${token}`;
-  try {
-    const { data } = await axios.get(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return data;
-  } catch (error) {
-    throw new CustomException({
-      title: "Error obteniendo datos de MercadoLibre",
-      message: error.message,
-      stack: error.stack,
-    });
-  }
 }

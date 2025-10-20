@@ -64,7 +64,7 @@ export async function startRoute(dbConnection, req, company) {
                 userId,
                 shipmentsDids: enCaminoIds,
                 estado: 11,
-                desde: "Iniciar Ruta Api Movil"
+                desde: "Iniciar Ruta App"
             });
         }
         if (pendientesIds.length > 0) {
@@ -75,7 +75,7 @@ export async function startRoute(dbConnection, req, company) {
                 userId,
                 shipmentsDids: pendientesIds,
                 estado: 2,
-                desde: "Iniciar Ruta Api Movil"
+                desde: "Iniciar Ruta App"
             });
         }
     }

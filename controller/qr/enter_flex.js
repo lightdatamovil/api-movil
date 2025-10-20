@@ -60,7 +60,8 @@ export async function enterFlex({ db, req, company }) {
         company,
         userId,
         estado: profile === 2 ? 7 : 0,
-        shipmentId
+        shipmentId,
+        desde: "Ingresar Flex App"
     });
 
     if (profile === 3) {
