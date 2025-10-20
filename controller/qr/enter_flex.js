@@ -96,7 +96,8 @@ export async function enterFlex(company, dataQr, userId, profile) {
                 estado: shipmentState,
                 shipmentId,
                 latitude: 0,
-                longitude: 0
+                longitude: 0,
+                desde: "Ingresar Flex App"
             });
             // await setShipmentState(dbConnection, shipmentId, shipmentState, "");
 

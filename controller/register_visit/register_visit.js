@@ -202,7 +202,8 @@ export async function registerVisit(
       estado: estadoInsert,
       shipmentId,
       latitude,
-      longitude
+      longitude,
+      desde: "Registro de Visita App"
     });
     const idInsertado = response.id;
     const updates = [
