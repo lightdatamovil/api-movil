@@ -92,13 +92,13 @@ export async function registerVisit(
       }
     }
 
-    // if (currentShipmentState == 5 || currentShipmentState == 9 || currentShipmentState == 14 || currentShipmentState == 17) {
-    //   throw new CustomException({
-    //     title: "No es posible registrar visita",
-    //     message: "El envío ya fue entregado o devuelto al cliente",
-    //   });
-    // }
 
+    if (shipmentState == 0 || shipmentState == null || shipmentState == undefined) {
+      throw new CustomException({
+        title: "No es posible registrar visita",
+        message: "Estado no valido"
+      });
+    }
     const queryRuteoParadas =
       "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
 
@@ -155,7 +155,6 @@ export async function registerVisit(
       shipmentId
     ]);
 
-
     const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
     let estadoInsert;
 
@@ -191,7 +190,7 @@ export async function registerVisit(
     if (hayEstado6 && shipmentState == 5) {
       estadoInsert = 9;
     } else if (hayEstado6 && shipmentState == 6) {
-      // exceepcion pocurrier
+      // excepcion pocurrier
       estadoInsert = (company.did == 4) ? 6 : 10;
     } else { estadoInsert = shipmentState; }
     const response = await sendShipmentStateToStateMicroserviceAPI({
@@ -203,7 +202,7 @@ export async function registerVisit(
       shipmentId,
       latitude,
       longitude,
-      desde: "APP NUEVA-MS estados",
+      desde: `APP NUEVA-MS estado ${shipmentState}`,
     });
     const idInsertado = response.id;
     const updates = [
