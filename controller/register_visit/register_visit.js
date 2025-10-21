@@ -205,22 +205,10 @@ export async function registerVisit(
       desde: `APP NUEVA-MS estado ${shipmentState}`,
     });
     const idInsertado = response.id;
-    const updates = [
-      {
-        query:
-          "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0",
-        values: [estadoInsert, shipmentId],
-      },
-      {
-        query:
-          "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0",
-        values: [estadoInsert, shipmentId],
-      },
-    ];
+    const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
 
-    for (const { query, values } of updates) {
-      await executeQuery(dbConnection, query, values);
-    }
+    await executeQuery(dbConnection, queryUpdate, [estadoInsert, shipmentId]);
+
 
     if (observation) {
       const queryInsertObservaciones =
