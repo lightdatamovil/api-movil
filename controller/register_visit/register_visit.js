@@ -220,6 +220,11 @@ export async function registerVisit(
         [shipmentId, observation, userId]
       );
 
+      await executeQuery(dbConnection, "UPDATE envios_observaciones SET did = ? WHERE id = ?", [
+        obsResult.insertId,
+        obsResult.insertId
+      ]);
+
       const queryUpdateEnviosObservaciones =
         "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
 
