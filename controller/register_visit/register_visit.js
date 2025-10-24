@@ -203,7 +203,7 @@ export async function registerVisit(
       shipmentId,
       latitude,
       longitude,
-      desde: `APP NUEVA-MS estado ${shipmentState}`,
+      desde: `APP NUEVA-MS estado ${shipmentState} registro visita`,
     });
     const idInsertado = response.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
