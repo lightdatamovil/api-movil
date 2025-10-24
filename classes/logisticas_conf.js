@@ -13,8 +13,8 @@ export default class LogisticaConf {
     static granLogisticaPlans = [24, 35, 52];
     static hasMultiDepot = [];
     static hasAppPro = [];
-    static hasObligatoryImageOnRegisterVisit = [108];
-    static hasObligatoryDniAndNameOnRegisterVisit = [97, 217];
+    static hasObligatoryImageOnRegisterVisit = [4, 108];
+    static hasObligatoryDniAndNameOnRegisterVisit = [4, 97, 217];
     static adminsCanRegisterVisit = [144, 162, 198, 202];
     static driversWithoutProcessingPlant = [108];
 
