@@ -198,6 +198,7 @@ export async function registerVisit(
       axiosInstance,
       company,
       userId,
+      operacion: "registro_visita_app_nueva_ms",
       estado: estadoInsert,
       shipmentId,
       latitude,
