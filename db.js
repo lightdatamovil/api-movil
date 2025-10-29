@@ -6,6 +6,7 @@ import { CompaniesService, logRed } from 'lightdata-tools';
 import mysql from 'mysql2/promise';
 dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
+const local = process.env.LOCAL;
 export const port = process.env.PORT;
 /// Redis para obtener las empresas
 const redisHost = process.env.REDIS_HOST;
@@ -62,14 +63,19 @@ export const portProductionDb = process.env.PRODUCTION_DB_PORT;
 /// MICROSERVICIO DE ESTADOS
 export const rabbitUrl = process.env.RABBIT_URL;
 export const queueEstados = process.env.QUEUE_ESTADOS;
-export const urlEstadosMicroservice = process.env.URL_ESTADOS_MICROSERVICE;
+export const urlEstadosMicroservice = local == 'true' ? process.env.URL_ESTADOS_MICROSERVICE : process.env.URL_ESTADOS_MICROSERVICE_RED;
 export const urlEstadosMicroserviceLote = process.env.URL_ESTADOS_MICROSERVICE_LOTE;
 
 export const jwtSecret = process.env.JWT_SECRET;
 export const jwtIssuer = process.env.JWT_ISSUER;
 export const jwtAudience = process.env.JWT_AUDIENCE;
 
-export const urlAltaEnvio = process.env.URL_ALTA_ENVIO;
+/// Microservicio de asignacion
+export const urlAsignacionMicroservice = local == 'true' ? process.env.URL_ASIGNACION_MICROSERVICE : process.env.URL_ASIGNACION_MICROSERVICE_RED;
+
+/// Microservicio de alta de envios
+export const urlAltaEnvioMicroservice = process.env.URL_ALTA_ENVIO_MICROSERVICE;
+export const urlAltaEnvioRedisMicroservice = process.env.URL_ALTA_ENVIO_REDIS_MICROSERVICE;
 export const urlFotoEnviosUploadImage = process.env.URL_FOTO_ENVIOS_UPLOAD_IMAGE;
 export const urlRegisterVisitUploadImage = process.env.URL_REGISTER_VISIT_UPLOAD_IMAGE;
 

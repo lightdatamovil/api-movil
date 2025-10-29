@@ -21,7 +21,6 @@ export async function getShipmentIdFromQr({ db, req, company }) {
                 select: "didLocal",
                 throwIfNotExists: true
             });
-
             shipmentId = result.didLocal;
         }
     } else {
@@ -64,9 +63,6 @@ export async function getShipmentIdFromQr({ db, req, company }) {
         success: true,
         data: { shipmentId: Number(shipmentId) },
         message: "Datos obtenidos correctamente",
-        meta: {
-            isLocal,
-            companyId: company.did
-        }
+        meta: {},
     };
 }

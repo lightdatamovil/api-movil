@@ -1,6 +1,6 @@
 import axios from "axios";
 import { CustomException, executeQuery, logYellow } from "lightdata-tools";
-import { axiosInstance, urlAltaEnvio, urlFotoEnviosUploadImage } from "../../db.js";
+import { axiosInstance, urlAltaEnvioMicroservice, urlFotoEnviosUploadImage } from "../../db.js";
 
 export async function altaEnvioFoto({ db, req, company }) {
   const { image, userId, address, driverId, appVersion, brand, model, androidVersion, deviceId, deviceFrom, profile } = req.body;
@@ -13,7 +13,7 @@ export async function altaEnvioFoto({ db, req, company }) {
     "data": { idEmpresa: companyId, quien: userId, enviosDireccionesDestino: enviosDireccionesDestino, elim: 69, lote: "envioFoto" },
   };
 
-  const response = await axiosInstance.post(urlAltaEnvio, reqBody, {
+  const response = await axiosInstance.post(urlAltaEnvioMicroservice, reqBody, {
     headers: {
       'Content-Type': 'application/json'
     }

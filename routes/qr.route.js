@@ -7,6 +7,7 @@ import { enterFlex } from '../controller/qr/enter_flex.js';
 import { getCantidadAsignaciones } from '../controller/qr/get_cantidad_asignaciones.js';
 import { altaEnvioFoto } from '../controller/qr/envio_foto.js';
 import { buildHandlerWrapper } from '../src/functions/build_handler_wrapper.js';
+import { companiesService } from '../db.js';
 
 const qr = Router();
 
@@ -29,6 +30,15 @@ qr.post(
   '/get-shipment-id',
   buildHandlerWrapper({
     required: ['dataQr'],
+    optional: ['companyId'],
+    companyResolver2: async ({ req }) => {
+      let companyId = req.body.companyId;
+      if (!companyId) {
+        companyId = req.user.companyId;
+      }
+      const company = await companiesService.getById(companyId);
+      return company;
+    },
     controller: async ({ db, req, company }) => await getShipmentIdFromQr({ db, req, company }),
   })
 );
