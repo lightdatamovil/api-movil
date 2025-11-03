@@ -1,9 +1,9 @@
 import { CustomException, executeQuery } from "lightdata-tools";
 
-export async function shipmentDetails(dbConnection, req) {
+export async function shipmentDetails({ db, req }) {
     const { shipmentId } = req.query;
     const { userId } = req.user;
-    let shipmentData = await shipmentInformation(dbConnection, shipmentId);
+    let shipmentData = await shipmentInformation({ db, shipmentId });
 
     let lat = 0;
     let long = 0;
@@ -35,20 +35,20 @@ export async function shipmentDetails(dbConnection, req) {
     detallesEnvio["longitud"] = long;
     detallesEnvio["monto_a_cobrar"] = shipmentData.monto_a_cobrar ?? 0;
 
-    let asignado = await verifyAssignment(dbConnection, shipmentId, userId);
+    let asignado = await verifyAssignment(db, shipmentId, userId);
     detallesEnvio["asignado"] = asignado;
 
     detallesEnvio["historial"] = [];
     detallesEnvio["observaciones"] = [];
     detallesEnvio["imagenes"] = [];
 
-    const historial = await getHistorial(dbConnection, shipmentId);
+    const historial = await getHistorial(db, shipmentId);
     detallesEnvio["historial"] = historial;
 
-    const observaciones = await getObservations(dbConnection, shipmentId);
+    const observaciones = await getObservations(db, shipmentId);
     detallesEnvio["observaciones"] = observaciones;
 
-    const imagenes = await getImages(dbConnection, shipmentId);
+    const imagenes = await getImages(db, shipmentId);
     detallesEnvio["imagenes"] = imagenes;
 
     return { data: detallesEnvio, message: "Datos obtenidos correctamente" };
@@ -147,7 +147,7 @@ async function getImages(dbConnection, shipmentId) {
     return images;
 }
 
-async function shipmentInformation(dbConnection, shipmentId) {
+async function shipmentInformation({ db, shipmentId }) {
     const query = `SELECT
         e.did,
         e.flex,
@@ -171,7 +171,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
         LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = ? )
         WHERE e.did = ? AND e.elim = 0 AND e.superado = 0`;
 
-    const results = await executeQuery({ dbConnection, query, values: [shipmentId, shipmentId] });
+    const results = await executeQuery({ dbConnection: db, query, values: [shipmentId, shipmentId] });
     if (results.length === 0) {
         throw new CustomException({
             title: 'Error obteniendo información del envío',

@@ -1,10 +1,10 @@
 import { CustomException, executeQuery } from "lightdata-tools";
 import { companiesService } from "../../db.js";
 
-export async function getSettlementShipmentDetails(dbConnection, req, company) {
+export async function getSettlementShipmentDetails({ db, req, company }) {
     const { shipmentId } = req.body;
 
-    const zones = await companiesService.getZonesByCompany(dbConnection, company.did);
+    const zones = await companiesService.getZonesByCompany(db, company.did);
 
     const sql = `
         SELECT e.did, ce.chofer, e.estado_envio, e.flex, e.didEnvioZona,
@@ -17,7 +17,7 @@ export async function getSettlementShipmentDetails(dbConnection, req, company) {
         LEFT JOIN envios_direcciones_destino AS edd ON(edd.elim = 0 AND edd.superado = 0 AND edd.didEnvio = e.did) 
         WHERE e.superado = 0 AND e.elim = 0 AND e.did = ? `;
 
-    const resultados = await executeQuery({ dbConnection, query: sql, values: [shipmentId] });
+    const resultados = await executeQuery({ dbConnection: db, query: sql, values: [shipmentId] });
 
     if (resultados.length > 0) {
         const row = resultados[0];

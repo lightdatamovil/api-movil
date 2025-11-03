@@ -1,13 +1,13 @@
 import { getFechaConHoraLocalDePais, LightdataORM } from 'lightdata-tools';
 
-export async function finishRoute(dbConnection, req) {
+export async function finishRoute({ db, req }) {
     const { company, userId } = req.user;
 
     const dateConHora = getFechaConHoraLocalDePais(company.pais);
     const hour = dateConHora.split(' ')[1];
 
     await LightdataORM.insert({
-        dbConnection,
+        dbConnection: db,
         table: "cadetes_movimientos",
         data: {
             didCadete: userId,
@@ -17,7 +17,7 @@ export async function finishRoute(dbConnection, req) {
     });
     await LightdataORM.update({
         table: "ruteo",
-        dbConnection,
+        dbConnection: db,
         data: { hs_finApp: hour },
         where: { didChofer: userId }
     });

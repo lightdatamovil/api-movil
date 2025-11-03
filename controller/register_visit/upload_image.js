@@ -1,7 +1,7 @@
 import { CustomException, executeQuery, LightdataORM } from "lightdata-tools";
 import { urlRegisterVisitUploadImage, axiosInstance } from "../../db.js";
 
-export async function uploadImage(dbConnection, req, company) {
+export async function uploadImage({ db, req, company }) {
     const companyId = company.did;
     const { shipmentId, userId, shipmentState, image, lineId } = req.body;
     const reqBody = { imagen: image, didenvio: shipmentId, quien: userId, idEmpresa: companyId };
@@ -21,7 +21,7 @@ export async function uploadImage(dbConnection, req, company) {
     }
 
     await LightdataORM.insert({
-        dbConnection,
+        dbConnection: db,
         table: 'envios_fotos',
         data: {
             didEnvio: shipmentId,
@@ -36,13 +36,13 @@ export async function uploadImage(dbConnection, req, company) {
 
     if (companyId == 334 && (shipmentState == 6 || shipmentState == 10)) {
         await LightdataORM.update({
-            dbConnection,
+            dbConnection: db,
             table: 'envios_historial',
             data: { conFoto: 1 },
             where: { didEnvio: shipmentId },
         })
         const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ?  and elim = 0 and superado = 0 LIMIT 1";
-        await executeQuery({ dbConnection, query: updateQuery, values: [shipmentId] });
+        await executeQuery({ dbConnection: db, query: updateQuery, values: [shipmentId] });
     }
 
     return {

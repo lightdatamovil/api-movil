@@ -1,13 +1,13 @@
 import { CustomException, executeQuery } from "lightdata-tools";
 import { companiesService } from "../../db.js";
 
-export async function getSettlementDetails(dbConnection, req, company) {
+export async function getSettlementDetails({ db, req, company }) {
     const { settlementId } = req.body;
     const zones = await companiesService.getZonesByCompany(company.did);
 
     const queryLines = "SELECT idlineas FROM liquidaciones WHERE superado=0 AND elim=0 AND did = ?";
 
-    const resultQueryLine = await executeQuery({ dbConnection, query: queryLines, values: [settlementId] });
+    const resultQueryLine = await executeQuery({ dbConnection: db, query: queryLines, values: [settlementId] });
 
     if (resultQueryLine.length === 0) {
         throw new CustomException({
@@ -25,7 +25,7 @@ export async function getSettlementDetails(dbConnection, req, company) {
                  JOIN costos_envios AS ce ON ce.elim = 0 AND ce.superado = 0 AND ce.didEnvio = e.did
                  WHERE eh.id IN(${idLine})`;
 
-    const results = await executeQuery({ dbConnection, query: sql });
+    const results = await executeQuery({ dbConnection: db, query: sql });
 
     return {
         data: results.map(row => ({

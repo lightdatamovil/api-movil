@@ -1,6 +1,6 @@
 import { executeQuery } from "lightdata-tools";
 
-export async function getSettlementList(dbConnection, req) {
+export async function getSettlementList({ db, req }) {
     const { from, to } = req.body;
 
     const sql = `
@@ -16,7 +16,7 @@ export async function getSettlementList(dbConnection, req) {
           AND fecha BETWEEN ? AND ?
     `;
 
-    const result = await executeQuery({ dbConnection, query: sql, values: [from, to] });
+    const result = await executeQuery({ dbConnection: db, query: sql, values: [from, to] });
 
     const data = result.map(row => ({
         did: Number(row.did),

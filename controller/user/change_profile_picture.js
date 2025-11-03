@@ -2,7 +2,7 @@ import imageType from 'image-type';
 import { CustomException, getFechaLocalDePais } from 'lightdata-tools';
 import { axiosInstance } from '../../db.js';
 
-export async function changeProfilePicture(req, company) {
+export async function changeProfilePicture({ req, company }) {
     const { image } = req.body;
     const { userId, profile } = req.user;
 

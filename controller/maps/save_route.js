@@ -1,6 +1,6 @@
 import { getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
 
-export async function saveRoute(dbConnection, req, company) {
+export async function saveRoute({ db, req, company }) {
     const { userId } = req.user;
     let { orders, distance, totalDelay, additionalRouteData } = req.body;
 
@@ -21,7 +21,7 @@ export async function saveRoute(dbConnection, req, company) {
             quien: userId,
             dataDeRuta: JSON.stringify(additionalRouteData)
         },
-        dbConnection
+        dbConnection: db
     });
 
     await LightdataORM.insert({
@@ -36,7 +36,7 @@ export async function saveRoute(dbConnection, req, company) {
             orden: order.index,
             hora_llegada: order.arrivalTime
         })),
-        dbConnection
+        dbConnection: db
     });
 
     return { message: "Ruta guardada correctamente" };

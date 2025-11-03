@@ -1,6 +1,6 @@
 import { executeQuery, CustomException, Status } from "lightdata-tools";
 
-export async function getCollectList(dbConnection, req) {
+export async function getCollectList({ db, req }) {
     const { userId } = req.user;
 
     let from = String(req.params.from ?? "").replace(/^from=/i, "").trim();
@@ -37,7 +37,7 @@ export async function getCollectList(dbConnection, req) {
         ORDER BY fecha DESC
     `;
 
-    const rows = await executeQuery({ dbConnection, query: sql, values: [userId, from, to] });
+    const rows = await executeQuery({ dbConnection: db, query: sql, values: [userId, from, to] });
 
     const data = rows.map(r => ({ fecha: r.fecha.toISOString().split("T")[0] }));
 

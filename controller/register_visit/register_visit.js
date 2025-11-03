@@ -3,7 +3,7 @@ import { getTokenMLconMasParametros } from "../../src/functions/ml/getTokenMLcon
 import { getMlShipment } from "../../src/functions/ml/getMlShipment.js";
 import { axiosInstance, urlEstadosMicroservice, urlRegisterVisitUploadImage } from "../../db.js";
 
-export async function registerVisit(dbConnection, req, company) {
+export async function registerVisit({ dbConnection: db, req, company }) {
   const {
     shipmentId,
     shipmentState,
@@ -18,7 +18,7 @@ export async function registerVisit(dbConnection, req, company) {
   const { userId } = req.user;
 
   const [estadoActual] = await LightdataORM.select({
-    dbConnection,
+    dbConnection: db,
     table: "envios_historial",
     where: { didEnvio: shipmentId },
     select: "estado",
@@ -34,7 +34,7 @@ export async function registerVisit(dbConnection, req, company) {
 
   if (LogisticaConfig.deliveredMLFirstEnabled(company.did)) {
     const [envio] = await LightdataORM.select({
-      dbConnection,
+      dbConnection: db,
       table: "envios",
       where: { did: shipmentId, flex: 1 },
       select: "didCliente, didCuenta, ml_shipment_id",
@@ -58,7 +58,7 @@ export async function registerVisit(dbConnection, req, company) {
   }
 
   await LightdataORM.update({
-    dbConnection,
+    dbConnection: db,
     table: "ruteo_paradas",
     where: { didPaquete: shipmentId },
     data: { cerrado: 1 },
@@ -66,7 +66,7 @@ export async function registerVisit(dbConnection, req, company) {
   });
 
   const rutaRows = await LightdataORM.select({
-    dbConnection,
+    dbConnection: db,
     table: "ruteo_paradas",
     where: { didPaquete: shipmentId },
     select: "didRuteo",
@@ -75,7 +75,7 @@ export async function registerVisit(dbConnection, req, company) {
   if (rutaRows.length > 0) {
     const didRuta = rutaRows[0].didRuteo;
     const enviosRuta = await LightdataORM.select({
-      dbConnection,
+      dbConnection: db,
       table: "ruteo_paradas",
       where: { didRuteo: didRuta },
       select: "cerrado",
@@ -84,7 +84,7 @@ export async function registerVisit(dbConnection, req, company) {
     const todosCerrados = enviosRuta.every((e) => e.cerrado === 1);
     if (todosCerrados) {
       await LightdataORM.update({
-        dbConnection,
+        dbConnection: db,
         table: "ruteo",
         where: { did: didRuta },
         data: { superado: 1 },
@@ -94,7 +94,7 @@ export async function registerVisit(dbConnection, req, company) {
   }
 
   await LightdataORM.insert({
-    dbConnection,
+    dbConnection: db,
     table: "envios_recibe",
     data: {
       didEnvio: shipmentId,
@@ -107,7 +107,7 @@ export async function registerVisit(dbConnection, req, company) {
   });
 
   const estadosPrevios = await LightdataORM.select({
-    dbConnection,
+    dbConnection: db,
     table: "envios_historial",
     where: { didEnvio: shipmentId, superado: [0, 1] },
     select: "estado",
@@ -159,7 +159,7 @@ export async function registerVisit(dbConnection, req, company) {
 
   await Promise.all([
     LightdataORM.update({
-      dbConnection,
+      dbConnection: db,
       table: "envios_asignaciones",
       where: { did: shipmentId },
       data: { estado: estadoInsert },
@@ -169,7 +169,7 @@ export async function registerVisit(dbConnection, req, company) {
 
   if (observation) {
     await LightdataORM.insert({
-      dbConnection,
+      dbConnection: db,
       table: "envios_observaciones",
       data: {
         didEnvio: shipmentId,
@@ -198,7 +198,7 @@ export async function registerVisit(dbConnection, req, company) {
         }
 
         await LightdataORM.insert({
-          dbConnection,
+          dbConnection: db,
           table: "envios_fotos",
           data: {
             didEnvio: shipmentId,
@@ -214,7 +214,7 @@ export async function registerVisit(dbConnection, req, company) {
 
         if (company.did === 334 && [6, 10].includes(estadoInsert)) {
           await LightdataORM.update({
-            dbConnection,
+            dbConnection: db,
             table: "envios_historial",
             data: { conFoto: 1 },
             where: { didEnvio: shipmentId },

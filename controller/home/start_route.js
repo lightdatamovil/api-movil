@@ -1,13 +1,13 @@
 import { executeQuery, getFechaConHoraLocalDePais, LightdataORM, sendShipmentStateToStateMicroserviceLoteAPI } from 'lightdata-tools';
 import { urlEstadosMicroserviceLote, axiosInstance } from '../../db.js';
 
-export async function startRoute(dbConnection, req, company) {
+export async function startRoute({ db, req, company }) {
     const { userId } = req.user;
 
     const dateConHora = getFechaConHoraLocalDePais(company.pais);
     const hour = dateConHora.split(' ')[1];
     await LightdataORM.insert({
-        dbConnection,
+        dbConnection: db,
         table: "cadetes_movimientos",
         data: {
             didCadete: userId,
@@ -18,7 +18,7 @@ export async function startRoute(dbConnection, req, company) {
 
     await LightdataORM.update({
         table: "ruteo",
-        dbConnection,
+        dbConnection: db,
         data: { hs_inicioApp: hour },
         where: { didChofer: userId }
     });
@@ -37,14 +37,14 @@ export async function startRoute(dbConnection, req, company) {
         `;
     let shipmentIds = [];
 
-    const envios = await executeQuery({ dbConnection, query: queryEnviosAsignadosHoy, values: [userId, dias] });
+    const envios = await executeQuery({ dbConnection: db, query: queryEnviosAsignadosHoy, values: [userId, dias] });
 
     if (envios.length > 0) {
         shipmentIds = envios.map(envio => envio.didEnvio);
         const q = `SELECT did, estado_envio 
         FROM envios 
         WHERE superado=0 and elim=0 and estado_envio not in (?) and did in (?)`;
-        const enviosPendientes = await executeQuery({ dbConnection, query: q, values: [[5, 7, 8, 9, 14], shipmentIds] });
+        const enviosPendientes = await executeQuery({ dbConnection: db, query: q, values: [[5, 7, 8, 9, 14], shipmentIds] });
 
         let enCaminoIds = enviosPendientes
             .filter(e => e.estado_envio == 2)

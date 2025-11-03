@@ -1,14 +1,14 @@
 
 import { executeQuery, getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
 
-export async function saveRoute(dbConnection, req, company) {
+export async function saveRoute({ db, req, company }) {
     const { userId } = req.user;
     const { additionalRouteData, clients, cantidad, distancia, total_km, total_minutos, camino } = req.body;
 
     const date = getFechaLocalDePais(company.pais);
 
     const [didAsuperar] = LightdataORM.insert({
-        dbConnection,
+        dbConnection: db,
         table: "colecta_ruta",
         data: {
             desde: 2,
@@ -68,7 +68,7 @@ export async function saveRoute(dbConnection, req, company) {
         -- WHERE a.didDeposito IS NOT NULL
         `;
 
-    await executeQuery({ dbConnection, query: sql, values: params });
+    await executeQuery({ dbConnection: db, query: sql, values: params });
 
 
 

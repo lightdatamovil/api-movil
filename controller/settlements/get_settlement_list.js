@@ -1,6 +1,6 @@
 import { executeQuery } from "lightdata-tools";
 
-export async function getSettlementList(dbConnection, req) {
+export async function getSettlementList({ db, req }) {
     const { userId } = req.user;
     const { from, to } = req.body;
 
@@ -22,7 +22,7 @@ export async function getSettlementList(dbConnection, req) {
         `${dateTo} 23:59:59`
     ];
 
-    const rows = await executeQuery({ dbConnection, query, values });
+    const rows = await executeQuery({ dbConnection: db, query, values });
 
     return {
         data: rows.map(row => ({

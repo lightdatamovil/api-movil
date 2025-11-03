@@ -1,12 +1,12 @@
 import { LightdataORM, executeQuery } from "lightdata-tools";
 
-export async function getCollectDetails(dbConnection, req) {
+export async function getCollectDetails({ db, req }) {
     const { userId } = req.user;
     const { date } = req.params;
     let clients = [];
 
     const routeResult = await LightdataORM.select({
-        dbConnection,
+        dbConnection: db,
         table: "colecta_ruta",
         where: { fecha: date, didChofer: userId },
         select: "did, dataRuta, camino"
@@ -19,7 +19,7 @@ export async function getCollectDetails(dbConnection, req) {
             LEFT JOIN clientes AS cl ON cl.superado = 0 AND cl.elim = 0 AND cl.did = CRP.didCliente
             WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ? ORDER BY CRP.orden ASC;
         `;
-        const stopsResult = await executeQuery({ dbConnection, query: stopsQuery, values: [routeResult[0].did] });
+        const stopsResult = await executeQuery({ dbConnection: db, query: stopsQuery, values: [routeResult[0].did] });
         clients = stopsResult.map(row => ({
             orden: row.orden ? Number(row.orden) : null,
             did: row.didCliente ? Number(row.didCliente) : null,
@@ -27,7 +27,7 @@ export async function getCollectDetails(dbConnection, req) {
         }));
     } else {
         const enviosResult = await LightdataORM.select({
-            dbConnection,
+            dbConnection: db,
             table: "colecta_asignaciones",
             where: { didChofer: userId, fecha: date },
             select: "dataJson"
@@ -46,7 +46,7 @@ export async function getCollectDetails(dbConnection, req) {
         const clientIds = Object.keys(dataJson).map(id => Number(id));
 
         const stopsResult = await LightdataORM.select({
-            dbConnection,
+            dbConnection: db,
             table: "clientes",
             where: { did: clientIds },
             select: "did, nombre_fantasia"

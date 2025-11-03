@@ -1,10 +1,10 @@
 import { LightdataORM, CustomException } from "lightdata-tools";
 
-export async function getSettlementDetails(dbConnection, req) {
+export async function getSettlementDetails({ db, req }) {
     const { settlementId } = req.body;
 
     const result = await LightdataORM.select({
-        dbConnection,
+        dbConnection: db,
         table: "colecta_liquidaciones",
         where: { did: settlementId },
         select: "idlineas"
@@ -26,7 +26,7 @@ export async function getSettlementDetails(dbConnection, req) {
         LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND c.did = e.didCliente
         WHERE eh.superado = 0 AND eh.elim = 0 AND eh.id IN (?);
     `;
-    const detalleResult = await dbConnection.query(sqlDetalle, [idlineas]);
+    const detalleResult = await db.query(sqlDetalle, [idlineas]);
 
     const data = detalleResult[0].map(row => ({
         didEnvio: row.didEnvio,

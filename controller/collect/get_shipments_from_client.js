@@ -1,10 +1,10 @@
 import { LightdataORM } from "lightdata-tools";
 
-export async function shipmentsFromClient(dbConnection, req) {
+export async function shipmentsFromClient({ db, req }) {
     const { clientId } = req.params;
 
     const result = await LightdataORM.select({
-        dbConnection,
+        dbConnection: db,
         table: "envios",
         where: { didCliente: clientId, estado_envio: 7 },
         select: "did, flex, ml_shipment_id, ml_venta_id"
