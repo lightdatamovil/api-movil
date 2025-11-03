@@ -1,60 +1,89 @@
-import { executeQuery, getFechaConHoraLocalDePais, getFechaLocalDePais } from "lightdata-tools";
-import { performance } from "node:perf_hooks";
+import { CustomException, executeQuery, getFechaConHoraLocalDePais, getFechaLocalDePais } from "lightdata-tools";
 
 export async function getHomeData({ db, req, company }) {
-  const perfMarks = [];
-  const tAllStart = performance.now();
-  const mark = (label, start) => {
-    const ms = performance.now() - start;
-    perfMarks.push({ label, ms: Number(ms.toFixed(2)) });
+  // ───────────────────────────── Helpers de profiling ─────────────────────────────
+  const t0All = process.hrtime.bigint();
+  const toMs = (ns) => Number(ns) / 1e6;
+  const now = () => process.hrtime.bigint();
+
+  const summary = []; // [{ name, ms, extra }]
+  const logStep = (name, startedAt, extra = {}) => {
+    const ms = toMs(now() - startedAt);
+    summary.push({ name, ms: Math.round(ms), ...extra });
+    console.log(`🕒 [HomeData] ${name} -> ${ms.toFixed(2)} ms${Object.keys(extra).length ? ` | ${JSON.stringify(extra)}` : ""}`);
   };
 
-  // Helper genérico para cronometrar tareas async
-  async function timed(label, fn) {
-    const t0 = performance.now();
-    try {
-      return await fn();
-    } finally {
-      mark(label, t0);
+  const timedQuery = async (name, queryObj, extra = {}) => {
+    const t = now();
+    const rows = await executeQuery(queryObj);
+    logStep(name, t, { rows: rows?.length ?? 0, ...extra });
+    return rows;
+  };
+
+  // ───────────────────────────── Inicio función ─────────────────────────────
+  const tInit = now();
+  let { profile, userId } = req.user;
+
+  console.log(`🚀 [HomeData] start | userId=${userId} profile=${profile} company.did=${company.did} pais=${company?.pais}`);
+
+  //! Esto es por el error que paso una vez que la app no tomaba el perfil
+  if (profile == 0) {
+    const tPerfil = now();
+    const query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
+    const rows = await timedQuery("fetch perfil (fallback)", { dbConnection: db, query, values: [userId] });
+    if (rows && rows.length > 0) {
+      profile = parseInt(rows[0].perfil);
+      logStep("parse perfil", tPerfil, { profile });
+    } else {
+      logStep("fetch perfil (fallback) - sin resultados", tPerfil);
+      throw new CustomException({
+        title: "Error al obtener perfil",
+        message: `No se encontró el perfil del usuario con ID ${userId}`,
+      });
     }
   }
 
-  let { profile, userId } = req.user;
-
-  const tFechas = performance.now();
   const dateConHora = getFechaConHoraLocalDePais(company.pais);
   const date = getFechaLocalDePais(company.pais);
-  mark("calculo_fechas_locales", tFechas);
+  logStep("fechas locales calculadas", tInit, { date, dateConHora });
 
-  const estadosPendientes = {
-    // todo revisar estadosPendientes de rabion -- agregamos 18 : nadie en 3ra visita
-    20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 18],
-    55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
-    // todo revisar 1 o existe en  wynflex
-    72: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 16, 18, 16],
-    default: [0, 1, 2, 3, 6, 7, 10, 11, 12],
-  }[company.did] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
+  const estadosPendientes =
+    ({
+      20: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 18],
+      55: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13],
+      72: [0, 1, 2, 3, 6, 7, 10, 11, 12, 13, 16, 18, 16],
+      default: [0, 1, 2, 3, 6, 7, 10, 11, 12],
+    }[company.did] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13]);
 
-  const estadosEnCamino = {
-    20: [2, 11, 12, 16],
-    55: [2, 11, 12],
-    72: [2, 11, 12],
-    default: [2, 11, 12],
-  }[company.did] || [2, 11, 12];
+  const estadosEnCamino =
+    ({
+      20: [2, 11, 12, 16],
+      55: [2, 11, 12],
+      72: [2, 11, 12],
+      default: [2, 11, 12],
+    }[company.did] || [2, 11, 12]);
 
-  const estadosCerradosHoy = {
-    20: [5, 8, 9, 14, 17],
-    55: [5, 8, 9, 14, 16],
-    72: [5, 8, 9, 14],
-    default: [5, 8, 9, 14],
-  }[company.did] || [5, 8, 9, 14];
+  const estadosCerradosHoy =
+    ({
+      20: [5, 8, 9, 14, 17],
+      55: [5, 8, 9, 14, 16],
+      72: [5, 8, 9, 14],
+      default: [5, 8, 9, 14],
+    }[company.did] || [5, 8, 9, 14]);
 
-  const estadosEntregadosHoy = {
-    20: [5, 9, 17],
-    55: [5, 9, 16],
-    72: [5, 9],
-    default: [5, 9],
-  }[company.did] || [5, 9];
+  const estadosEntregadosHoy =
+    ({
+      20: [5, 9, 17],
+      55: [5, 9, 16],
+      72: [5, 9],
+      default: [5, 9],
+    }[company.did] || [5, 9]);
+
+  console.log(
+    `📦 [HomeData] estados | pendientes=${JSON.stringify(estadosPendientes)} enCamino=${JSON.stringify(
+      estadosEnCamino
+    )} cerradosHoy=${JSON.stringify(estadosCerradosHoy)} entregadosHoy=${JSON.stringify(estadosEntregadosHoy)}`
+  );
 
   const infoADevolver = {
     assignedToday: 0,
@@ -65,25 +94,24 @@ export async function getHomeData({ db, req, company }) {
   };
 
   async function fetchCount(query, label) {
-    const rows = await timed(label, () => executeQuery({ dbConnection: db, query }));
+    const rows = await timedQuery(label, { dbConnection: db, query });
     return rows && rows.length ? parseInt(rows[0].total, 10) : 0;
   }
 
+  const tSwitch = now();
   switch (profile) {
     case 1:
     case 5: {
-      // ASIGNADOS HOY
-      const queryAsignadosHoy = `
+      const qAsignadosHoy = `
         SELECT COUNT(id) AS total 
         FROM envios_asignaciones 
         WHERE superado = 0 
           AND elim = 0 
           AND autofecha > '${date} 00:00:00'
       `;
-      infoADevolver.assignedToday = await fetchCount(queryAsignadosHoy, "q_asignados_hoy");
+      infoADevolver.assignedToday = await fetchCount(qAsignadosHoy, "case 1/5 - asignados hoy");
 
-      // PENDIENTES (últimos 7 días)
-      const queryPendientes = `
+      const qPendientes = `
         SELECT didEnvio
         FROM envios_historial AS eh
         LEFT JOIN envios AS e ON (
@@ -97,13 +125,10 @@ export async function getHomeData({ db, req, company }) {
           AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateConHora}', INTERVAL 7 DAY) AND '${dateConHora}'
           AND eh.estado IN (${estadosPendientes})
       `;
-      const rowsPendientes = await timed("q_pendientes_global", () =>
-        executeQuery({ dbConnection: db, query: queryPendientes })
-      );
-      infoADevolver.pendings = rowsPendientes.length;
+      const rowsPend = await timedQuery("case 1/5 - pendientes últimos 7d", { dbConnection: db, query: qPendientes });
+      infoADevolver.pendings = rowsPend.length;
 
-      // En Camino, Cerrados y Entregados HOY
-      const queryHistorial = `
+      const qHistorial = `
         SELECT 
           SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS enCamino,
           SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS cerradosHoy,
@@ -113,20 +138,17 @@ export async function getHomeData({ db, req, company }) {
           AND superado = 0 
           AND DATE(fecha) = CURDATE()
       `;
-      const rowsHistorial = await timed("q_historial_global_hoy", () =>
-        executeQuery({ dbConnection: db, query: queryHistorial })
-      );
-      if (rowsHistorial && rowsHistorial.length > 0) {
-        infoADevolver.onTheWay = parseInt(rowsHistorial[0].enCamino, 10) || 0;
-        infoADevolver.closedToday = parseInt(rowsHistorial[0].cerradosHoy, 10) || 0;
-        infoADevolver.deliveredToday = parseInt(rowsHistorial[0].entregadosHoy, 10) || 0;
+      const rowsHist = await timedQuery("case 1/5 - historial hoy", { dbConnection: db, query: qHistorial });
+      if (rowsHist && rowsHist.length > 0) {
+        infoADevolver.onTheWay = parseInt(rowsHist[0].enCamino, 10) || 0;
+        infoADevolver.closedToday = parseInt(rowsHist[0].cerradosHoy, 10) || 0;
+        infoADevolver.deliveredToday = parseInt(rowsHist[0].entregadosHoy, 10) || 0;
       }
       break;
     }
 
     case 2: {
-      // Cerrados y Entregados HOY para caso 2
-      const queryCerradosYEntregados = `
+      const qCerradosEntregados = `
         SELECT
           SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS closedToday,
           SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS deliveredToday
@@ -140,9 +162,7 @@ export async function getHomeData({ db, req, company }) {
           AND eh.elim = 0
           AND e.didCliente = sua.codigo_empleado
       `;
-      const rowsCE = await timed("q_cerrados_entregados_caso2", () =>
-        executeQuery({ dbConnection: db, query: queryCerradosYEntregados })
-      );
+      const rowsCE = await timedQuery("case 2 - cerrados/entregados hoy", { dbConnection: db, query: qCerradosEntregados });
       if (rowsCE && rowsCE.length > 0) {
         infoADevolver.closedToday = parseInt(rowsCE[0].closedToday, 10) || 0;
         infoADevolver.deliveredToday = parseInt(rowsCE[0].deliveredToday, 10) || 0;
@@ -151,8 +171,7 @@ export async function getHomeData({ db, req, company }) {
     }
 
     case 3: {
-      // ASIGNADOS HOY para operador
-      const queryAsignadosHoy = `
+      const qAsignadosHoy = `
         SELECT COUNT(id) AS total 
         FROM envios_asignaciones 
         WHERE operador = ${userId} 
@@ -160,10 +179,9 @@ export async function getHomeData({ db, req, company }) {
           AND elim = 0 
           AND autofecha > '${date} 00:00:00'
       `;
-      infoADevolver.assignedToday = await fetchCount(queryAsignadosHoy, "q_asignados_hoy_operador");
+      infoADevolver.assignedToday = await fetchCount(qAsignadosHoy, "case 3 - asignados hoy (operador)");
 
-      // PENDIENTES para operador (últimos 7 días)
-      const queryPendientes = `
+      const qPendientes = `
         SELECT didEnvio
         FROM envios_historial AS eh
         LEFT JOIN envios AS e ON (
@@ -179,13 +197,10 @@ export async function getHomeData({ db, req, company }) {
           AND eh.estado IN (${estadosPendientes})
         GROUP BY eh.didEnvio
       `;
-      const rowsPendientesOperador = await timed("q_pendientes_operador", () =>
-        executeQuery({ dbConnection: db, query: queryPendientes })
-      );
-      infoADevolver.pendings = rowsPendientesOperador.length;
+      const rowsPendOp = await timedQuery("case 3 - pendientes últimos 7d (operador)", { dbConnection: db, query: qPendientes });
+      infoADevolver.pendings = rowsPendOp.length;
 
-      // En Camino, Cerrados y Entregados HOY para operador
-      const queryHistorial = `
+      const qHistorial = `
         SELECT 
           SUM(CASE WHEN eh.estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS onTheWay,
           SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS closedToday,
@@ -201,25 +216,25 @@ export async function getHomeData({ db, req, company }) {
           AND eh.superado = 0
           AND DATE(eh.fecha) = CURDATE()
       `;
-      const rowsHistorialOperador = await timed("q_historial_operador_hoy", () =>
-        executeQuery({ dbConnection: db, query: queryHistorial })
-      );
-      if (rowsHistorialOperador && rowsHistorialOperador.length > 0) {
-        infoADevolver.onTheWay = parseInt(rowsHistorialOperador[0].onTheWay, 10) || 0;
-        infoADevolver.closedToday = parseInt(rowsHistorialOperador[0].closedToday, 10) || 0;
-        infoADevolver.deliveredToday = parseInt(rowsHistorialOperador[0].deliveredToday, 10) || 0;
+      const rowsHistOp = await timedQuery("case 3 - historial hoy (operador)", { dbConnection: db, query: qHistorial });
+      if (rowsHistOp && rowsHistOp.length > 0) {
+        infoADevolver.onTheWay = parseInt(rowsHistOp[0].onTheWay, 10) || 0;
+        infoADevolver.closedToday = parseInt(rowsHistOp[0].closedToday, 10) || 0;
+        infoADevolver.deliveredToday = parseInt(rowsHistOp[0].deliveredToday, 10) || 0;
       }
       break;
     }
 
     default:
-      // Manejar caso por defecto si es necesario
+      console.log(`ℹ️ [HomeData] perfil ${profile} sin bloque específico (sin consultas adicionales)`);
       break;
   }
+  logStep("bloque switch(profile)", tSwitch, { profile });
 
+  // startedRoute (solo si es chofer)
   let startedRoute;
-
   if (req.user.profile == 3) {
+    const tStarted = now();
     const sqlCadetesMovimientos = `
       SELECT tipo 
       FROM cadetes_movimientos 
@@ -228,28 +243,43 @@ export async function getHomeData({ db, req, company }) {
       ORDER BY id DESC 
       LIMIT 1
     `;
+    const result = await timedQuery("startedRoute - último movimiento del día", {
+      dbConnection: db,
+      query: sqlCadetesMovimientos,
+      values: [userId],
+    });
 
-    const resultQueryCadetesMovimientos = await timed("q_cadetes_movimientos_hoy", () =>
-      executeQuery({ dbConnection: db, query: sqlCadetesMovimientos, values: [userId] })
-    );
-
-    if (resultQueryCadetesMovimientos.length == 0) {
+    if (result.length == 0) {
       startedRoute = false;
     } else {
-      startedRoute = resultQueryCadetesMovimientos[0].tipo == 0;
+      startedRoute = result[0].tipo == 0;
     }
+    logStep("startedRoute - resuelto", tStarted, { startedRoute });
+  } else {
+    console.log("⏭️ [HomeData] startedRoute omitido (no es perfil 3)");
   }
 
-  const totalMs = Number((performance.now() - tAllStart).toFixed(2));
+  // Log final de métricas calculadas
+  console.log(
+    `✅ [HomeData] métricas: ${JSON.stringify(infoADevolver)}${req.user.profile == 3 ? ` | startedRoute=${startedRoute}` : ""}`
+  );
+
+  // Resumen ordenado por mayor tiempo
+  const totalMs = toMs(now() - t0All);
+  summary.sort((a, b) => b.ms - a.ms);
+  console.log("📊 [HomeData] breakdown (ms desc):");
+  try {
+    console.table(summary);
+  } catch {
+    // si no hay soporte para table, lo mostramos en JSON
+    console.log(JSON.stringify(summary, null, 2));
+  }
+  console.log(`⏱️ [HomeData] TOTAL -> ${totalMs.toFixed(2)} ms`);
 
   return {
     data: {
       homeData: infoADevolver,
       startedRoute,
-      perf: {
-        totalMs,
-        steps: perfMarks,
-      },
     },
     message: "Datos obtenidos correctamente",
   };
