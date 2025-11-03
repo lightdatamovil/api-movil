@@ -55,7 +55,7 @@ export async function identification({ db, company }) {
         driversWithoutProcessingPlant: LogisticaConfig.driversWithoutProcessingPlantEnabled(company.did),
         whatsappMessages: messages
     };
-    console.log("Identification data:", data);
+
     return {
         success: true,
         data,
