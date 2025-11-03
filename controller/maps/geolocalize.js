@@ -6,7 +6,7 @@ export async function geolocalize({ db, req }) {
     await LightdataORM.select({
         table: "envios",
         where: { did: shipmentId },
-        dbConnection: db,
+        db,
         select: ['did'],
         throwIfNotExists: true,
     });
@@ -18,7 +18,7 @@ export async function geolocalize({ db, req }) {
             destination_longitude: longitude
         },
         where: { did: shipmentId },
-        dbConnection: db
+        db
     });
 
     await LightdataORM.update({
@@ -28,7 +28,7 @@ export async function geolocalize({ db, req }) {
             longitud: longitude
         },
         where: { didEnvio: shipmentId },
-        dbConnection: db
+        db
     });
 
     return { message: "Geolocalización registrada correctamente" };

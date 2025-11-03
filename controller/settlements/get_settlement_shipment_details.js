@@ -17,7 +17,7 @@ export async function getSettlementShipmentDetails({ db, req, company }) {
         LEFT JOIN envios_direcciones_destino AS edd ON(edd.elim = 0 AND edd.superado = 0 AND edd.didEnvio = e.did) 
         WHERE e.superado = 0 AND e.elim = 0 AND e.did = ? `;
 
-    const resultados = await executeQuery({ dbConnection: db, query: sql, values: [shipmentId] });
+    const resultados = await executeQuery({ db, query: sql, values: [shipmentId] });
 
     if (resultados.length > 0) {
         const row = resultados[0];

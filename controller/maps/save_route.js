@@ -21,7 +21,7 @@ export async function saveRoute({ db, req, company }) {
             quien: userId,
             dataDeRuta: JSON.stringify(additionalRouteData)
         },
-        dbConnection: db
+        db
     });
 
     await LightdataORM.insert({
@@ -36,7 +36,7 @@ export async function saveRoute({ db, req, company }) {
             orden: order.index,
             hora_llegada: order.arrivalTime
         })),
-        dbConnection: db
+        db
     });
 
     return { message: "Ruta guardada correctamente" };

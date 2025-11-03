@@ -3,7 +3,7 @@ import { axiosInstance } from "../../db.js";
 
 export async function identification({ db, company }) {
     const depotsResult = await LightdataORM.select({
-        dbConnection: db,
+        db,
         table: "depositos",
         select: "id, latitud, longitud, nombre, cod"
     });
@@ -29,7 +29,7 @@ export async function identification({ db, company }) {
     }));
 
     const messagesResult = await LightdataORM.select({
-        dbConnection: db,
+        db,
         table: "mensajeria_app",
         select: "texto"
     });

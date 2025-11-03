@@ -49,7 +49,7 @@ export async function getProductsFromShipment({ db, req }) {
         }
 
         const result = await LightdataORM.select({
-            dbConnection: db,
+            db,
             table: "fulfillment_productos",
             where: { sku },
             select: "ean",

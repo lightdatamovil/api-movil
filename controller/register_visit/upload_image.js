@@ -21,7 +21,7 @@ export async function uploadImage({ db, req, company }) {
     }
 
     await LightdataORM.insert({
-        dbConnection: db,
+        db,
         table: 'envios_fotos',
         data: {
             didEnvio: shipmentId,
@@ -36,13 +36,13 @@ export async function uploadImage({ db, req, company }) {
 
     if (companyId == 334 && (shipmentState == 6 || shipmentState == 10)) {
         await LightdataORM.update({
-            dbConnection: db,
+            db,
             table: 'envios_historial',
             data: { conFoto: 1 },
             where: { didEnvio: shipmentId },
         })
         const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ?  and elim = 0 and superado = 0 LIMIT 1";
-        await executeQuery({ dbConnection: db, query: updateQuery, values: [shipmentId] });
+        await executeQuery({ db, query: updateQuery, values: [shipmentId] });
     }
 
     return {

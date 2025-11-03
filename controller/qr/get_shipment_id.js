@@ -12,7 +12,7 @@ export async function getShipmentIdFromQr({ db, req, company }) {
 
         if (company.did !== dataQr.empresa) {
             const [result] = await LightdataORM.select({
-                dbConnection: db,
+                db,
                 table: "envios_exteriores",
                 where: {
                     didExterno: shipmentId,
@@ -32,7 +32,7 @@ export async function getShipmentIdFromQr({ db, req, company }) {
             const senderId = LogisticaConfig.getSenderId(company.did);
 
             const [result] = await LightdataORM.select({
-                dbConnection: db,
+                db,
                 table: "envios",
                 where: {
                     ml_shipment_id: dataQr,
@@ -45,7 +45,7 @@ export async function getShipmentIdFromQr({ db, req, company }) {
             shipmentId = result.did;
         } else {
             const [result] = await LightdataORM.select({
-                dbConnection: db,
+                db,
                 table: "envios",
                 where: {
                     ml_shipment_id: dataQr.id,

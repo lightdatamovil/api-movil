@@ -7,7 +7,7 @@ export async function login({ db, req, company }) {
   const { username, password } = req.body;
 
   const [user] = await LightdataORM.select({
-    dbConnection: db,
+    db,
     table: "sistema_usuarios",
     where: { usuario: username },
     select: `
@@ -24,7 +24,7 @@ export async function login({ db, req, company }) {
   }
 
   const [sistemaUsuariosRow] = await LightdataORM.select({
-    dbConnection: db,
+    db,
     table: "sistema_usuarios_accesos",
     where: { usuario: user.did },
     select: "perfil",

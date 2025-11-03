@@ -4,7 +4,7 @@ export async function getSettlementDetails({ db, req }) {
     const { settlementId } = req.body;
 
     const result = await LightdataORM.select({
-        dbConnection: db,
+        db,
         table: "colecta_liquidaciones",
         where: { did: settlementId },
         select: "idlineas"

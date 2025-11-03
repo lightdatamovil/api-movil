@@ -8,7 +8,7 @@ export async function saveRoute({ db, req, company }) {
     const date = getFechaLocalDePais(company.pais);
 
     const [didAsuperar] = LightdataORM.insert({
-        dbConnection: db,
+        db,
         table: "colecta_ruta",
         data: {
             desde: 2,
@@ -68,7 +68,7 @@ export async function saveRoute({ db, req, company }) {
         -- WHERE a.didDeposito IS NOT NULL
         `;
 
-    await executeQuery({ dbConnection: db, query: sql, values: params });
+    await executeQuery({ db, query: sql, values: params });
 
 
 

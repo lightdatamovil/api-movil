@@ -8,7 +8,7 @@ export async function getRoute({ db, req, company }) {
     let additionalRouteData = null;
 
     const routeResult = await LightdataORM.select({
-        dbConnection: db,
+        db,
         table: "colecta_ruta",
         where: { fecha: date, didChofer: userId },
         select: "did, dataRuta, camino"
@@ -23,7 +23,7 @@ export async function getRoute({ db, req, company }) {
             WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ?
             ORDER BY CRP.orden ASC;
         `;
-        const stopsResult = await executeQuery({ dbConnection: db, query: stopsQuery, values: [routeResult[0].did] });
+        const stopsResult = await executeQuery({ db, query: stopsQuery, values: [routeResult[0].did] });
 
         additionalRouteData = JSON.parse(routeResult[0].dataRuta);
         additionalRouteData.evitoAU = Boolean(additionalRouteData.evitoAU);
@@ -42,7 +42,7 @@ export async function getRoute({ db, req, company }) {
         }));
     } else {
         const enviosResult = await LightdataORM.select({
-            dbConnection: db,
+            db,
             table: "colecta_asignaciones",
             where: { didChofer: userId, fecha: date },
             select: "dataJson"
@@ -72,7 +72,7 @@ export async function getRoute({ db, req, company }) {
               AND c.superado = 0
               AND c.elim = 0;
         `;
-        const stopsResult = await executeQuery({ dbConnection: db, query: q, values: [clientIds] });
+        const stopsResult = await executeQuery({ db, query: q, values: [clientIds] });
 
         clients = stopsResult.map(row => ({
             orden: null,

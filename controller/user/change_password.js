@@ -7,7 +7,7 @@ export async function changePassword({ db, req }) {
     const oldPasswordHash = createHash('sha256').update(oldPassword).digest('hex');
     const newPasswordHash = createHash('sha256').update(newPassword).digest('hex');
     const querySelectUsers = `SELECT * FROM sistema_usuarios WHERE superado = 0 AND elim = 0 AND did = ? `;
-    const resultSelectUsers = await executeQuery({ dbConnection: db, query: querySelectUsers, values: [userId] });
+    const resultSelectUsers = await executeQuery({ db, query: querySelectUsers, values: [userId] });
 
     if (resultSelectUsers.length === 0) {
         throw new CustomException({
@@ -44,11 +44,11 @@ export async function changePassword({ db, req }) {
         userData.identificador, userData.direccion, userData.inicio_ruta, userData.lista_de_precios
     ];
 
-    const resultInsert = await executeQuery({ dbConnection: db, query: insertQuery, values: insertValues });
+    const resultInsert = await executeQuery({ db, query: insertQuery, values: insertValues });
     const insertedId = resultInsert.insertId;
 
     const updateQuery = `UPDATE sistema_usuarios SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ? AND id != ? `;
-    await executeQuery({ dbConnection: db, query: updateQuery, values: [userId, insertedId] });
+    await executeQuery({ db, query: updateQuery, values: [userId, insertedId] });
 
     return { message: "Datos insertados correctamente" };
 

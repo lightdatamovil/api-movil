@@ -171,7 +171,7 @@ async function shipmentInformation({ db, shipmentId }) {
         LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = ? )
         WHERE e.did = ? AND e.elim = 0 AND e.superado = 0`;
 
-    const results = await executeQuery({ dbConnection: db, query, values: [shipmentId, shipmentId] });
+    const results = await executeQuery({ db, query, values: [shipmentId, shipmentId] });
     if (results.length === 0) {
         throw new CustomException({
             title: 'Error obteniendo información del envío',

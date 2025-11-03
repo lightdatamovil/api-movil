@@ -12,7 +12,7 @@ export async function enterFlex({ db, req, company }) {
     const mlSellerId = dataQr.sender_id;
 
     const [clientResult] = await LightdataORM.select({
-        dbConnection: db,
+        db,
         table: 'clientes_cuentas',
         where: {
             tipoCuenta: 1,
@@ -25,7 +25,7 @@ export async function enterFlex({ db, req, company }) {
     const accountId = clientResult.did;
 
     await LightdataORM.select({
-        dbConnection: db,
+        db,
         table: 'envios',
         where: {
             ml_shipment_id: mlShipmentId,
@@ -37,7 +37,7 @@ export async function enterFlex({ db, req, company }) {
     });
 
     const [shipmentId] = await LightdataORM.insert({
-        dbConnection: db,
+        db,
         table: 'envios',
         data: {
             ml_shipment_id: mlShipmentId,
@@ -66,7 +66,7 @@ export async function enterFlex({ db, req, company }) {
 
     if (profile === 3) {
         await LightdataORM.update({
-            dbConnection: db,
+            db,
             table: 'envios',
             where: {
                 did: shipmentId

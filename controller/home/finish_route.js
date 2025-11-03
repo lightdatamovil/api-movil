@@ -7,7 +7,7 @@ export async function finishRoute({ db, req }) {
     const hour = dateConHora.split(' ')[1];
 
     await LightdataORM.insert({
-        dbConnection: db,
+        db,
         table: "cadetes_movimientos",
         data: {
             didCadete: userId,
@@ -17,7 +17,7 @@ export async function finishRoute({ db, req }) {
     });
     await LightdataORM.update({
         table: "ruteo",
-        dbConnection: db,
+        db,
         data: { hs_finApp: hour },
         where: { didChofer: userId }
     });

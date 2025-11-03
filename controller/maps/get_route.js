@@ -14,7 +14,7 @@ export async function getRouteByUserId({ db, req, company }) {
             fechaOperativa: date,
             didChofer: userId
         },
-        dbConnection: db,
+        db,
         select: ['id']
     });
     if (rutaResult.length > 0) {
@@ -33,7 +33,7 @@ export async function getRouteByUserId({ db, req, company }) {
                 WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,10,12)
                 ORDER BY RP.orden ASC`;
 
-        const getRouteShipmentsQueryResult = await executeQuery({ dbConnection: db, query: getRouteShipmentsQuery, values: [userId, userId] });
+        const getRouteShipmentsQueryResult = await executeQuery({ db, query: getRouteShipmentsQuery, values: [userId, userId] });
 
         for (let row of getRouteShipmentsQueryResult) {
             let latitude = row.destination_latitude ? parseFloat(row.destination_latitude) : null;
@@ -92,7 +92,7 @@ export async function getRouteByUserId({ db, req, company }) {
                 WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,10,12) and e.autofecha >= now() - interval 3 day 
                 ORDER BY ea.orden ASC`;
 
-        const shipmentsWithoutOrderResult = await executeQuery({ dbConnection: db, query: shipmentsWithoutOrderQuery, values: [userId] });
+        const shipmentsWithoutOrderResult = await executeQuery({ db, query: shipmentsWithoutOrderQuery, values: [userId] });
 
         for (let row of shipmentsWithoutOrderResult) {
             let latitude = row.destination_latitude ? parseFloat(row.destination_latitude) : null;
@@ -117,7 +117,7 @@ export async function getRouteByUserId({ db, req, company }) {
 
     if (req.user.profile == 3) {
         const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
-        const resultQueryCadetesMovimientos = await executeQuery({ dbConnection: db, query: sqlCadetesMovimientos, values: [userId] });
+        const resultQueryCadetesMovimientos = await executeQuery({ db, query: sqlCadetesMovimientos, values: [userId] });
 
         if (resultQueryCadetesMovimientos.length == 0) {
             startedRoute = false;

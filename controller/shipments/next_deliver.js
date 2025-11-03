@@ -7,7 +7,7 @@ export async function nextDeliver({ db, req, company }) {
     const date = getFechaConHoraLocalDePais(company.pais);
 
     await LightdataORM.insert({
-        dbConnection: db,
+        db,
         table: "proximas_entregas",
         data: {
             didEnvio: shipmentId,

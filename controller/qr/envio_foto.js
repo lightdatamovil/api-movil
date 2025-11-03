@@ -60,7 +60,7 @@ export async function altaEnvioFoto({ db, req, company }) {
 
       const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
 
-      await executeQuery({ dbConnection: db, query: insertQuery, values: [shipmentId, res.data, server, userId] });
+      await executeQuery({ db, query: insertQuery, values: [shipmentId, res.data, server, userId] });
 
       const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
 

@@ -34,7 +34,7 @@ export async function shipmentList({ db, req, company }) {
   let { userId, profile } = req.user;
   if (profile == 0) {
     const rows = await executeQuery({
-      dbConnection: db,
+      db,
       query: `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`,
       values: [userId]
     });
@@ -68,8 +68,8 @@ export async function shipmentList({ db, req, company }) {
   const date = getFechaLocalDePais(company.pais);
 
   // ---------- Datos auxiliares ----------
-  const clientes = await companiesService.getClientsByCompany(db, company.did);
-  const drivers = await companiesService.getDriversByCompany(db, company.did);
+  const clientes = await companiesService.getClientsByCompany({ db, companyId: company.did });
+  const drivers = await companiesService.getDriversByCompany({ db, companyId: company.did });
 
   // ---------- Condiciones dinámicas por perfil ----------
   let sqlChoferRuteo = "";
@@ -207,7 +207,7 @@ export async function shipmentList({ db, req, company }) {
   // estados
   paramsFinal.push(...shipmentStates);
 
-  const rows = await executeQuery({ dbConnection: db, query: sql, values: paramsFinal });
+  const rows = await executeQuery({ db, query: sql, values: paramsFinal });
 
   // ---------- Mapeo ----------
   const lista = [];

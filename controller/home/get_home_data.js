@@ -81,7 +81,7 @@ export async function getHomeData({ db, req, company }) {
     // asignados hoy (sargable)
     {
       const rows = await timed("1/5 - asignados hoy", {
-        dbConnection: db,
+        db,
         query: `
           SELECT COUNT(id) AS total
           FROM envios_asignaciones
@@ -98,7 +98,7 @@ export async function getHomeData({ db, req, company }) {
     {
       const ph = inPlaceholders(estadosPendientes);
       const rows = await timed("1/5 - pendientes 7d (COUNT DISTINCT)", {
-        dbConnection: db,
+        db,
         query: `
           SELECT COUNT(DISTINCT eh.didEnvio) AS total
           FROM envios_historial AS eh
@@ -123,7 +123,7 @@ export async function getHomeData({ db, req, company }) {
       const phEntr = inPlaceholders(estadosEntregadosHoy);
 
       const rows = await timed("1/5 - historial hoy (CASE sums)", {
-        dbConnection: db,
+        db,
         query: `
           SELECT 
             SUM(CASE WHEN estado IN (${phCamino}) THEN 1 ELSE 0 END) AS enCamino,
@@ -148,7 +148,7 @@ export async function getHomeData({ db, req, company }) {
     const phEnt = inPlaceholders(estadosEntregadosHoy);
 
     const rows = await timed("2 - cerrados/entregados hoy por cliente", {
-      dbConnection: db,
+      db,
       query: `
         SELECT
           SUM(CASE WHEN eh.estado IN (${phCerr}) THEN 1 ELSE 0 END) AS closedToday,
@@ -178,7 +178,7 @@ export async function getHomeData({ db, req, company }) {
     // asignados hoy al operador
     {
       const rows = await timed("3 - asignados hoy operador", {
-        dbConnection: db,
+        db,
         query: `
           SELECT COUNT(id) AS total
           FROM envios_asignaciones
@@ -196,7 +196,7 @@ export async function getHomeData({ db, req, company }) {
     {
       const ph = inPlaceholders(estadosPendientes);
       const rows = await timed("3 - pendientes 7d operador (COUNT DISTINCT)", {
-        dbConnection: db,
+        db,
         query: `
           SELECT COUNT(DISTINCT eh.didEnvio) AS total
           FROM envios_historial AS eh
@@ -223,7 +223,7 @@ export async function getHomeData({ db, req, company }) {
       const phEntr = inPlaceholders(estadosEntregadosHoy);
 
       const rows = await timed("3 - historial hoy operador (CASE sums)", {
-        dbConnection: db,
+        db,
         query: `
           SELECT 
             SUM(CASE WHEN eh.estado IN (${phCamino}) THEN 1 ELSE 0 END) AS onTheWay,
@@ -262,7 +262,7 @@ export async function getHomeData({ db, req, company }) {
   let startedRoute;
   if (req.user.profile == 3) {
     const rows = await timed("startedRoute - último del día", {
-      dbConnection: db,
+      db,
       query: `
         SELECT tipo
         FROM cadetes_movimientos

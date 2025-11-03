@@ -13,7 +13,7 @@ export async function crossDocking({ db, req, company }) {
         if (company.did != dataQr.empresa) {
             const resultQueryEnviosExteriores = await LightdataORM.select({
                 table: "envios_exteriores",
-                dbConnection: db,
+                db,
                 where: {
                     didExterno: shipmentId,
                     didEmpresa: company.did,
@@ -65,7 +65,7 @@ export async function crossDocking({ db, req, company }) {
             ${queryWhereId}
             LIMIT 1
         `;
-    const envioData = await executeQuery({ dbConnection: db, query: queryEnvios });
+    const envioData = await executeQuery({ db, query: queryEnvios });
 
     if (envioData.length === 0) {
         throw new CustomException({
