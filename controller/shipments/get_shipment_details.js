@@ -57,7 +57,7 @@ async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {
         const sqlEnviosAsignaciones = "SELECT id FROM envios_asignaciones WHERE didEnvio = ? AND operador = ?";
 
-        const resultQueryEnviosAsignaciones = await executeQuery(dbConnection, sqlEnviosAsignaciones, [shipmentId, userId]);
+        const resultQueryEnviosAsignaciones = await executeQuery({ dbConnection, query: sqlEnviosAsignaciones, values: [shipmentId, userId] });
 
         return resultQueryEnviosAsignaciones.length > 0 ? true : false;
     } catch (error) {
@@ -79,7 +79,7 @@ async function getHistorial(dbConnection, shipmentId) {
     try {
         const queryEnviosHistorial = "SELECT estado, date_format(fecha,'%d/%m/%Y %H:%i:%s') AS fecha FROM envios_historial WHERE elim = 0 AND didenvio = " + shipmentId + "  ORDER BY fecha ASC ";
 
-        const resultQueryEnviosHistorial = await executeQuery(dbConnection, queryEnviosHistorial, []);
+        const resultQueryEnviosHistorial = await executeQuery({ dbConnection, query: queryEnviosHistorial });
 
         for (let i = 0; i < resultQueryEnviosHistorial.length; i++) {
             var row = resultQueryEnviosHistorial[i];
@@ -105,7 +105,7 @@ async function getObservations(dbConnection, shipmentId) {
     try {
         const queryEnviosObservaciones = "SELECT observacion, date_format(autofecha,'%d/%m/%Y %H:%i:%s') AS fecha FROM `envios_observaciones` WHERE didenvio = " + shipmentId + " ORDER BY `id` ASC";
 
-        const resultEnviosObservaciones = await executeQuery(dbConnection, queryEnviosObservaciones, []);
+        const resultEnviosObservaciones = await executeQuery({ dbConnection, query: queryEnviosObservaciones });
 
         for (let i = 0; i < resultEnviosObservaciones.length; i++) {
             var row = resultEnviosObservaciones[i];
@@ -133,7 +133,7 @@ async function getImages(dbConnection, shipmentId) {
 
     const queryEnviosFotos = "SELECT didenvio, nombre, server FROM `envios_fotos` WHERE didenvio = " + shipmentId + " ORDER BY `id` DESC";
 
-    const resultsEnviosFotos = await executeQuery(dbConnection, queryEnviosFotos, []);
+    const resultsEnviosFotos = await executeQuery({ dbConnection, query: queryEnviosFotos });
 
     for (let i = 0; i < resultsEnviosFotos.length; i++) {
         var row = resultsEnviosFotos[i];
@@ -171,7 +171,7 @@ async function shipmentInformation(dbConnection, shipmentId) {
         LEFT JOIN envios_cobranzas AS ec ON ( ec.elim=0 AND ec.superado=0 AND ec.didCampoCobranza = 4 AND e.did = ec.didenvio AND e.did = ? )
         WHERE e.did = ? AND e.elim = 0 AND e.superado = 0`;
 
-    const results = await executeQuery(dbConnection, query, [shipmentId, shipmentId]);
+    const results = await executeQuery({ dbConnection, query, values: [shipmentId, shipmentId] });
     if (results.length === 0) {
         throw new CustomException({
             title: 'Error obteniendo información del envío',

@@ -15,7 +15,7 @@ export async function getCantidadAsignaciones({ db, req }) {
                     AND superado = 0
                     AND elim = 0
                     GROUP BY operador;`;
-    const result = await executeQuery(db, query, [userId], true);
+    const result = await executeQuery({ dbConnection: db, query, values: [userId] });
 
     if (result.length === 0) {
         return [];

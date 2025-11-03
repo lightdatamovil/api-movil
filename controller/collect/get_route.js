@@ -23,7 +23,7 @@ export async function getRoute(dbConnection, req, company) {
             WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ?
             ORDER BY CRP.orden ASC;
         `;
-        const stopsResult = await executeQuery(dbConnection, stopsQuery, [routeResult[0].did]);
+        const stopsResult = await executeQuery({ dbConnection, query: stopsQuery, values: [routeResult[0].did] });
 
         additionalRouteData = JSON.parse(routeResult[0].dataRuta);
         additionalRouteData.evitoAU = Boolean(additionalRouteData.evitoAU);
@@ -72,7 +72,7 @@ export async function getRoute(dbConnection, req, company) {
               AND c.superado = 0
               AND c.elim = 0;
         `;
-        const stopsResult = await executeQuery(dbConnection, q, [clientIds]);
+        const stopsResult = await executeQuery({ dbConnection, query: q, values: [clientIds] });
 
         clients = stopsResult.map(row => ({
             orden: null,

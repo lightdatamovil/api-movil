@@ -68,7 +68,7 @@ export async function saveRoute(dbConnection, req, company) {
         -- WHERE a.didDeposito IS NOT NULL
         `;
 
-    await executeQuery(dbConnection, sql, params);
+    await executeQuery({ dbConnection, query: sql, values: params });
 
 
 

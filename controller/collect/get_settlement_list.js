@@ -16,7 +16,7 @@ export async function getSettlementList(dbConnection, req) {
           AND fecha BETWEEN ? AND ?
     `;
 
-    const result = await executeQuery(dbConnection, sql, [from, to]);
+    const result = await executeQuery({ dbConnection, query: sql, values: [from, to] });
 
     const data = result.map(row => ({
         did: Number(row.did),

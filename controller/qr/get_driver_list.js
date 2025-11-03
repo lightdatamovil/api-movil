@@ -11,7 +11,7 @@ export async function driverList({ db }) {
             ORDER BY nombre ASC
             `;
 
-    const results = await executeQuery(db, query, []);
+    const results = await executeQuery({ dbConnection: db, query });
 
     for (let i = 0; i < results.length; i++) {
         const row = results[i];

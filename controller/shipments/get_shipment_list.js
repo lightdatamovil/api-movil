@@ -33,11 +33,11 @@ export async function shipmentList(dbConnection, req, company) {
   // ---------- Perfil ----------
   let { userId, profile } = req.user;
   if (profile == 0) {
-    const rows = await executeQuery(
+    const rows = await executeQuery({
       dbConnection,
-      `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`,
-      [userId]
-    );
+      query: `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`,
+      values: [userId]
+    });
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
@@ -207,7 +207,7 @@ export async function shipmentList(dbConnection, req, company) {
   // estados
   paramsFinal.push(...shipmentStates);
 
-  const rows = await executeQuery(dbConnection, sql, paramsFinal);
+  const rows = await executeQuery({ dbConnection, query: sql, values: paramsFinal });
 
   // ---------- Mapeo ----------
   const lista = [];

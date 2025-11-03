@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CustomException, executeQuery, logYellow } from "lightdata-tools";
+import { CustomException, executeQuery } from "lightdata-tools";
 import { axiosInstance, urlAltaEnvioMicroservice, urlFotoEnviosUploadImage } from "../../db.js";
 
 export async function altaEnvioFoto({ db, req, company }) {
@@ -60,8 +60,7 @@ export async function altaEnvioFoto({ db, req, company }) {
 
       const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
 
-      await executeQuery(db, insertQuery, [shipmentId, res.data, server, userId], true);
-      logYellow(`Imagen subida correctamente para el envio: ${shipmentId}`);
+      await executeQuery({ dbConnection: db, query: insertQuery, values: [shipmentId, res.data, server, userId] });
 
       const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
 

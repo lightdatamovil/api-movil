@@ -7,7 +7,7 @@ export async function getSettlementDetails(dbConnection, req, company) {
 
     const queryLines = "SELECT idlineas FROM liquidaciones WHERE superado=0 AND elim=0 AND did = ?";
 
-    const resultQueryLine = await executeQuery(dbConnection, queryLines, [settlementId]);
+    const resultQueryLine = await executeQuery({ dbConnection, query: queryLines, values: [settlementId] });
 
     if (resultQueryLine.length === 0) {
         throw new CustomException({
@@ -25,7 +25,7 @@ export async function getSettlementDetails(dbConnection, req, company) {
                  JOIN costos_envios AS ce ON ce.elim = 0 AND ce.superado = 0 AND ce.didEnvio = e.did
                  WHERE eh.id IN(${idLine})`;
 
-    const results = await executeQuery(dbConnection, sql, []);
+    const results = await executeQuery({ dbConnection, query: sql });
 
     return {
         data: results.map(row => ({

@@ -42,7 +42,7 @@ export async function uploadImage(dbConnection, req, company) {
             where: { didEnvio: shipmentId },
         })
         const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ?  and elim = 0 and superado = 0 LIMIT 1";
-        await executeQuery(dbConnection, updateQuery, [shipmentId], true);
+        await executeQuery({ dbConnection, query: updateQuery, values: [shipmentId] });
     }
 
     return {

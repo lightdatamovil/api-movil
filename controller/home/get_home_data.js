@@ -7,7 +7,7 @@ export async function getHomeData({ db, req, company }) {
   if (profile == 0) {
     let query = `SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?`;
 
-    const rows = await executeQuery({ db, query, values: [userId] });
+    const rows = await executeQuery({ dbConnection: db, query, values: [userId] });
     if (rows && rows.length > 0) {
       profile = parseInt(rows[0].perfil);
     } else {
@@ -90,7 +90,7 @@ export async function getHomeData({ db, req, company }) {
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateConHora}', INTERVAL 7 DAY) AND '${dateConHora}'
                     AND eh.estado IN (${estadosPendientes})
                 `;
-        const rowsPendientes = await executeQuery({ db, queryPendientes });
+        const rowsPendientes = await executeQuery({ dbConnection: db, query: queryPendientes });
         infoADevolver.pendings = rowsPendientes.length;
 
         // En Camino, Cerrados y Entregados HOY (fecha actual)
@@ -104,7 +104,7 @@ export async function getHomeData({ db, req, company }) {
                     AND superado = 0 
                     AND DATE(fecha) = CURDATE()
                 `;
-        const rowsHistorial = await executeQuery(db, queryHistorial);
+        const rowsHistorial = await executeQuery({ dbConnection: db, query: queryHistorial });
         if (rowsHistorial && rowsHistorial.length > 0) {
           infoADevolver.onTheWay =
             parseInt(rowsHistorial[0].enCamino, 10) || 0;
@@ -134,11 +134,7 @@ export async function getHomeData({ db, req, company }) {
                     AND e.didCliente = sua.codigo_empleado
                 `;
 
-        const rowsCE = await executeQuery(
-          db,
-          queryCerradosYEntregados,
-          []
-        );
+        const rowsCE = await executeQuery({ dbConnection: db, query: queryCerradosYEntregados });
         if (rowsCE && rowsCE.length > 0) {
           infoADevolver.closedToday =
             parseInt(rowsCE[0].closedToday, 10) || 0;
@@ -177,11 +173,7 @@ export async function getHomeData({ db, req, company }) {
                     AND eh.estado IN (${estadosPendientes})
                     GROUP BY eh.didEnvio
                 `;
-        const rowsPendientesOperador = await executeQuery(
-          db,
-          queryPendientes,
-          []
-        );
+        const rowsPendientesOperador = await executeQuery({ dbConnection: db, query: queryPendientes });
         infoADevolver.pendings = rowsPendientesOperador.length;
         // En Camino, Cerrados y Entregados HOY para operador
         const queryHistorial = `
@@ -200,11 +192,7 @@ export async function getHomeData({ db, req, company }) {
                     AND eh.superado = 0
                     AND DATE(eh.fecha) = CURDATE()
                 `;
-        const rowsHistorialOperador = await executeQuery(
-          db,
-          queryHistorial,
-          []
-        );
+        const rowsHistorialOperador = await executeQuery({ dbConnection: db, query: queryHistorial });
         if (rowsHistorialOperador && rowsHistorialOperador.length > 0) {
           infoADevolver.onTheWay =
             parseInt(rowsHistorialOperador[0].onTheWay, 10) || 0;
@@ -226,7 +214,7 @@ export async function getHomeData({ db, req, company }) {
   if (req.user.profile == 3) {
     const sqlCadetesMovimientos = `SELECT tipo FROM cadetes_movimientos WHERE didCadete = ? AND DATE(autofecha) = CURDATE() ORDER BY id DESC LIMIT 1`;
 
-    const resultQueryCadetesMovimientos = await executeQuery(db, sqlCadetesMovimientos, [userId]);
+    const resultQueryCadetesMovimientos = await executeQuery({ dbConnection: db, query: sqlCadetesMovimientos, values: [userId] });
 
     if (resultQueryCadetesMovimientos.length == 0) {
       startedRoute = false;

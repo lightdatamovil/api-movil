@@ -19,7 +19,7 @@ export async function getCollectDetails(dbConnection, req) {
             LEFT JOIN clientes AS cl ON cl.superado = 0 AND cl.elim = 0 AND cl.did = CRP.didCliente
             WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ? ORDER BY CRP.orden ASC;
         `;
-        const stopsResult = await executeQuery(dbConnection, stopsQuery, [routeResult[0].did]);
+        const stopsResult = await executeQuery({ dbConnection, query: stopsQuery, values: [routeResult[0].did] });
         clients = stopsResult.map(row => ({
             orden: row.orden ? Number(row.orden) : null,
             did: row.didCliente ? Number(row.didCliente) : null,

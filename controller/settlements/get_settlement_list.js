@@ -22,7 +22,7 @@ export async function getSettlementList(dbConnection, req) {
         `${dateTo} 23:59:59`
     ];
 
-    const rows = await executeQuery(dbConnection, query, values);
+    const rows = await executeQuery({ dbConnection, query, values });
 
     return {
         data: rows.map(row => ({

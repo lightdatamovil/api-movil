@@ -37,7 +37,7 @@ export async function getCollectList(dbConnection, req) {
         ORDER BY fecha DESC
     `;
 
-    const rows = await executeQuery(dbConnection, sql, [userId, from, to]);
+    const rows = await executeQuery({ dbConnection, query: sql, values: [userId, from, to] });
 
     const data = rows.map(r => ({ fecha: r.fecha.toISOString().split("T")[0] }));
 
