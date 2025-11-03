@@ -13,14 +13,16 @@ export async function startRoute({ db, req, company }) {
             didCadete: userId,
             tipo: 0,
             desde: 3
-        }
+        },
+        quien: userId
     });
 
     await LightdataORM.update({
         table: "ruteo",
         dbConnection: db,
         data: { hs_inicioApp: hour },
-        where: { didChofer: userId }
+        where: { didChofer: userId },
+        quien: userId
     });
 
     const dias = 3;
