@@ -28,7 +28,7 @@ export async function getSettlementDetails(dbConnection, req, company) {
     const results = await executeQuery(dbConnection, sql, []);
 
     return {
-        body: results.map(row => ({
+        data: results.map(row => ({
             total: row.chofer * 1,
             didEnvio: row.did * 1,
             estado: row.estado * 1,

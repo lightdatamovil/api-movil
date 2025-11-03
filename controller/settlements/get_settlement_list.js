@@ -25,13 +25,12 @@ export async function getSettlementList(dbConnection, req) {
     const rows = await executeQuery(dbConnection, query, values);
 
     return {
-        body: {
-            body: rows.map(row => ({
-                total: row.total * 1,
-                fecha: row.fecha,
-                quienLiquido: row.quienLiquido,
-                did: row.did * 1
-            })), message: "Listado de liquidaciones obtenido correctamente"
-        }, message: 'Listado de liquidaciones obtenido correctamente'
+        data: rows.map(row => ({
+            total: row.total * 1,
+            fecha: row.fecha,
+            quienLiquido: row.quienLiquido,
+            did: row.did * 1
+        })),
+        message: "Listado de liquidaciones obtenido correctamente"
     };
 }

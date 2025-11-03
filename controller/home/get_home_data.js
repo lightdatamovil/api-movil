@@ -236,7 +236,7 @@ export async function getHomeData({ db, req, company }) {
 
   }
   return {
-    body: {
+    data: {
       homeData: infoADevolver,
       startedRoute
     },

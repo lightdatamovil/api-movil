@@ -22,7 +22,7 @@ export async function getSettlementShipmentDetails(dbConnection, req, company) {
     if (resultados.length > 0) {
         const row = resultados[0];
         return {
-            body: {
+            data: {
                 total: row.chofer ? parseInt(row.chofer) : 0,
                 didEnvio: parseInt(row.did),
                 direccion: row.direccion || "",

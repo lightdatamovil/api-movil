@@ -27,7 +27,7 @@ export async function getCantidadAsignaciones({ db, req }) {
     }));
 
     return {
-        body: asignaciones,
+        data: asignaciones,
         message: "Datos obtenidos correctamente",
         success: true,
     };

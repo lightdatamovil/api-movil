@@ -24,5 +24,5 @@ export async function driverList({ db }) {
         driverList.push(driver);
     }
 
-    return { body: driverList, message: "Datos obtenidos correctamente" };
+    return { data: driverList, message: "Datos obtenidos correctamente" };
 }   

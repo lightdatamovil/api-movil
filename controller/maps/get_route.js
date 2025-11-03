@@ -126,7 +126,7 @@ export async function getRouteByUserId(dbConnection, req, company) {
         }
     }
     return {
-        body: {
+        data: {
             hasRoute: rutaResult.length > 0,
             shipments: shipments,
             additionalRouteData: additionalRouteData,

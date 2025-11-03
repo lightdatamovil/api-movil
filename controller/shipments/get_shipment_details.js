@@ -51,7 +51,7 @@ export async function shipmentDetails(dbConnection, req) {
     const imagenes = await getImages(dbConnection, shipmentId);
     detallesEnvio["imagenes"] = imagenes;
 
-    return { body: detallesEnvio, message: "Datos obtenidos correctamente" };
+    return { data: detallesEnvio, message: "Datos obtenidos correctamente" };
 }
 async function verifyAssignment(dbConnection, shipmentId, userId) {
     try {

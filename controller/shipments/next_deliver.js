@@ -16,5 +16,5 @@ export async function nextDeliver({ db, req, company }) {
         quien: userId
     })
 
-    return { body: true, message: "Datos obtenidos correctamente" }
+    return { data: true, message: "Datos obtenidos correctamente" }
 }

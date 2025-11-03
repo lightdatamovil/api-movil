@@ -1,4 +1,4 @@
 
 export async function startCollectRoute() {
-    return { body: true, message: "Ruta comenzada correctamente" }
+    return { data: true, message: "Ruta comenzada correctamente" }
 }

@@ -38,7 +38,7 @@ export async function changeProfilePicture(req, company) {
                 });
             }
 
-            return { body: response.data, message: "Datos insertados correctamente" };
+            return { data: response.data, message: "Datos insertados correctamente" };
         } else {
             throw new CustomException({
                 title: 'Error en subida de imagen',

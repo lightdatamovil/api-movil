@@ -281,5 +281,5 @@ export async function shipmentList(dbConnection, req, company) {
     });
   }
 
-  return { body: lista, message: "Datos obtenidos correctamente" };
+  return { data: lista, message: "Datos obtenidos correctamente" };
 }

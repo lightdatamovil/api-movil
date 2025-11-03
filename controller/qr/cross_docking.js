@@ -81,7 +81,7 @@ export async function crossDocking({ db, req, company }) {
     const zones = await companiesService.getZonesByCompany(db, company.did);
 
     return {
-        body: {
+        data: {
             shipmentState: row.shipmentState,
             date: row.date,
             client: clients[row.clientId]?.nombre || "Desconocido",
