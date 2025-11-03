@@ -1,5 +1,4 @@
 import {
-  CustomException,
   executeQuery,
   getFechaConHoraLocalDePais,
   getFechaLocalDePais,
@@ -31,23 +30,6 @@ export async function getHomeData({ db, req, company }) {
     .slice(0, 19)
     .replace("T", " ");
   const nowStr = dateConHora;
-
-  // perfil fallback
-  if (profile == 0) {
-    const rows = await timed("perfil fallback", {
-      dbConnection: db,
-      query:
-        "SELECT perfil FROM sistema_usuarios_accesos WHERE superado = 0 AND elim = 0 AND usuario = ?",
-      values: [userId],
-    });
-    if (!rows?.length) {
-      throw new CustomException({
-        title: "Error al obtener perfil",
-        message: `No se encontró el perfil del usuario con ID ${userId}`,
-      });
-    }
-    profile = parseInt(rows[0].perfil);
-  }
 
   // estados (sin duplicados)
   const estadosPendientes =
