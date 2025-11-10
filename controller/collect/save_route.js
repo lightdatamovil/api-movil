@@ -35,7 +35,7 @@ export async function saveRoute({ db, req, company }) {
             didCliente: client.didCliente,
             didDeposito: client.didDeposito,
             orden: client.orden,
-            demora: client.demora
+            demora: client.ordenLlegada
         })),
         quien: userId,
     });
