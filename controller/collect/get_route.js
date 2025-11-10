@@ -51,7 +51,13 @@ export async function getRoute({ db, req, company }) {
         if (enviosResult.length === 0) {
             return {
                 success: true,
-                data: [],
+                data: {
+                    hasRoute: false,
+                    routeId: null,
+                    additionalRouteData: null,
+                    clients: [],
+                    camino: null
+                },
                 message: "Colecta obtenida correctamente",
                 meta: { total: 0 }
             };
