@@ -16,11 +16,36 @@ export async function getRoute({ db, req, company }) {
 
     if (routeResult.length > 0) {
         const stopsQuery = `
-            SELECT CRP.orden, CRP.didCliente, CRP.didDeposito, cld.ilong, cld.ilat, cld.calle, cld.numero, cld.ciudad, cl.nombre_fantasia
+            SELECT
+
+            CRP.orden,
+            CRP.didCliente,
+            CRP.didDeposito,
+
+            cld.ilong,
+            cld.ilat,
+            cld.calle,
+            cld.numero,
+            cld.ciudad,
+
+            cl.nombre_fantasia
+
             FROM colecta_ruta_paradas AS CRP
-            LEFT JOIN clientes AS cl ON cl.superado = 0 AND cl.elim = 0 AND cl.did = CRP.didCliente
-            LEFT JOIN clientes_direcciones AS cld ON cld.superado = 0 AND cld.elim = 0 AND cld.did = CRP.didDeposito
-            WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ?
+
+            LEFT JOIN clientes AS cl
+            ON cl.superado = 0
+            AND cl.elim = 0
+            AND cl.did = CRP.didCliente
+
+            LEFT JOIN clientes_direcciones AS cld
+            ON cld.superado = 0
+            AND cld.elim = 0
+            AND cld.did = CRP.didDeposito
+
+            WHERE CRP.superado = 0
+            AND CRP.elim = 0
+            AND CRP.didRuta = ?
+
             ORDER BY CRP.orden ASC;
         `;
         const stopsResult = await executeQuery({ db, query: stopsQuery, values: [routeResult[0].did] });
