@@ -1,9 +1,9 @@
 
-import { executeQuery, getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
+import { getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
 
 export async function saveRoute({ db, req, company }) {
     const { userId } = req.user;
-    const { additionalRouteData, clients, cantidad, distancia, total_km, total_minutos, camino } = req.body;
+    const { additionalRouteData, clientsWithWarehouse, cantidad, distancia, total_km, total_minutos, camino } = req.body;
 
     const date = getFechaLocalDePais(company.pais);
 
@@ -27,9 +27,18 @@ export async function saveRoute({ db, req, company }) {
         quien: userId,
     });
 
-
-
-    await executeQuery({ db, query: sql, values: params });
+    await LightdataORM.insert({
+        db,
+        table: "colecta_ruta_paradas",
+        data: clientsWithWarehouse.map((client) => ({
+            didRuta,
+            didCliente: client.didCliente,
+            didDeposito: client.didDeposito,
+            orden: client.orden,
+            demora: client.demora
+        })),
+        quien: userId,
+    });
 
     return { message: "Ruta guardada correctamente" };
 }
