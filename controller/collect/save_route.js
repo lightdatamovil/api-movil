@@ -17,6 +17,7 @@ export async function saveRoute({ db, req, company }) {
             fecha: date,
             cantidad,
             distancia,
+            terminada: 0,
             total_km,
             total_minutos,
             dataRuta: JSON.stringify(additionalRouteData),
