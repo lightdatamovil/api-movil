@@ -28,9 +28,10 @@ export async function saveRoute({ db, req, company }) {
         quien: userId,
     });
 
-    await LightdataORM.insert({
+    await LightdataORM.upsert({
         db,
         table: "colecta_ruta_paradas",
+        where: { didRuta },
         data: clientsWithWarehouse.map((client) => ({
             didRuta,
             didCliente: client.didCliente,
