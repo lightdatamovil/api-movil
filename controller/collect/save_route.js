@@ -7,7 +7,7 @@ export async function saveRoute({ db, req, company }) {
 
     const date = getFechaLocalDePais(company.pais);
 
-    const [didRuta] = await LightdataORM.upsert({
+    const ruta = await LightdataORM.upsert({
         db,
         table: "colecta_ruta",
         where: { fecha: date, didChofer: userId },
@@ -25,15 +25,18 @@ export async function saveRoute({ db, req, company }) {
             quien: userId,
             camino: JSON.stringify(camino)
         },
+        returnRow: true,
+        returnSelect: "did",
         quien: userId,
     });
-
+    console.log("ruta guardada", ruta);
     await LightdataORM.upsert({
         db,
         table: "colecta_ruta_paradas",
-        where: { didRuta },
+        where: { didRuta: ruta.did },
+        versionKey: "didRuta",
         data: clientsWithWarehouse.map((client) => ({
-            didRuta,
+            didRuta: ruta.did,
             didCliente: client.didCliente,
             didDeposito: client.didDeposito,
             orden: client.orden,
