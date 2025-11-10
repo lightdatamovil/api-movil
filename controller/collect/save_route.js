@@ -29,7 +29,7 @@ export async function saveRoute({ db, req, company }) {
         returnSelect: "did",
         quien: userId,
     });
-    console.log("ruta guardada", ruta);
+    console.log("Ruta guardada con ID:", ruta.did);
     await LightdataORM.upsert({
         db,
         table: "colecta_ruta_paradas",

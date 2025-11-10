@@ -28,7 +28,7 @@
     "https": "^1.0.0",
     "image-type": "^5.2.0",
     "jsonwebtoken": "^9.0.2",
-    "lightdata-tools": "^1.4.81",
+    "lightdata-tools": "C:\\Users\\Lightdata\\Desktop\\gon\\proyectos\\lightdata-tools\\src",
     "mysql2": "^3.13.0",
     "node-fetch": "^3.3.2",
     "redis": "^4.6.13",
