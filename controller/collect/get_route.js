@@ -11,7 +11,7 @@ export async function getRoute({ db, req, company }) {
         db,
         table: "colecta_ruta",
         where: { fecha: date, didChofer: userId },
-        select: "did, dataRuta, camino"
+        select: "did, dataRuta, camino",
     });
 
     if (routeResult.length > 0) {
@@ -45,7 +45,7 @@ export async function getRoute({ db, req, company }) {
             db,
             table: "colecta_asignaciones",
             where: { didChofer: userId, fecha: date },
-            select: "dataJson"
+            select: "dataJson",
         });
 
         if (enviosResult.length === 0) {
@@ -56,9 +56,15 @@ export async function getRoute({ db, req, company }) {
                 meta: { total: 0 }
             };
         }
+        const arr = Array.isArray(enviosResult[0]?.dataJson) ? enviosResult[0].dataJson : [];
 
-        const dataJson = enviosResult[0].dataJson ? JSON.parse(enviosResult[0].dataJson) : {};
-        const clientIds = Object.keys(dataJson).map(k => Number(k));
+        const clientIds = arr
+            .map(it => Number(it.cliente))
+            .filter(Number.isFinite);
+
+        if (clientIds.length === 0) {
+            return { success: true, message: "Sin clientes válidos", data: [] };
+        }
 
         const q = `
             SELECT c.did, c.nombre_fantasia,
@@ -93,7 +99,7 @@ export async function getRoute({ db, req, company }) {
             routeId: routeResult.length > 0 ? routeResult[0].did : null,
             additionalRouteData: routeResult.length > 0 ? additionalRouteData : null,
             clients,
-            camino: routeResult.length > 0 ? JSON.parse(routeResult[0].camino).camino : null
+            camino: routeResult.length > 0 ? JSON.parse(routeResult[0].camino) : null
         },
         message: "Ruta obtenida correctamente",
         meta: { totalClients: clients.length }

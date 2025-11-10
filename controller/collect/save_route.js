@@ -7,7 +7,7 @@ export async function saveRoute({ db, req, company }) {
 
     const date = getFechaLocalDePais(company.pais);
 
-    const [didAsuperar] = LightdataORM.insert({
+    const [didRuta] = await LightdataORM.insert({
         db,
         table: "colecta_ruta",
         data: {
@@ -21,17 +21,17 @@ export async function saveRoute({ db, req, company }) {
             total_minutos,
             dataRuta: JSON.stringify(additionalRouteData),
             quien: userId,
-            camino: JSON.stringify({ camino })
+            camino: JSON.stringify(camino)
         }
     });
 
     const rows2 = clients.map(({ orden, cliente, ordenLlegada }) => [
-        didAsuperar,      // didRuta
-        cliente,          // didCliente
-        orden,            // orden
-        ordenLlegada,     // demora
-        date,             // fecha_colectado (yyyy-mm-dd)
-        userId,           // quien
+        didRuta,
+        cliente,
+        orden,
+        ordenLlegada,
+        date,
+        userId,
     ]);
 
     // 2) Armo el derived table como SELECT ... UNION ALL ...
@@ -41,7 +41,6 @@ export async function saveRoute({ db, req, company }) {
 
     const params = rows2.flat();
 
-    // 3) INSERT ... SELECT joineando con clientes_direcciones para resolver didDeposito
     const sql = `
         INSERT INTO colecta_ruta_paradas
         (didRuta, didCliente, didDeposito, orden, demora, fecha_colectado, quien)
@@ -69,8 +68,6 @@ export async function saveRoute({ db, req, company }) {
         `;
 
     await executeQuery({ db, query: sql, values: params });
-
-
 
     return { message: "Ruta guardada correctamente" };
 }
