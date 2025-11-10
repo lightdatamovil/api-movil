@@ -4,7 +4,7 @@ export async function getRoute({ db, req, company }) {
     const { userId } = req.user;
     const date = getFechaLocalDePais(company.pais);
 
-    let clients = [];
+    let clientsWithWarehouse = [];
     let additionalRouteData = null;
 
     const routeResult = await LightdataORM.select({
@@ -16,7 +16,7 @@ export async function getRoute({ db, req, company }) {
 
     if (routeResult.length > 0) {
         const stopsQuery = `
-       SELECT cr.didRuta ,cr.didCliente, cr.orden ,cd.ilong,cd.ilat,c.nombre_fantasia , cd.calle,  cd.numero,cd.localidad , CONCAT(cd.calle, ' ', cd.numero, ', ', cd.ciudad) AS direccion_completa
+       SELECT cr.didRuta ,cr.didCliente, cr.orden ,cd.ilong,cd.did as didDeposito,cd.ilat,c.nombre_fantasia , cd.calle,  cd.numero,cd.localidad , CONCAT(cd.calle, ' ', cd.numero, ', ', cd.ciudad) AS direccion_completa
 FROM colecta_ruta_paradas as cr 
 LEFT JOIN clientes_direcciones as cd on (cd.superado=0 and cd.elim=0 and cr.didCliente=cd.cliente and cr.didDeposito=cd.did ) 
 LEFT JOIN clientes as c on (c.elim=0 and c.superado=0 and c.did=cr.didCliente) 
@@ -32,7 +32,7 @@ where cr.superado=0 and cr.elim=0 and cr.didRuta in (?);
         additionalRouteData.evitoAU = Boolean(additionalRouteData.evitoAU);
         additionalRouteData.start = Number(additionalRouteData.start);
 
-        clients = stopsResult.map(row => ({
+        clientsWithWarehouse = stopsResult.map(row => ({
             orden: row.orden ? Number(row.orden) : null,
             didRuta: row.didRuta ? Number(row.didRuta) : null,
             didCliente: row.didCliente ? Number(row.didCliente) : null,
@@ -92,7 +92,7 @@ where cr.superado=0 and cr.elim=0 and cr.didRuta in (?);
         `;
         const stopsResult = await executeQuery({ db, query: q, values: [clientIds] });
 
-        clients = stopsResult.map(row => ({
+        clientsWithWarehouse = stopsResult.map(row => ({
             orden: null,
             didCliente: row.did ? Number(row.did) : null,
             didDeposito: row.didDeposito ? Number(row.didDeposito) : null,
@@ -111,10 +111,10 @@ where cr.superado=0 and cr.elim=0 and cr.didRuta in (?);
             hasRoute: routeResult.length > 0,
             routeId: routeResult.length > 0 ? routeResult[0].did : null,
             additionalRouteData: routeResult.length > 0 ? additionalRouteData : null,
-            clients,
+            clientsWithWarehouse,
             camino: routeResult.length > 0 ? JSON.parse(routeResult[0].camino) : null
         },
         message: "Ruta obtenida correctamente",
-        meta: { totalClients: clients.length }
+        meta: { totalClients: clientsWithWarehouse.length }
     };
 }
