@@ -7,7 +7,7 @@ export async function saveRoute({ db, req, company }) {
 
     const date = getFechaLocalDePais(company.pais);
 
-    const [didRuta] = await LightdataORM.insert({
+    const [didRuta] = await LightdataORM.upsert({
         db,
         table: "colecta_ruta",
         data: {
