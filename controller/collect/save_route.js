@@ -10,6 +10,7 @@ export async function saveRoute({ db, req, company }) {
     const [didRuta] = await LightdataORM.upsert({
         db,
         table: "colecta_ruta",
+        where: { fecha: date, didChofer: userId },
         data: {
             desde: 2,
             fechaOperativa: date,
