@@ -22,7 +22,8 @@ export async function saveRoute({ db, req, company }) {
             dataRuta: JSON.stringify(additionalRouteData),
             quien: userId,
             camino: JSON.stringify(camino)
-        }
+        },
+        quien: userId,
     });
 
     const rows2 = clients.map(({ orden, cliente, ordenLlegada }) => [
