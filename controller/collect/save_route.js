@@ -60,13 +60,11 @@ export async function saveRoute({ db, req, company }) {
         LEFT JOIN (
         SELECT
             cd.cliente AS didCliente,
-            MIN(cd.did) AS didDeposito   -- elegimos una dirección válida por cliente
+            MIN(cd.did) AS didDeposito
         FROM clientes_direcciones cd
         WHERE cd.superado = 0 AND cd.elim = 0
         GROUP BY cd.cliente
         ) a ON a.didCliente = r.didCliente
-        -- Si querés forzar que exista depósito:
-        -- WHERE a.didDeposito IS NOT NULL
         `;
 
     await executeQuery({ db, query: sql, values: params });
