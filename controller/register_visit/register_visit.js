@@ -113,7 +113,7 @@ export async function registerVisit({ db, req, company }) {
     select: "estado",
   });
 
-  if (company.did === 4 && estadoActual.estado === 5) {
+  if (estadoActual.estado === 5) {
     throw new CustomException({
       title: "El envío ya fue entregado",
       message: "El envío ya fue entregado",
