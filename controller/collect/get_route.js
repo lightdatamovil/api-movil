@@ -61,7 +61,7 @@ where cr.superado=0 and cr.elim=0 and cr.didRuta in (?);
                     hasRoute: false,
                     routeId: null,
                     additionalRouteData: null,
-                    clients: [],
+                    clientsWithWarehouse: [],
                     camino: null
                 },
                 message: "Colecta obtenida correctamente",
