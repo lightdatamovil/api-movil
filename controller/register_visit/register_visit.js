@@ -61,6 +61,12 @@ export async function registerVisit(
         message: "El envío ya fue entregado",
       });
     }
+    if (company.did == 20 && currentShipmentState == 17) {
+      throw new CustomException({
+        title: "El envío ya fue entregado",
+        message: "El envío ya fue entregado",
+      });
+    }
     // Para wynflex si esta entregado
     if (company.did == 72 || company.did == 125 || company.did == 350) {
       const queryEnvios =
