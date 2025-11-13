@@ -1,9 +1,16 @@
-
 import { getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
 
 export async function saveRoute({ db, req, company }) {
     const { userId } = req.user;
-    const { additionalRouteData, clientsWithWarehouse, cantidad, distancia, total_km, total_minutos, camino } = req.body;
+    const {
+        additionalRouteData,
+        clientsWithWarehouse,
+        cantidad,
+        distancia,
+        total_km,
+        total_minutos,
+        camino
+    } = req.body;
 
     const date = getFechaLocalDePais(company.pais);
 
@@ -22,29 +29,34 @@ export async function saveRoute({ db, req, company }) {
             total_km,
             total_minutos,
             dataRuta: JSON.stringify(additionalRouteData),
-            quien: userId,
-            camino: JSON.stringify(camino)
+            camino: JSON.stringify(camino),
         },
         returnRow: true,
         returnSelect: "did",
         quien: userId,
-        log: true
     });
-    console.log("Ruta guardada con ID:", ruta.did);
-    await LightdataORM.upsert({
+
+    await LightdataORM.update({
         db,
         table: "colecta_ruta_paradas",
-        where: { didRuta: ruta.did },   // encuentra todas las paradas vigentes de esa ruta
-        data: clientsWithWarehouse.map(c => ({
+        where: { didRuta: ruta.did },
+        versionKey: "didRuta",
+        data: { superado: 1 },
+        throwIfNotExists: false,
+        quien: userId,
+    });
+
+    await LightdataORM.insert({
+        db,
+        table: "colecta_ruta_paradas",
+        data: clientsWithWarehouse.map(client => ({
             didRuta: ruta.did,
-            didCliente: c.didCliente,
-            didDeposito: c.didDeposito,
-            orden: c.orden,
-            demora: c.ordenLlegada,
-            quien: userId,
+            didCliente: client.didCliente,
+            didDeposito: client.didDeposito,
+            orden: client.orden,
+            demora: client.ordenLlegada,
         })),
         quien: userId,
-        onlyReinsertProvided: true,      // ⬅️ no reinsertar las que ya no vienen en data
     });
 
     return { message: "Ruta guardada correctamente" };
