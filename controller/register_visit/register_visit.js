@@ -19,6 +19,12 @@ export async function registerVisit(
   shipmentState,
   observation,
 ) {
+  if (shipmentState == 0 || shipmentState == null || shipmentState == undefined) {
+    throw new CustomException({
+      title: "No es posible registrar visita",
+      message: "Estado no valido"
+    });
+  }
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
@@ -49,10 +55,20 @@ export async function registerVisit(
       });
     }
 
+    if (currentShipmentState == 5 || currentShipmentState == 9) {
+      throw new CustomException({
+        title: "El envío ya fue entregado",
+        message: "El envío ya fue entregado",
+      });
+    }
+    if (company.did == 20 && currentShipmentState == 17) {
+      throw new CustomException({
+        title: "El envío ya fue entregado",
+        message: "El envío ya fue entregado",
+      });
+    }
     // Para wynflex si esta entregado
-    if (
-      company.did == 72 || company.did == 125 || company.did == 350
-    ) {
+    if (company.did == 72 || company.did == 125 || company.did == 350) {
       const queryEnvios =
         "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
@@ -92,13 +108,6 @@ export async function registerVisit(
       }
     }
 
-
-    if (shipmentState == 0 || shipmentState == null || shipmentState == undefined) {
-      throw new CustomException({
-        title: "No es posible registrar visita",
-        message: "Estado no valido"
-      });
-    }
     const queryRuteoParadas =
       "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
 
@@ -143,32 +152,16 @@ export async function registerVisit(
       userId,
     ]);
 
-    const queryEnvios =
-      "SELECT choferAsignado, estado_envio FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
-    const choferRows = await executeQuery(dbConnection, queryEnvios, [
-      shipmentId,
-    ]);
-
     const queryEnviosNoEntregado =
       "SELECT estado FROM envios_historial WHERE  elim = 0 AND didEnvio = ?";
     const choferRows2 = await executeQuery(dbConnection, queryEnviosNoEntregado, [
       shipmentId
     ]);
 
-    const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
     let estadoInsert;
 
     // Verifica si existe al menos un registro con estado == 6
     let hayEstado6 = Array.isArray(choferRows2) && choferRows2.some(r => Number(r?.estado) === 6);
-
-    if (company.did == 4) {
-      if (currentShipmentState == 5) {
-        throw new CustomException({
-          title: "El envío ya fue entregado",
-          message: "El envío ya fue entregado",
-        });
-      }
-    }
 
     if (company.did == 167) {
       let contadorEstadoNadie = 0;
