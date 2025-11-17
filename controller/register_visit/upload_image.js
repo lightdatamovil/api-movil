@@ -31,8 +31,11 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
 
         const insertQuery = "INSERT INTO envios_fotos (didEnvio, nombre, server, quien, id_estado, estado) VALUES (?, ?, ?, ?, ?, ?)";
 
-        await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
+        const insertFoto = await executeQuery(dbConnection, insertQuery, [shipmentId, response.data, server, userId, lineId, shipmentState]);
+        // updatear did
+        const updateDidQuery = "UPDATE envios_fotos SET did = ? WHERE id = ?";
 
+        await executeQuery(dbConnection, updateDidQuery, [insertFoto.insertId, insertFoto.insertId]);
         // construir un bool si shipmentState es 5 || 10 en true
         const trueSiNadie = (shipmentState === 6 || shipmentState === 10);
 
