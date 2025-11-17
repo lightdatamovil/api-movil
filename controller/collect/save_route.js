@@ -1,84 +1,63 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
-import CustomException from '../../classes/custom_exception.js';
-import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
+import { getFechaLocalDePais, LightdataORM } from 'lightdata-tools';
 
+export async function saveRoute({ db, req, company }) {
+    const { userId } = req.user;
+    const {
+        additionalRouteData,
+        clientsWithWarehouse,
+        cantidad,
+        distancia,
+        total_km,
+        total_minutos,
+        camino
+    } = req.body;
 
-// 
-export async function saveRoute(company, userId, additionalRouteData, orders) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const date = getFechaLocalDePais(company.pais);
 
-    try {
-        let didAsuperar = 0;
+    const ruta = await LightdataORM.upsert({
+        db,
+        table: "colecta_ruta",
+        where: { fecha: date, didChofer: userId },
+        data: {
+            desde: 2,
+            fechaOperativa: date,
+            didChofer: userId,
+            fecha: date,
+            cantidad,
+            distancia,
+            terminada: 0,
+            total_km,
+            total_minutos,
+            dataRuta: JSON.stringify(additionalRouteData),
+            camino: JSON.stringify(camino),
+        },
+        returnRow: true,
+        returnSelect: "did",
+        quien: userId,
+    });
 
-        const rows = await executeQuery(
-            dbConnection,
-            "SELECT did FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND didChofer = ?",
-            [userId]
-        );
+    await LightdataORM.update({
+        db,
+        table: "colecta_ruta_paradas",
+        where: { didRuta: ruta.did },
+        versionKey: "didRuta",
+        data: { superado: 1 },
+        throwIfNotExists: false,
+        quien: userId,
+    });
 
-        if (rows.length == 0) {
-            throw new CustomException({
-                title: 'Error en guardar ruta.',
-                message: 'No se encontró una ruta para superar.',
-            });
-        }
+    await LightdataORM.insert({
+        db,
+        table: "colecta_ruta_paradas",
+        data: clientsWithWarehouse.map(client => ({
+            didRuta: ruta.did,
+            didCliente: client.didCliente,
+            didDeposito: client.didDeposito,
+            orden: client.orden,
+            demora: client.ordenLlegada,
+        })),
+        quien: userId,
+    });
 
-        didAsuperar = rows[0].did;
-
-        await executeQuery(
-            dbConnection,
-            "UPDATE colecta_ruta SET superado = 1 WHERE superado = 0 AND elim = 0 AND did = ? LIMIT 1",
-            [didAsuperar]
-        );
-
-        await executeQuery(
-            dbConnection,
-            "UPDATE colecta_ruta_paradas SET superado = 1 WHERE superado = 0 AND elim = 0 AND didRuta = ?",
-            [didAsuperar]
-        );
-        const date = getFechaConHoraLocalDePais(company.pais);
-        // TODO: Que significa este 2??
-        const result = await executeQuery(
-            dbConnection,
-            "INSERT INTO colecta_ruta (desde, fecha, fechaOperativa, didChofer, quien, dataRuta) VALUES (?, ?, ?, ?, ?, ?)",
-            [2, date, date, userId, userId, JSON.stringify(additionalRouteData)]
-        );
-
-        const newId = result.insertId;
-
-        if (orders.length === 0) {
-            throw new CustomException({
-                title: 'Error en guardar ruta.',
-                message: 'No se encontraron paradas para la ruta.',
-            });
-        }
-
-        const insertParadas = orders.map(({ orden, cliente, ordenLlegada }) =>
-            executeQuery(
-                dbConnection,
-                "INSERT INTO colecta_ruta_paradas (didRuta, didCliente, orden, demora, fecha_colectado, quien) VALUES (?, ?, ?, ?, ?, ?)",
-                [newId, cliente, orden, ordenLlegada, dateYYYYMMDD, userId]
-            )
-        );
-
-        await Promise.all(insertParadas);
-
-        return;
-    } catch (error) {
-        logRed(`Error en saveRoute: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en guardar ruta.',
-            message: error.message,
-            stack: error.stack
-        });
-    } finally {
-        dbConnection.end();
-    }
+    return { message: "Ruta guardada correctamente" };
 }

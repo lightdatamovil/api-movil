@@ -1,95 +1,120 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
-import CustomException from '../../classes/custom_exception.js';
-import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
+import { LightdataORM, executeQuery, getFechaLocalDePais } from "lightdata-tools";
 
+export async function getRoute({ db, req, company }) {
+    const { userId } = req.user;
+    const date = getFechaLocalDePais(company.pais);
 
-// este no preguntar a GONZALO
+    let clientsWithWarehouse = [];
+    let additionalRouteData = null;
 
-export async function getRoute(company, userId) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+    const routeResult = await LightdataORM.select({
+        db,
+        table: "colecta_ruta",
+        where: { fecha: date, didChofer: userId },
+        select: "did, dataRuta, camino",
+    });
 
-    try {
-        let hasRoute, routeId, additionalRouteData, client = null;
-        const date = getFechaConHoraLocalDePais(company.pais);
-        const routeQuery = "SELECT id, did, dataRuta FROM colecta_ruta WHERE superado = 0 AND elim = 0 AND fecha = ? AND didChofer = ?";
-        const routeResult = await executeQuery(dbConnection, routeQuery, [date, userId]);
-
-        if (routeResult.length > 0) {
-            const dataRoute = JSON.parse(routeResult[0].dataRuta);
-            hasRoute = true;
-            routeId = Number(routeResult[0].did);
-            additionalRouteData = {
-                evitoAU: dataRoute.evitoAU,
-                desde: Number(dataRoute.desde),
-                lat: dataRoute.inicioGeo.lat,
-                long: dataRoute.inicioGeo.long
-            };
-
-            const stopsQuery = `
-                SELECT CRP.orden, CRP.didCliente, cld.ilong, cld.ilat, cld.calle, cld.numero, cld.ciudad, cl.nombre_fantasia
-                FROM colecta_ruta_paradas AS CRP
-                LEFT JOIN clientes AS cl ON cl.superado = 0 AND cl.elim = 0 AND cl.did = CRP.didCliente
-                LEFT JOIN clientes_direcciones AS cld ON cld.superado = 0 AND cld.elim = 0 AND cld.cliente = CRP.didCliente
-                WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ? ORDER BY CRP.orden ASC;
-            `;
-            const stopsResult = await executeQuery(dbConnection, stopsQuery, [Adata.didRuta]);
-
-            client = stopsResult.map(row => ({
-                orden: row.orden ? Number(row.orden) : null,
-                didCliente: row.didCliente ? Number(row.didCliente) : null,
-                calle: row.calle || "",
-                numero: String(row.numero || ""),
-                ciudad: row.ciudad || "",
-                latitud: row.ilat ? Number(row.ilat) : null,
-                longitud: row.ilong ? Number(row.ilong) : null,
-                nombreCliente: row.nombre_fantasia || ""
-            }));
-        } else {
-
-            const assignmentQuery = `
-                SELECT ca.didCliente, cd.calle, cd.numero, cd.localidad, cd.ciudad, cd.provincia, cd.ilong, cd.ilat, c.nombre_fantasia
-                FROM colecta_asignacion AS ca
-                LEFT JOIN clientes_direcciones AS cd ON cd.superado = 0 AND cd.elim = 0 AND cd.cliente = ca.didCliente
-                LEFT JOIN clientes AS c ON c.superado = 0 AND c.elim = 0 AND cd.cliente = c.did
-                WHERE ca.fecha LIKE ? AND ca.superado = 0 AND ca.elim = 0 AND ca.didChofer = ? GROUP BY ca.didCliente;
-            `;
-            const assignmentResult = await executeQuery(dbConnection, assignmentQuery, [date, userId]);
-
-            client = assignmentResult.map(row => ({
-                orden: null,
-                didCliente: row.didCliente ? Number(row.didCliente) : null,
-                calle: row.calle || "",
-                numero: String(row.numero || ""),
-                ciudad: row.ciudad || "",
-                localidad: row.localidad || "",
-                provincia: row.provincia || "",
-                latitud: row.ilat ? Number(row.ilat) : null,
-                longitud: row.ilong ? Number(row.ilong) : null,
-                nombreCliente: row.nombre_fantasia || ""
-            }));
-        }
-
-        return {
-            hasRote: hasRoute ?? false,
-            routeId: routeId,
-            additionalRouteData: additionalRouteData,
-            client: client
-        };
-    } catch (error) {
-        logRed(`Error en getRoute: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en obtener ruta.',
-            message: error.message,
-            stack: error.stack
+    if (routeResult.length > 0) {
+        const stopsQuery = `
+       SELECT cr.didRuta ,cr.didCliente, cr.orden ,cd.ilong,cd.did as didDeposito,cd.ilat,c.nombre_fantasia , cd.calle,  cd.numero,cd.localidad , CONCAT(cd.calle, ' ', cd.numero, ', ', cd.ciudad) AS direccion_completa
+FROM colecta_ruta_paradas as cr 
+LEFT JOIN clientes_direcciones as cd on (cd.superado=0 and cd.elim=0 and cr.didCliente=cd.cliente and cr.didDeposito=cd.did ) 
+LEFT JOIN clientes as c on (c.elim=0 and c.superado=0 and c.did=cr.didCliente) 
+where cr.superado=0 and cr.elim=0 and cr.didRuta in (?);
+        `;
+        const stopsResult = await executeQuery({
+            db,
+            query: stopsQuery,
+            values: [routeResult[0].did],
         });
-    } finally {
-        dbConnection.end();
+
+        additionalRouteData = JSON.parse(routeResult[0].dataRuta);
+        additionalRouteData.evitoAU = Boolean(additionalRouteData.evitoAU);
+        additionalRouteData.start = Number(additionalRouteData.start);
+
+        clientsWithWarehouse = stopsResult.map(row => ({
+            orden: row.orden ? Number(row.orden) : null,
+            didRuta: row.didRuta ? Number(row.didRuta) : null,
+            didCliente: row.didCliente ? Number(row.didCliente) : null,
+            didDeposito: row.didDeposito ? Number(row.didDeposito) : null,
+            calle: row.calle,
+            numero: row.numero,
+            ciudad: row.ciudad,
+            direccion: row.direccion_completa,
+            latitud: row.ilat ? Number(row.ilat) : null,
+            longitud: row.ilong ? Number(row.ilong) : null,
+            nombreCliente: row.nombre_fantasia,
+        }));
+
+    } else {
+        const enviosResult = await LightdataORM.select({
+            db,
+            table: "colecta_asignaciones",
+            where: { didChofer: userId, fecha: date },
+            select: "dataJson",
+        });
+
+        if (enviosResult.length === 0) {
+            return {
+                success: true,
+                data: {
+                    hasRoute: false,
+                    routeId: null,
+                    additionalRouteData: null,
+                    clientsWithWarehouse: [],
+                    camino: null
+                },
+                message: "Colecta obtenida correctamente",
+                meta: { total: 0 }
+            };
+        }
+        const arr = Array.isArray(enviosResult[0]?.dataJson) ? enviosResult[0].dataJson : [];
+
+        const clientIds = arr
+            .map(it => Number(it.cliente))
+            .filter(Number.isFinite);
+
+        if (clientIds.length === 0) {
+            return { success: true, message: "Sin clientes válidos", data: [] };
+        }
+
+        const q = `
+            SELECT c.did, c.nombre_fantasia,
+            cd.ilong, cd.ilat, cd.calle, cd.numero, cd.ciudad, cd.did as didDeposito
+            FROM clientes AS c
+            LEFT JOIN clientes_direcciones AS cd
+                ON cd.cliente = c.did
+                AND cd.elim = 0
+                AND cd.superado = 0
+            WHERE c.did IN(?)
+              AND c.superado = 0
+              AND c.elim = 0;
+        `;
+        const stopsResult = await executeQuery({ db, query: q, values: [clientIds] });
+
+        clientsWithWarehouse = stopsResult.map(row => ({
+            orden: null,
+            didCliente: row.did ? Number(row.did) : null,
+            didDeposito: row.didDeposito ? Number(row.didDeposito) : null,
+            calle: row.calle,
+            numero: row.numero,
+            ciudad: row.ciudad,
+            latitud: row.ilat ? Number(row.ilat) : null,
+            longitud: row.ilong ? Number(row.ilong) : null,
+            nombreCliente: row.nombre_fantasia
+        }));
     }
+
+    return {
+        success: true,
+        data: {
+            hasRoute: routeResult.length > 0,
+            routeId: routeResult.length > 0 ? routeResult[0].did : null,
+            additionalRouteData: routeResult.length > 0 ? additionalRouteData : null,
+            clientsWithWarehouse,
+            camino: routeResult.length > 0 ? JSON.parse(routeResult[0].camino) : null
+        },
+        message: "Ruta obtenida correctamente",
+        meta: { totalClients: clientsWithWarehouse.length }
+    };
 }

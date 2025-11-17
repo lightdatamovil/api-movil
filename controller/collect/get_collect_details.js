@@ -1,64 +1,68 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
-import CustomException from '../../classes/custom_exception.js';
-import { getFechaLocalDePais } from '../../src/funciones/getFechaLocalByPais.js';
+import { LightdataORM, executeQuery } from "lightdata-tools";
 
-export async function getCollectDetails(company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getCollectDetails({ db, req }) {
+    const { userId } = req.user;
+    const { date } = req.params;
+    let clients = [];
 
-    try {
-        const datetime = getFechaLocalDePais(company.pais);
-        const clientesResult = await executeQuery(
-            dbConnection,
-            "SELECT did, nombre_fantasia FROM clientes WHERE superado=0 AND elim=0"
-        );
+    const routeResult = await LightdataORM.select({
+        db,
+        table: "colecta_ruta",
+        where: { fecha: date, didChofer: userId },
+        select: "did, dataRuta, camino"
+    });
 
-        let Aclientes = {};
-
-        clientesResult.forEach(row => {
-            Aclientes[row.did] = row.nombre_fantasia;
-        });
-
-        const enviosResult = await executeQuery(
-            dbConnection,
-            `SELECT didCliente, didEnvio 
-             FROM colecta_asignacion 
-             WHERE superado = 0 AND elim = 0 AND didChofer = ? AND fecha = ? `,
-            [userId, datetime]
-        );
-
-        let collectDetails = {};
-
-        enviosResult.forEach(row => {
-            if (!collectDetails[row.didCliente]) {
-                collectDetails[row.didCliente] = {
-                    nombre_fantasia: Aclientes[row.didCliente] || "Cliente desconocido",
-                    total: 0
-                };
-            }
-            collectDetails[row.didCliente].total += 1;
-        });
-
-        let respuesta = Object.entries(collectDetails).map(([id, data]) => ({
-            id,
-            ...data
+    if (routeResult.length > 0) {
+        const stopsQuery = `
+            SELECT CRP.orden, CRP.didCliente, CRP.didDeposito, cl.nombre_fantasia
+            FROM colecta_ruta_paradas AS CRP
+            LEFT JOIN clientes AS cl ON cl.superado = 0 AND cl.elim = 0 AND cl.did = CRP.didCliente
+            WHERE CRP.superado = 0 AND CRP.elim = 0 AND CRP.didRuta = ? ORDER BY CRP.orden ASC;
+        `;
+        const stopsResult = await executeQuery({ db, query: stopsQuery, values: [routeResult[0].did] });
+        clients = stopsResult.map(row => ({
+            orden: row.orden ? Number(row.orden) : null,
+            did: row.didCliente ? Number(row.didCliente) : null,
+            nombre_fantasia: row.nombre_fantasia
         }));
-
-        return respuesta;
-    } catch (error) {
-        logRed(`Error en getCollectDetails: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en obtener detalles de colecta.',
-            message: error.message,
-            stack: error.stack
+    } else {
+        const enviosResult = await LightdataORM.select({
+            db,
+            table: "colecta_asignaciones",
+            where: { didChofer: userId, fecha: date },
+            select: "dataJson"
         });
-    } finally {
-        dbConnection.end();
+
+        if (enviosResult.length === 0) {
+            return {
+                success: true,
+                data: [],
+                message: "Colecta obtenida correctamente",
+                meta: { total: 0 }
+            };
+        }
+
+        const dataJson = enviosResult[0].dataJson ? JSON.parse(enviosResult[0].dataJson) : {};
+        const clientIds = Object.keys(dataJson).map(id => Number(id));
+
+        const stopsResult = await LightdataORM.select({
+            db,
+            table: "clientes",
+            where: { did: clientIds },
+            select: "did, nombre_fantasia"
+        });
+
+        clients = stopsResult.map(row => ({
+            orden: null,
+            did: row.did ? Number(row.did) : null,
+            nombre_fantasia: row.nombre_fantasia
+        }));
     }
+
+    return {
+        success: true,
+        data: clients,
+        message: "Ruta obtenida correctamente",
+        meta: { total: clients.length }
+    };
 }

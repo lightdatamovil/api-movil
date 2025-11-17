@@ -1,24 +1,4 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
-import CustomException from '../../classes/custom_exception.js';
 
-export async function startCollectRoute(company) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
-    try {
-
-        return true;
-    } catch (error) {
-        logRed(`Error en startCollectRoute: ${error.stack}`);
-        if (error instanceof CustomException) {
-            throw error;
-        }
-        throw new CustomException({
-            title: 'Error en iniciar la recolección de ruta.',
-            message: error.message,
-            stack: error.stack
-        });
-    }
+export async function startCollectRoute() {
+    return { data: true, message: "Ruta comenzada correctamente" }
 }

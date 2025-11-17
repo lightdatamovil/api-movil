@@ -1,35 +1,50 @@
-import mysql2 from 'mysql2';
-import { getProdDbConfig } from '../../db.js';
-import CustomException from '../../classes/custom_exception.js';
+import { executeQuery, CustomException, Status } from "lightdata-tools";
 
-export async function getCollectList(company, userId, from, to) {
-    const dbConfig = getProdDbConfig(company);
-    const dbConnection = mysql2.createConnection(dbConfig);
-    dbConnection.connect();
+export async function getCollectList({ db, req }) {
+    const { userId } = req.user;
 
-    try {
-        const query = `
-            SELECT fecha, COUNT(didEnvio) as total 
-            FROM colecta_asignacion 
-            WHERE superado = 0 AND didChofer = ? AND elim = 0 AND fecha BETWEEN ? AND ?
-            GROUP BY fecha
-            `;
+    let from = String(req.params.from ?? "").replace(/^from=/i, "").trim();
+    let to = String(req.params.to ?? "").replace(/^to=/i, "").trim();
 
-        const results = await executeQuery(dbConnection, query, [userId, from, to]);
-
-        const collectList = results.map(row => ({ fecha: row.fecha, total: row.total }));
-
-        return collectList
-    } catch (error) {
-        if (error instanceof CustomException) {
-            throw error;
-        }
+    if (!from || !to) {
         throw new CustomException({
-            title: 'Error en obtener listado de colectas.',
-            message: error.message,
-            stack: error.stack
+            title: "Parámetros inválidos",
+            message: "Debes enviar fechas en la URL: /get-collect-list/:from/:to",
+            status: Status.badRequest
         });
-    } finally {
-        dbConnection.end();
     }
+
+    const isoDate = /^\d{4}-\d{2}-\d{2}$/;
+    if (!isoDate.test(from) || !isoDate.test(to)) {
+        throw new CustomException({
+            title: "Formato de fecha inválido",
+            message: "Usa YYYY-MM-DD en from y to (ej: 2025-09-29)",
+            status: Status.badRequest
+        });
+    }
+
+    if (from > to) [from, to] = [to, from];
+
+    const sql = `
+        SELECT DATE(fecha) AS fecha
+        FROM colecta_asignaciones
+        WHERE superado = 0
+          AND elim = 0
+          AND didChofer = ?
+          AND fecha >= ?
+          AND fecha < DATE_ADD(?, INTERVAL 1 DAY)
+        GROUP BY DATE(fecha)
+        ORDER BY fecha DESC
+    `;
+
+    const rows = await executeQuery({ db, query: sql, values: [userId, from, to] });
+
+    const data = rows.map(r => ({ fecha: r.fecha.toISOString().split("T")[0] }));
+
+    return {
+        success: true,
+        data,
+        message: "Listado de colectas obtenido correctamente",
+        meta: { total: data.length }
+    };
 }
