@@ -120,7 +120,7 @@ home.post("/end-route", verifyToken, async (req, res) => {
     await finishRoute(company, userId);
 
     logGreen(`Ruta terminada exitosamente`);
-    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, "Ruta terminada exitosamente", "/end-route", true);
+    crearLog(companyId, userId, profile, req.body, performance.now() - startTime, { message: "Ruta terminada exitosamente" }, "/end-route", true);
     res.status(200).json({ message: "La ruta ha terminado exitosamente" });
   } catch (error) {
     if (error instanceof CustomException) {
