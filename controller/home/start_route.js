@@ -111,7 +111,8 @@ async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom,
             latitud: null,
             longitud: null,
             operacion: "masivo",
-            didenvios: shipmentIds
+            didenvios: shipmentIds,
+            desde: deviceFrom
         };
         const url = "https://serverestado.lightdata.app/estados/lote";
         const response = await axios.post(url, message);
