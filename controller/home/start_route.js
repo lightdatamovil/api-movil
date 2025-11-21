@@ -1,6 +1,6 @@
 import mysql2 from 'mysql2';
 import axios from 'axios';
-import { executeQuery, getProdDbConfig } from '../../db.js';
+import { axiosInstance, executeQuery, getProdDbConfig } from '../../db.js';
 import { logGreen, logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
@@ -114,8 +114,9 @@ async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom,
             didenvios: shipmentIds,
             desde: deviceFrom
         };
-        const url = "https://serverestado.lightdata.app/estados/lote";
-        const response = await axios.post(url, message);
+
+        const url = "http://10.70.0.69:13000/estados/lote";
+        const response = await axiosInstance.post(url, message);
         logGreen(`✅ Enviado por HTTP con status ${response.status}`);
     } catch (error) {
         logRed(`❌ Falló el envío por HTTP: ${error.message}`);

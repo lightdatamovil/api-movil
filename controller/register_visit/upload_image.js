@@ -1,4 +1,4 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery, axiosInstance } from "../../db.js";
 import mysql2 from 'mysql2';
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
@@ -16,7 +16,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
         const server = 1;
         const url = 'https://files.lightdata.app/upload.php';
 
-        const response = await axios.post(url, reqBody, {
+        const response = await axiosInstance.post(url, reqBody, {
             headers: {
                 'Content-Type': 'application/json'
             }
