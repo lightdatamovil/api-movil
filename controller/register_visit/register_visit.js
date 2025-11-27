@@ -186,8 +186,6 @@ export async function registerVisit(
       // excepcion pocurrier
       estadoInsert = (company.did == 4) ? 6 : 10;
     } else { estadoInsert = shipmentState; }
-    logOrange(`Estado a insertar: ${estadoInsert}`);
-    logOrange(`Latitud: ${latitude}, Longitud: ${longitude}`);
     const response = await sendShipmentStateToStateMicroserviceAPI({
       urlEstadosMicroservice: "http://10.70.0.69:13000/estados",
       axiosInstance,
@@ -197,7 +195,7 @@ export async function registerVisit(
       shipmentId,
       latitude,
       longitude,
-      desde: `APP NUEVA Registro de visita (TEST latitud: ${latitude} longitud: ${longitude})`,
+      desde: `APP NUEVA Registro de visita`,
     });
     const idInsertado = response.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
