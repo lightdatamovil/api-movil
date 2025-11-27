@@ -6,7 +6,15 @@ import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 import { logOrange, sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
+export function generarTokenFechaHoy(country) {
+  const fechaLocal = getFechaLocalDePais(country);
+  const [anio, mes, dia] = fechaLocal.split('-');
 
+  const fechaString = `${dia}${mes}${anio}`;
+  const hash = crypto.createHash('sha256').update(fechaString).digest('hex');
+
+  return hash;
+}
 
 export async function registerVisit(
   company,
@@ -186,17 +194,6 @@ export async function registerVisit(
       // excepcion pocurrier
       estadoInsert = (company.did == 4) ? 6 : 10;
     } else { estadoInsert = shipmentState; }
-    const response = await sendShipmentStateToStateMicroserviceAPI({
-      urlEstadosMicroservice: "http://10.70.0.69:13000/estados",
-      axiosInstance,
-      company,
-      userId,
-      estado: estadoInsert,
-      shipmentId,
-      latitude,
-      longitude,
-      desde: `APP NUEVA Registro de visita`,
-    });
     const message = {
       didempresa: company.did,
       didenvio: shipmentId,
@@ -209,7 +206,10 @@ export async function registerVisit(
       latitud: latitude,
       longitud: longitude,
       desde: `APP NUEVA Registro de visita`,
+      tkn: generarTokenFechaHoy(company.pais),
     };
+    const response = await axiosInstance.post(urlEstadosMicroservice, message);
+
     console.log("Registro de visita enviado a microservicio de estados:", message);
     const idInsertado = response.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
