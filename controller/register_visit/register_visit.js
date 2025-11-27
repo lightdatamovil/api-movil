@@ -208,10 +208,11 @@ export async function registerVisit(
       operacion: desde,
       latitud: latitude,
       longitud: longitude,
-      desde,
+      desde: `APP NUEVA Registro de visita`,
       tkn: generarTokenFechaHoy(company.pais),
     };
-    logOrange(`Registro de visita exitoso: ${JSON.stringify(message)}`);
+    logOrange(`Registro de visita exitoso: ${JSON.stringify(message)
+      }`);
     const idInsertado = response.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
 
@@ -247,7 +248,7 @@ export async function registerVisit(
       shipmentState: estadoInsert,
     };
   } catch (error) {
-    logRed(`Error in register visit: ${JSON.stringify(error)}`);
+    logRed(`Error in register visit: ${JSON.stringify(error)} `);
     if (error instanceof CustomException) {
       throw error;
     }
