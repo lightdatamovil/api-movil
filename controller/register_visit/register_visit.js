@@ -4,15 +4,17 @@ import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-export function generarTokenFechaHoy(country) {
-  const fechaLocal = getFechaLocalDePais(country);
-  const [anio, mes, dia] = fechaLocal.split('-');
 
-  const fechaString = `${dia}${mes}${anio}`;
-  const hash = crypto.createHash('sha256').update(fechaString).digest('hex');
-
-  return hash;
-}
+export const countriesConfig = {
+  1: { tz: 'America/Argentina/Buenos_Aires', locale: 'es-AR' },
+  2: { tz: 'America/Santiago', locale: 'es-CL' },
+  3: { tz: 'America/Sao_Paulo', locale: 'pt-BR' },
+  4: { tz: 'America/Montevideo', locale: 'es-UY' },
+  5: { tz: 'America/Bogota', locale: 'es-CO' },
+  6: { tz: 'America/Mexico_City', locale: 'es-MX' },
+  7: { tz: 'America/Lima', locale: 'es-PE' },
+  8: { tz: 'America/Guayaquil', locale: 'es-EC' },
+};
 export function getFechaLocalDePais(countryId) {
   const conf = countriesConfig[countryId];
   if (!conf) return null;
@@ -37,6 +39,15 @@ export function getFechaLocalDePais(countryId) {
   const año = get('year');
 
   return `${año}-${mes}-${dia}`;
+}
+export function generarTokenFechaHoy(country) {
+  const fechaLocal = getFechaLocalDePais(country);
+  const [anio, mes, dia] = fechaLocal.split('-');
+
+  const fechaString = `${dia}${mes}${anio}`;
+  const hash = crypto.createHash('sha256').update(fechaString).digest('hex');
+
+  return hash;
 }
 export async function registerVisit(
   company,
