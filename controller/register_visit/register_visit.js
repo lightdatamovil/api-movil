@@ -197,6 +197,21 @@ export async function registerVisit(
       longitude,
       desde: `APP NUEVA Registro de visita`,
     });
+    const message = {
+      didempresa: company.did,
+      didenvio: shipmentId,
+      estado: estado,
+      subestado: null,
+      estadoML: null,
+      fecha: getFechaConHoraLocalDePais(company.pais),
+      quien: userId,
+      operacion: desde,
+      latitud: latitude,
+      longitud: longitude,
+      desde,
+      tkn: generarTokenFechaHoy(company.pais),
+    };
+    logOrange(`Registro de visita exitoso: ${JSON.stringify(message)}`);
     const idInsertado = response.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
 
