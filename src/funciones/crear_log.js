@@ -1,3 +1,4 @@
+import { logOrange } from "lightdata-tools";
 import { executeQuery, poolLocal } from "../../db.js";
 import { logGreen, logRed } from "./logsCustom.js";
 
@@ -62,7 +63,7 @@ export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado
         await executeQuery(poolLocal, sqlLog, values);
         logGreen(`Log creado: ${JSON.stringify(values)}`);
     } catch (error) {
-        logRed(`Error en crearLog: ${error.stack}`);
+        logOrange(`Error en crearLog: ${error.stack}`);
         throw error;
     }
 }
