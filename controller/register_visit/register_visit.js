@@ -208,7 +208,7 @@ export async function registerVisit(
       desde: `APP NUEVA Registro de visita`,
       tkn: generarTokenFechaHoy(company.pais),
     };
-    const response = await axiosInstance.post(urlEstadosMicroservice, message);
+    const response = await axiosInstance.post("http://10.70.0.69:13000/estados", message);
 
     console.log("Registro de visita enviado a microservicio de estados:", message);
     const idInsertado = response.id;
