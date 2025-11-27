@@ -4,8 +4,6 @@ import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
-import { logOrange, sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
 export function generarTokenFechaHoy(country) {
   const fechaLocal = getFechaLocalDePais(country);
   const [anio, mes, dia] = fechaLocal.split('-');
@@ -15,7 +13,31 @@ export function generarTokenFechaHoy(country) {
 
   return hash;
 }
+export function getFechaLocalDePais(countryId) {
+  const conf = countriesConfig[countryId];
+  if (!conf) return null;
 
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat(conf.locale, {
+    timeZone: conf.tz,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(now);
+
+  const get = (type) => parts.find(p => p.type === type)?.value;
+
+  const dia = get('day');
+  const mes = get('month');
+  const año = get('year');
+
+  return `${año}-${mes}-${dia}`;
+}
 export async function registerVisit(
   company,
   userId,
