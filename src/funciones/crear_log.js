@@ -1,5 +1,6 @@
+import { logOrange } from "lightdata-tools";
 import { executeQuery, poolLocal } from "../../db.js";
-import { logCyan, logGreen, logRed } from "./logsCustom.js";
+import { logGreen, logRed } from "./logsCustom.js";
 
 export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito) {
     try {
@@ -20,7 +21,27 @@ export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado
         if (endpointClean === '/upload-image' || endpointClean === '/change-profile-picture') {
             bodyObj.image = 'Imagen eliminada por logs';
         }
+        const sqlCreate = `
+            CREATE TABLE IF NOT EXISTS logs_v2 (
+                id INT(11) NOT NULL AUTO_INCREMENT,
+                empresa INT(11) DEFAULT NULL,
+                usuario INT(11) DEFAULT NULL,
+                perfil INT(11) DEFAULT NULL,
+                body VARCHAR(1024) DEFAULT NULL,
+                tiempo VARCHAR(150) DEFAULT NULL,
+                resultado VARCHAR(1024) DEFAULT NULL,
+                endpoint VARCHAR(255) DEFAULT NULL,
+                autofecha DATETIME DEFAULT CURRENT_TIMESTAMP(),
+                exito TINYINT(1) DEFAULT NULL,
+                PRIMARY KEY (id),
+                KEY idx_empresa (empresa),
+                KEY idx_usuario (usuario),
+                KEY idx_perfil (perfil),
+                KEY idx_empresa_usuario (empresa, usuario)
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+        `;
 
+        await executeQuery(poolLocal, sqlCreate);
         const sqlLog = `
             INSERT INTO logs_v2
                 (empresa, usuario, perfil, body, tiempo, resultado, endpoint, exito)
@@ -42,7 +63,7 @@ export async function crearLog(empresa, usuario, perfil, body, tiempo, resultado
         await executeQuery(poolLocal, sqlLog, values);
         logGreen(`Log creado: ${JSON.stringify(values)}`);
     } catch (error) {
-        logRed(`Error en crearLog: ${error.stack}`);
+        logOrange(`Error en crearLog: ${error.stack}`);
         throw error;
     }
 }

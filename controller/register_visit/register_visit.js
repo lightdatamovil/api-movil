@@ -4,10 +4,83 @@ import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
-import { sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
+import crypto from 'crypto';
 
+export const countriesConfig = {
+  1: { tz: 'America/Argentina/Buenos_Aires', locale: 'es-AR' },
+  2: { tz: 'America/Santiago', locale: 'es-CL' },
+  3: { tz: 'America/Sao_Paulo', locale: 'pt-BR' },
+  4: { tz: 'America/Montevideo', locale: 'es-UY' },
+  5: { tz: 'America/Bogota', locale: 'es-CO' },
+  6: { tz: 'America/Mexico_City', locale: 'es-MX' },
+  7: { tz: 'America/Lima', locale: 'es-PE' },
+  8: { tz: 'America/Guayaquil', locale: 'es-EC' },
+};
+export function getFechaConHoraLocalDePais(countryId) {
+  const conf = countriesConfig[countryId];
+  if (!conf) {
+    return null;
+  }
+  if (!conf) return null;
 
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat(conf.locale, {
+    timeZone: conf.tz,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(now);
+
+  const get = (type) => parts.find(p => p.type === type)?.value;
+
+  const dia = get('day');
+  const mes = get('month');
+  const año = get('year');
+  const hora = get('hour');
+  const minuto = get('minute');
+  const segundo = get('second');
+  return `${año}-${mes}-${dia} ${hora}:${minuto}:${segundo}`;
+}
+
+export function getFechaLocalDePais(countryId) {
+  const conf = countriesConfig[countryId];
+  if (!conf) return null;
+
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat(conf.locale, {
+    timeZone: conf.tz,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(now);
+
+  const get = (type) => parts.find(p => p.type === type)?.value;
+
+  const dia = get('day');
+  const mes = get('month');
+  const año = get('year');
+
+  return `${año}-${mes}-${dia}`;
+}
+export function generarTokenFechaHoy(country) {
+  const fechaLocal = getFechaLocalDePais(country);
+  const [anio, mes, dia] = fechaLocal.split('-');
+
+  const fechaString = `${dia}${mes}${anio}`;
+  const hash = crypto.createHash('sha256').update(fechaString).digest('hex');
+
+  return hash;
+}
 export async function registerVisit(
   company,
   userId,
@@ -186,17 +259,23 @@ export async function registerVisit(
       // excepcion pocurrier
       estadoInsert = (company.did == 4) ? 6 : 10;
     } else { estadoInsert = shipmentState; }
-    const response = await sendShipmentStateToStateMicroserviceAPI({
-      urlEstadosMicroservice: "http://10.70.0.69:13000/estados",
-      axiosInstance,
-      company,
-      userId,
+    const message = {
+      didempresa: company.did,
+      didenvio: shipmentId,
       estado: estadoInsert,
-      shipmentId,
-      latitude,
-      longitude,
+      subestado: null,
+      estadoML: null,
+      fecha: getFechaConHoraLocalDePais(company.pais),
+      quien: userId,
+      operacion: `APP NUEVA Registro de visita`,
+      latitud: latitude,
+      longitud: longitude,
       desde: `APP NUEVA Registro de visita`,
-    });
+      tkn: generarTokenFechaHoy(company.pais),
+    };
+    const response = await axiosInstance.post("http://10.70.0.69:13000/estados", message);
+
+    console.log("Registro de visita enviado a microservicio de estados:", message);
     const idInsertado = response.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
 
@@ -232,7 +311,7 @@ export async function registerVisit(
       shipmentState: estadoInsert,
     };
   } catch (error) {
-    logRed(`Error in register visit: ${JSON.stringify(error)}`);
+    logRed(`Error in register visit: ${JSON.stringify(error)} `);
     if (error instanceof CustomException) {
       throw error;
     }

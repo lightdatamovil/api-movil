@@ -1,4 +1,4 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery, axiosInstance } from "../../db.js";
 import mysql2 from 'mysql2';
 import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
@@ -16,7 +16,7 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
         const server = 1;
         const url = 'https://files.lightdata.app/upload.php';
 
-        const response = await axios.post(url, reqBody, {
+        const response = await axiosInstance.post(url, reqBody, {
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -40,7 +40,6 @@ export async function uploadImage(company, shipmentId, userId, shipmentState, im
         const trueSiNadie = (shipmentState === 6 || shipmentState === 10);
 
         if (companyId == 334 && trueSiNadie) {
-            console.log("Entro en la condicion especial de nadie JJJM");
             //insertar conFoto = 1 en envios historial
             const updateQuery = "UPDATE envios_historial SET conFoto = 1 WHERE didEnvio = ?  and elim = 0 and superado = 0 LIMIT 1";
             await executeQuery(dbConnection, updateQuery, [shipmentId]);

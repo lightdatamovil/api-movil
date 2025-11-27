@@ -9,7 +9,7 @@ import users from './routes/users.js';
 import map from './routes/map.js';
 import settlements from './routes/settlements.js';
 import registerVisitRoute from './routes/registerVisit.js';
-import collect from './routes/collect.js';
+// import collect from './routes/collect.js';
 import { getCompanyById, redisClient } from './db.js';
 import { getUrls } from './src/funciones/urls.js';
 import { logBlue, logPurple, logRed } from './src/funciones/logsCustom.js';
@@ -92,7 +92,7 @@ if (cluster.isMaster) {
             app.use('/api/home', home);
             app.use('/api/users', users);
             app.use('/api/map', map);
-            app.use("/api/collect", collect)
+            // app.use("/api/collect", collect)
             app.use("/api/register-visit", registerVisitRoute);
             ///
             app.listen(PORT, '0.0.0.0', () => {
