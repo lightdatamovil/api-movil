@@ -15,8 +15,11 @@ export const countriesConfig = {
   7: { tz: 'America/Lima', locale: 'es-PE' },
   8: { tz: 'America/Guayaquil', locale: 'es-EC' },
 };
-export function getFechaLocalDePais(countryId) {
+export function getFechaConHoraLocalDePais(countryId) {
   const conf = countriesConfig[countryId];
+  if (!conf) {
+    return null;
+  }
   if (!conf) return null;
 
   const now = new Date();
@@ -37,8 +40,10 @@ export function getFechaLocalDePais(countryId) {
   const dia = get('day');
   const mes = get('month');
   const año = get('year');
-
-  return `${año}-${mes}-${dia}`;
+  const hora = get('hour');
+  const minuto = get('minute');
+  const segundo = get('second');
+  return `${año}-${mes}-${dia} ${hora}:${minuto}:${segundo}`;
 }
 export function generarTokenFechaHoy(country) {
   const fechaLocal = getFechaLocalDePais(country);
