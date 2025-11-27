@@ -205,7 +205,7 @@ export async function registerVisit(
       estadoML: null,
       fecha: getFechaConHoraLocalDePais(company.pais),
       quien: userId,
-      operacion: desde,
+      operacion: `APP NUEVA Registro de visita`,
       latitud: latitude,
       longitud: longitude,
       desde: `APP NUEVA Registro de visita`,
