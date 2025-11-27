@@ -4,6 +4,7 @@ import axios from "axios";
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
+import crypto from 'crypto';
 
 export const countriesConfig = {
   1: { tz: 'America/Argentina/Buenos_Aires', locale: 'es-AR' },
