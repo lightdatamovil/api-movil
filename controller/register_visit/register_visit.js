@@ -6,7 +6,6 @@ import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
 import { logOrange, sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
-import { generarTokenFechaHoy } from "lightdata-tools/endpoints/send_shipment_state_to_state_microservice.js";
 
 
 export async function registerVisit(
@@ -210,7 +209,6 @@ export async function registerVisit(
       latitud: latitude,
       longitud: longitude,
       desde: `APP NUEVA Registro de visita`,
-      tkn: generarTokenFechaHoy(company.pais),
     };
     logOrange(`Registro de visita exitoso: ${JSON.stringify(message)
       }`);
