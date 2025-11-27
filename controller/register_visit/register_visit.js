@@ -200,7 +200,7 @@ export async function registerVisit(
     const message = {
       didempresa: company.did,
       didenvio: shipmentId,
-      estado: estado,
+      estado: estadoInsert,
       subestado: null,
       estadoML: null,
       fecha: getFechaConHoraLocalDePais(company.pais),
