@@ -32,7 +32,7 @@ export async function getShipmentIdFromQr(dataQr, company) {
 
                 const senderId = LogisticaConf.getSenderId(company.did)
 
-                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? AND didCliente = ? and superado = 0 AND elim = 0`;
+                const queryEnvios = `SELECT did FROM envios WHERE ml_shipment_id = ? ${LogisticaConf.getExisteSioSi(company.did) ? "" : "AND didCliente = ? "}and superado = 0 AND elim = 0`;
                 const resultQueryEnvios = await executeQuery(dbConnection, queryEnvios, [dataQr, senderId]);
 
                 if (resultQueryEnvios.length == 0) {

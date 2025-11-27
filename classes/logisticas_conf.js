@@ -17,6 +17,7 @@ export default class LogisticaConf {
     static hasObligatoryDniAndNameOnRegisterVisit = [4, 97, 217];
     static adminsCanRegisterVisit = [144, 162, 198, 202, 221];
     static driversWithoutProcessingPlant = [108];
+    static existeSioSi = [12];
 
     static hasBarcodeEnabled(did) {
         return String(did) in this.tieneBarcode;
@@ -53,4 +54,8 @@ export default class LogisticaConf {
     static driversWithoutProcessingPlantEnabled(did) {
         return this.driversWithoutProcessingPlant.includes(did * 1);
     }
+    static getExisteSioSi(did) {
+        return this.existeSioSi.includes(Number(did));
+    }
+
 }
