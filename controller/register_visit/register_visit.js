@@ -210,8 +210,7 @@ export async function registerVisit(
       longitud: longitude,
       desde: `APP NUEVA Registro de visita`,
     };
-    logOrange(`Registro de visita exitoso: ${JSON.stringify(message)
-      }`);
+    console.log("Registro de visita enviado a microservicio de estados:", message);
     const idInsertado = response.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
 
