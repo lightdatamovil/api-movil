@@ -50,6 +50,8 @@ export async function identification(company) {
             hasBarcode: LogisticaConf.hasBarcodeEnabled(company.did),
             hasProductsQr: LogisticaConf.hasProductsQrEnabled(company.did),
             hasEnvioFoto: LogisticaConf.hasEnvioFotoEnabled(company.did),
+            adminsCanRegisterVisits: LogisticaConf.adminsCanRegisterVisitEnabled(company.did),
+            driversWithoutProcessingPlant: LogisticaConf.driversWithoutProcessingPlantEnabled(company.did),
         };
 
         return result;

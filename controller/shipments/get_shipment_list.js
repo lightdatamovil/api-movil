@@ -9,6 +9,7 @@ export async function shipmentList(
   userId,
   profile,
   from,
+  to,
   shipmentStates,
   isAssignedToday
 ) {
@@ -58,7 +59,7 @@ export async function shipmentList(
     const a = isAssignedToday ? "" : "LEFT";
     const c = isAssignedToday
       ? `AND ea.autofecha > '${date} 00:00:00'`
-      : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${date} 23:59:59'`;
+      : `AND eh.fecha BETWEEN '${from} 00:00:00' AND '${to ?? date} 23:59:59'`;
 
     if (shipmentStates.length == 0) {
       return [];
@@ -144,7 +145,11 @@ export async function shipmentList(
             GROUP BY eh.didEnvio
     ORDER BY rp.orden ASC
     `;
-
+    const stripHashes = (v) =>
+      String(v ?? '')
+        .replace(/#/g, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
     const rows = await executeQuery(dbConnection, query, []);
     const lista = [];
     for (const row of rows) {
@@ -191,8 +196,8 @@ export async function shipmentList(
         fechaHistorial: row.fecha_historial || null,
         estadoAsignacion: estadoAsignacionVal * 1,
         nombreDestinatario: row.destination_receiver_name,
-        direccion1: direccion1,
-        direccion2: `CP ${cp}, ${localidad} `,
+        direccion1: stripHashes(direccion1),
+        direccion2: `CP ${stripHashes(cp)}, ${stripHashes(localidad)} `,
         provincia: row.provincia || "Sin provincia",
         telefono: row.destination_receiver_phone,
         lat: lat,

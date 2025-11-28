@@ -1,7 +1,7 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery, axiosInstance } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
-import { logCyan, logPurple, logRed, logYellow } from "../../src/funciones/logsCustom.js";
+import { logCyan, logRed, logYellow } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 
 
@@ -24,12 +24,11 @@ export async function altaEnvioFoto(company, req) {
       "data": { idEmpresa: companyId, quien: userId, enviosDireccionesDestino: enviosDireccionesDestino, elim: 69, lote: "envioFoto" },
     };
 
-    const response = await axios.post(url, reqBody, {
+    const response = await axiosInstance.post(url, reqBody, {
       headers: {
         'Content-Type': 'application/json'
       }
     });
-    logPurple(`Response de altaEnvioFoto: ${JSON.stringify(response.data)}`);
 
     if (!response.data) {
       throw new CustomException({
@@ -43,7 +42,7 @@ export async function altaEnvioFoto(company, req) {
       const reqBody = { image, shipmentId, companyId };
       const url = 'https://files.lightdata.app/upload_foto_envios.php';
 
-      const res = await axios.post(url, reqBody, {
+      const res = await axiosInstance.post(url, reqBody, {
         headers: {
           'Content-Type': 'application/json'
         }
@@ -58,7 +57,7 @@ export async function altaEnvioFoto(company, req) {
 
       const insertQuery = "INSERT INTO envios_fotos (elim, didEnvio, nombre, server, quien ) VALUES ( 69, ?, ?, ?, ?)";
 
-      await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId], true);
+      await executeQuery(dbConnection, insertQuery, [shipmentId, res.data, server, userId]);
       logYellow(`Imagen subida correctamente para el envio: ${shipmentId}`);
 
       const url_assignment = `https://asignaciones.lightdata.app/api/asignaciones/asignar-web`;
@@ -79,12 +78,11 @@ export async function altaEnvioFoto(company, req) {
       };
 
       logCyan(`ReqBody Asignar: ${JSON.stringify(req_body_asignar)}`);
-      const response_assign = await axios.post(url_assignment, req_body_asignar, {
+      const response_assign = await axiosInstance.post(url_assignment, req_body_asignar, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      logPurple(`Response de asignacion de envio: ${JSON.stringify(response_assign.data)}`);
       if (!response_assign.data) {
         throw new CustomException({
           title: 'Error en asignacion de envio',

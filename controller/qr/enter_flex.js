@@ -1,9 +1,9 @@
-import { executeQuery, getProdDbConfig } from "../../db.js";
+import { axiosInstance, executeQuery, getProdDbConfig } from "../../db.js";
 import mysql2 from 'mysql2';
 import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
-import { sendToShipmentStateMicroService } from "../../src/funciones/sendToShipmentStateMicroService.js";
 import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
+import { sendShipmentStateToStateMicroserviceAPI } from "lightdata-tools";
 
 export async function enterFlex(company, dataQr, userId, profile) {
     const dbConfig = getProdDbConfig(company);
@@ -88,7 +88,17 @@ export async function enterFlex(company, dataQr, userId, profile) {
                 shipmentState = 7;
             }
 
-            await sendToShipmentStateMicroService(company.did, userId, shipmentState, shipmentId);
+            await sendShipmentStateToStateMicroserviceAPI({
+                urlEstadosMicroservice: "https://serverestado.lightdata.app/estados",
+                axiosInstance,
+                company,
+                userId,
+                estado: shipmentState,
+                shipmentId,
+                latitude: 0,
+                longitude: 0,
+                desde: "Ingresar Flex App"
+            });
             // await setShipmentState(dbConnection, shipmentId, shipmentState, "");
 
             if (profile === 3) {

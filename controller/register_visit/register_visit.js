@@ -1,12 +1,86 @@
-import { getProdDbConfig, executeQuery } from "../../db.js";
+import { getProdDbConfig, executeQuery, axiosInstance } from "../../db.js";
 import mysql2 from "mysql2";
 import axios from "axios";
-import { logPurple, logRed } from "../../src/funciones/logsCustom.js";
+import { logRed } from "../../src/funciones/logsCustom.js";
 import CustomException from "../../classes/custom_exception.js";
 import { getTokenMLconMasParametros } from "../../src/funciones/getTokenMLconMasParametros.js";
-import { getFechaConHoraLocalDePais } from "../../src/funciones/getFechaConHoraLocalByPais.js";
+import crypto from 'crypto';
 
+export const countriesConfig = {
+  1: { tz: 'America/Argentina/Buenos_Aires', locale: 'es-AR' },
+  2: { tz: 'America/Santiago', locale: 'es-CL' },
+  3: { tz: 'America/Sao_Paulo', locale: 'pt-BR' },
+  4: { tz: 'America/Montevideo', locale: 'es-UY' },
+  5: { tz: 'America/Bogota', locale: 'es-CO' },
+  6: { tz: 'America/Mexico_City', locale: 'es-MX' },
+  7: { tz: 'America/Lima', locale: 'es-PE' },
+  8: { tz: 'America/Guayaquil', locale: 'es-EC' },
+};
+export function getFechaConHoraLocalDePais(countryId) {
+  const conf = countriesConfig[countryId];
+  if (!conf) {
+    return null;
+  }
+  if (!conf) return null;
 
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat(conf.locale, {
+    timeZone: conf.tz,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(now);
+
+  const get = (type) => parts.find(p => p.type === type)?.value;
+
+  const dia = get('day');
+  const mes = get('month');
+  const año = get('year');
+  const hora = get('hour');
+  const minuto = get('minute');
+  const segundo = get('second');
+  return `${año}-${mes}-${dia} ${hora}:${minuto}:${segundo}`;
+}
+
+export function getFechaLocalDePais(countryId) {
+  const conf = countriesConfig[countryId];
+  if (!conf) return null;
+
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat(conf.locale, {
+    timeZone: conf.tz,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(now);
+
+  const get = (type) => parts.find(p => p.type === type)?.value;
+
+  const dia = get('day');
+  const mes = get('month');
+  const año = get('year');
+
+  return `${año}-${mes}-${dia}`;
+}
+export function generarTokenFechaHoy(country) {
+  const fechaLocal = getFechaLocalDePais(country);
+  const [anio, mes, dia] = fechaLocal.split('-');
+
+  const fechaString = `${dia}${mes}${anio}`;
+  const hash = crypto.createHash('sha256').update(fechaString).digest('hex');
+
+  return hash;
+}
 export async function registerVisit(
   company,
   userId,
@@ -17,15 +91,18 @@ export async function registerVisit(
   longitude,
   shipmentState,
   observation,
-  appVersion,
 ) {
+  if (shipmentState == 0 || shipmentState == null || shipmentState == undefined) {
+    throw new CustomException({
+      title: "No es posible registrar visita",
+      message: "Estado no valido"
+    });
+  }
   const dbConfig = getProdDbConfig(company);
   const dbConnection = mysql2.createConnection(dbConfig);
   dbConnection.connect();
 
   try {
-    const date = getFechaConHoraLocalDePais(company.pais);
-    logPurple(`Registering visit for shipment ${shipmentId} at ${date} with user ${userId}`);
     const queryEnviosHistorial =
       "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
 
@@ -51,11 +128,20 @@ export async function registerVisit(
       });
     }
 
+    if (currentShipmentState == 5 || currentShipmentState == 9) {
+      throw new CustomException({
+        title: "El envío ya fue entregado",
+        message: "El envío ya fue entregado",
+      });
+    }
+    if (company.did == 20 && currentShipmentState == 17) {
+      throw new CustomException({
+        title: "El envío ya fue entregado",
+        message: "El envío ya fue entregado",
+      });
+    }
     // Para wynflex si esta entregado
-    if (
-      currentShipmentState == 5 &&
-      (company.did == 72 || company.did == 125)
-    ) {
+    if (company.did == 72 || company.did == 125 || company.did == 350) {
       const queryEnvios =
         "SELECT didCliente, didCuenta, flex FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
 
@@ -94,13 +180,6 @@ export async function registerVisit(
         }
       }
     }
-
-    // if (currentShipmentState == 5 || currentShipmentState == 9 || currentShipmentState == 14 || currentShipmentState == 17) {
-    //   throw new CustomException({
-    //     title: "No es posible registrar visita",
-    //     message: "El envío ya fue entregado o devuelto al cliente",
-    //   });
-    // }
 
     const queryRuteoParadas =
       "UPDATE ruteo_paradas SET cerrado = 1 WHERE superado = 0 AND elim = 0 AND didPaquete = ?";
@@ -146,87 +225,62 @@ export async function registerVisit(
       userId,
     ]);
 
-    const queryEnvios =
-      "SELECT choferAsignado, estado_envio FROM envios WHERE superado = 0 AND elim = 0 AND did = ?";
-    const choferRows = await executeQuery(dbConnection, queryEnvios, [
-      shipmentId,
-    ]);
-
     const queryEnviosNoEntregado =
       "SELECT estado FROM envios_historial WHERE  elim = 0 AND didEnvio = ?";
     const choferRows2 = await executeQuery(dbConnection, queryEnviosNoEntregado, [
       shipmentId
-    ], true);
+    ]);
 
-
-
-    const assignedDriverId = choferRows[0]?.choferAsignado ?? null;
     let estadoInsert;
 
-    //verificar si el estado es nadie (6) y se entrego en 2da visita (9)
+    // Verifica si existe al menos un registro con estado == 6
+    let hayEstado6 = Array.isArray(choferRows2) && choferRows2.some(r => Number(r?.estado) === 6);
 
-    if (company.did == 12) {
-      const row = choferRows2.find(r => r.estado == 6);
-      if (row && currentShipmentState == 6) {
-        currentShipmentState == 6
-        estadoInsert = 10; // directamente, porque encontramos un estado 6 en historial
-      }
-    }
-
-    if (company.did == 4) {
-      if (currentShipmentState == 5) {
-        throw new CustomException({
-          title: "El envío ya fue entregado",
-          message: "El envío ya fue entregado",
-        });
+    if (company.did == 167) {
+      let contadorEstadoNadie = 0;
+      for (const row of choferRows2) {
+        const estado = Number(row?.estado);
+        if (estado === 6 || estado === 9) {
+          contadorEstadoNadie++;
+          if (contadorEstadoNadie > 2) {
+            throw new CustomException({
+              title: "Alcanzaste el limite de estados nadie",
+              message: "No se puede registrar la visita porque hay más de dos estados nadie.",
+            });
+          }
+        }
       }
     }
 
     // si el currentShipmentState es nadie (6) estadoInert = 10 sino shipmentState
-    if (currentShipmentState == 6 && shipmentState == 5) {
+    if (hayEstado6 && shipmentState == 5) {
       estadoInsert = 9;
-    } else {
-      estadoInsert = currentShipmentState == 6 ? 10 : shipmentState;
-    }
+    } else if (hayEstado6 && shipmentState == 6) {
+      // excepcion pocurrier
+      estadoInsert = (company.did == 4) ? 6 : 10;
+    } else { estadoInsert = shipmentState; }
+    const message = {
+      didempresa: company.did,
+      didenvio: shipmentId,
+      estado: estadoInsert,
+      subestado: null,
+      estadoML: null,
+      fecha: getFechaConHoraLocalDePais(company.pais),
+      quien: userId,
+      operacion: `APP NUEVA Registro de visita`,
+      latitud: latitude,
+      longitud: longitude,
+      desde: `APP NUEVA Registro de visita`,
+      tkn: generarTokenFechaHoy(company.pais),
+    };
+    const response = await axiosInstance.post("https://serverestado.lightdata.app/estados", message);
 
-    if (company.did == 4) {
-      estadoInsert = currentShipmentState == 6 ? 6 : shipmentState;
-    }
+    console.log("Registro de visita enviado a microservicio de estados:", message);
+    const idInsertado = response.data.id;
+    const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
 
+    await executeQuery(dbConnection, queryUpdate, [estadoInsert, shipmentId]);
 
-
-
-    const queryInsertEnviosHistorial =
-      "INSERT INTO envios_historial (didEnvio, estado, didCadete, fecha, desde, quien) VALUES (?, ?, ?, ?, ?, ?)";
-    const historialResult = await executeQuery(
-      dbConnection,
-      queryInsertEnviosHistorial,
-      [shipmentId, estadoInsert, assignedDriverId, date, `APP NUEVA ${appVersion} `, userId], true
-    );
-
-    const idInsertado = historialResult.insertId;
-
-    const updates = [
-      {
-        query:
-          "UPDATE envios_historial SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?",
-        values: [shipmentId, idInsertado],
-      },
-      {
-        query:
-          "UPDATE envios SET estado_envio = ? WHERE superado = 0 AND did = ? AND elim = 0",
-        values: [estadoInsert, shipmentId],
-      },
-      {
-        query:
-          "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0",
-        values: [estadoInsert, shipmentId],
-      },
-    ];
-
-    for (const { query, values } of updates) {
-      await executeQuery(dbConnection, query, values);
-    }
 
     if (observation) {
       const queryInsertObservaciones =
@@ -237,6 +291,11 @@ export async function registerVisit(
         queryInsertObservaciones,
         [shipmentId, observation, userId]
       );
+
+      await executeQuery(dbConnection, "UPDATE envios_observaciones SET did = ? WHERE id = ?", [
+        obsResult.insertId,
+        obsResult.insertId
+      ]);
 
       const queryUpdateEnviosObservaciones =
         "UPDATE envios_observaciones SET superado = 1 WHERE superado = 0 AND didEnvio = ? AND elim = 0 AND id != ?";
@@ -252,7 +311,7 @@ export async function registerVisit(
       shipmentState: estadoInsert,
     };
   } catch (error) {
-    logRed(`Error in register visit: ${JSON.stringify(error)}`);
+    logRed(`Error in register visit: ${JSON.stringify(error)} `);
     if (error instanceof CustomException) {
       throw error;
     }

@@ -25,6 +25,16 @@ export async function saveRoute(company, userId, orders, distance, totalDelay, a
         }
         const dateConHora = getFechaLocalDePais(company.pais);
         // TODO: Que significa este 2??
+
+
+        // procurrier
+        if (company.did == 4) {
+            // distancia dividir por 1000 redondear por dos decimales
+            distance = Math.round((distance / 1000) * 100) / 100;
+        }
+
+        // console.log("distance", distance);
+
         const result = await executeQuery(
             dbConnection,
             "INSERT INTO ruteo (desde, fecha, fechaOperativa, didChofer, distancia, tiempo, quien, dataDeRuta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

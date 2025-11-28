@@ -1,6 +1,7 @@
 import imageType from 'image-type';
 import axios from 'axios';
 import CustomException from "../../classes/custom_exception.js";
+import { axiosInstance } from '../../db.js';
 
 export async function changeProfilePicture(company, userId, profile, image, dateYYYYMMDD) {
     if (image && image !== "") {
@@ -26,7 +27,7 @@ export async function changeProfilePicture(company, userId, profile, image, date
                 },
             };
 
-            const response = await axios.post('https://files.lightdata.app/upload_perfil.php', data, config)
+            const response = await axiosInstance.post('https://files.lightdata.app/upload_perfil.php', data, config)
 
             if (response.data.error) {
                 throw new CustomException({

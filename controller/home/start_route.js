@@ -1,6 +1,7 @@
 import mysql2 from 'mysql2';
-import { executeQuery, getProdDbConfig } from '../../db.js';
-import { logRed } from '../../src/funciones/logsCustom.js';
+import axios from 'axios';
+import { axiosInstance, executeQuery, getProdDbConfig } from '../../db.js';
+import { logGreen, logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
 
@@ -46,12 +47,12 @@ export async function startRoute(company, userId, deviceFrom) {
                 .map(e => e.did);
 
 
-
+            // distinciones why --  porque se hace esta distincion
             if ((company.did == 22 || company.did == 20) && enCaminoIds.length > 0) {
-                await fsetestadoMasivoDesde(dbConnection, enCaminoIds, deviceFrom, dateConHora, userId, 11);
+                await fsetestadoMasivoMicroservicio(company.did, enCaminoIds, deviceFrom, dateConHora, userId, 11);
             }
             if (pendientesIds.length > 0) {
-                await fsetestadoMasivoDesde(dbConnection, pendientesIds, deviceFrom, dateConHora, userId, 2);
+                await fsetestadoMasivoMicroservicio(company.did, pendientesIds, deviceFrom, dateConHora, userId, 2);
             }
         }
     } catch (error) {
@@ -95,4 +96,30 @@ async function fsetestadoMasivoDesde(connection, shipmentIds, deviceFrom, dateCo
         throw error;
     }
 
+}
+
+
+async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom, dateConHora, userId, onTheWayState) {
+    try {
+        const message = {
+            didempresa: companyId,
+            estado: onTheWayState,
+            subestado: null,
+            estadoML: null,
+            fecha: dateConHora,
+            quien: userId,
+            latitud: null,
+            longitud: null,
+            operacion: "masivo",
+            didenvios: shipmentIds,
+            desde: deviceFrom
+        };
+
+        const url = "http://10.70.0.69:13000/estados/lote";
+        const response = await axiosInstance.post(url, message);
+        logGreen(`✅ Enviado por HTTP con status ${response.status}`);
+    } catch (error) {
+        logRed(`❌ Falló el envío por HTTP: ${error.message}`);
+        throw error;
+    }
 }

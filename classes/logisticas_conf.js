@@ -8,13 +8,16 @@ export default class LogisticaConf {
         327: 15,
     };
 
-    static hasEnvioFoto = [270, 275];
+    static hasEnvioFoto = [270, 275, 334];
     static hasProductsQr = [274, 200];
     static granLogisticaPlans = [24, 35, 52];
     static hasMultiDepot = [];
     static hasAppPro = [];
-    static hasObligatoryImageOnRegisterVisit = [108];
-    static hasObligatoryDniAndNameOnRegisterVisit = [97];
+    static hasObligatoryImageOnRegisterVisit = [4, 108];
+    static hasObligatoryDniAndNameOnRegisterVisit = [4, 97, 217];
+    static adminsCanRegisterVisit = [144, 162, 198, 202, 221];
+    static driversWithoutProcessingPlant = [108];
+    static existeSioSi = [12];
 
     static hasBarcodeEnabled(did) {
         return String(did) in this.tieneBarcode;
@@ -43,4 +46,16 @@ export default class LogisticaConf {
     static getSenderId(did) {
         return this.tieneBarcode?.[String(did * 1)] ?? 0;
     }
+
+    static adminsCanRegisterVisitEnabled(did) {
+        return this.adminsCanRegisterVisit.includes(did * 1);
+    }
+
+    static driversWithoutProcessingPlantEnabled(did) {
+        return this.driversWithoutProcessingPlant.includes(did * 1);
+    }
+    static getExisteSioSi(did) {
+        return this.existeSioSi.includes(Number(did));
+    }
+
 }

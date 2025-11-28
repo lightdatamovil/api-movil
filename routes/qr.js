@@ -78,7 +78,6 @@ qr.post("/cross-docking", verifyToken, async (req, res) => {
     dataQr = parseIfJson(dataQr);
     const company = await getCompanyById(companyId);
     logGreen(`Iniciando cross-docking para la empresa: ${companyId}`);
-    logPurple(`Datos QR: ${JSON.stringify(company)}`);
     const response = await crossDocking(dataQr, company, userId);
 
     logGreen(`Cross-docking completado correctamente`);
@@ -183,9 +182,7 @@ qr.post("/products-from-shipment", verifyToken, async (req, res) => {
     }
   } finally {
     const endTime = performance.now();
-    logPurple(
-      `Tiempo de ejecución products-from-shipment: ${endTime - startTime} ms`
-    );
+    logPurple(`Tiempo de ejecución products-from-shipment: ${endTime - startTime} ms`);
   }
 });
 

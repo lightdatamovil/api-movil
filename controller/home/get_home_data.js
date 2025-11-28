@@ -184,9 +184,9 @@ export async function getHomeData(company, userId, profile) {
                     e.superado = 0
                     AND e.elim = 0
                     AND e.did = eh.didEnvio
+                    AND e.choferAsignado = ${userId}
                   )
                   WHERE e.elim = 0
-                    AND eh.didCadete = ${userId}
                     AND eh.elim = 0
                     AND eh.superado = 0
                     AND DATE(eh.fecha) BETWEEN DATE_SUB('${dateConHora}', INTERVAL 7 DAY) AND '${dateConHora}'
@@ -202,14 +202,19 @@ export async function getHomeData(company, userId, profile) {
           // En Camino, Cerrados y Entregados HOY para operador
           const queryHistorial = `
                   SELECT 
-                    SUM(CASE WHEN estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS onTheWay,
-                    SUM(CASE WHEN estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS closedToday,
-                    SUM(CASE WHEN estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS deliveredToday
-                  FROM envios_historial 
-                  WHERE elim = 0 
-                    AND superado = 0 
-                    AND didCadete = ${userId}
-                    AND DATE(fecha) = CURDATE()
+                    SUM(CASE WHEN eh.estado IN (${estadosEnCamino}) THEN 1 ELSE 0 END) AS onTheWay,
+                    SUM(CASE WHEN eh.estado IN (${estadosCerradosHoy}) THEN 1 ELSE 0 END) AS closedToday,
+                    SUM(CASE WHEN eh.estado IN (${estadosEntregadosHoy}) THEN 1 ELSE 0 END) AS deliveredToday
+                  FROM envios_historial AS eh
+                  LEFT JOIN envios AS e ON (
+                    e.superado = 0
+                    AND e.elim = 0
+                    AND e.choferAsignado = ${userId}
+                  )
+                  WHERE eh.elim = 0
+                    AND e.did = eh.didEnvio
+                    AND eh.superado = 0
+                    AND DATE(eh.fecha) = CURDATE()
                 `;
           const rowsHistorialOperador = await executeQuery(
             dbConnection,
