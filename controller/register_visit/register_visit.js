@@ -104,7 +104,7 @@ export async function registerVisit(
 
   try {
     const queryEnviosHistorial =
-      "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
+      "SELECT estado, estadoML FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
 
     const estadoActualRows = await executeQuery(
       dbConnection,
@@ -120,6 +120,7 @@ export async function registerVisit(
     }
 
     const currentShipmentState = estadoActualRows[0].estado;
+    const currentShipmentStateML = estadoActualRows[0].estadoML;
 
     if (estadoActualRows.length > 0 && currentShipmentState == 8) {
       throw new CustomException({
@@ -128,7 +129,7 @@ export async function registerVisit(
       });
     }
 
-    if (currentShipmentState == 5 || currentShipmentState == 9) {
+    if ((currentShipmentState == 5 && currentShipmentStateML != 'delivered') || currentShipmentState == 9) {
       throw new CustomException({
         title: "El envío ya fue entregado",
         message: "El envío ya fue entregado",
