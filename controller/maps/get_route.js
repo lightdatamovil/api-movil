@@ -10,7 +10,6 @@ export async function getRouteByUserId(company, userId) {
     const dbConfig = getProdDbConfig(company);
     const dbConnection = mysql2.createConnection(dbConfig);
     dbConnection.connect();
-
     try {
         let shipments = [];
 
@@ -22,16 +21,32 @@ export async function getRouteByUserId(company, userId) {
 
         if (rutaResult.length > 0) {
             const getRouteShipmentsQuery = `
-                SELECT e.did, e.destination_shipping_address_line, e.destination_latitude, e.destination_longitude,  
-                    e.destination_comments, e.destination_city_name, e.destination_shipping_zip_code, 
-                    e.destination_state_name, ea.orden, RP.orden AS ordenRuteo, e.ml_shipment_id, 
-                    c.nombre_fantasia, e.destination_receiver_name, DATE(e.fecha_venta) as fechaVenta, 
+                SELECT
+                    e.did,
+                    e.destination_shipping_address_line,
+                    e.destination_latitude,
+                    e.destination_longitude,
+                    e.destination_city_name as localidad,
+                    edd.localidad as localidadEDD,
+                    e.destination_state_name,
+                    edd.provincia,
+                    ea.orden,
+                    RP.orden AS ordenRuteo,
+                    e.ml_shipment_id, 
+                    c.nombre_fantasia,
+                    e.destination_receiver_name,
+                    DATE(e.fecha_venta) as fechaVenta, 
                     R.dataDeRuta as dataR
                 FROM envios as e
                 LEFT JOIN envios_historial as eh ON (eh.didEnvio = e.did AND eh.superado = 0 AND eh.elim = 0 and eh.autofecha >= now() - interval 3 day)
                 LEFT JOIN clientes AS c ON (c.elim = 0 AND c.superado = 0 AND c.did = e.didCliente)
                 LEFT JOIN ruteo AS R ON (R.superado = 0 AND R.elim = 0 AND R.didChofer = ?)
                 LEFT JOIN ruteo_paradas AS RP ON (RP.superado = 0 AND RP.elim = 0 AND R.did = RP.didRuteo AND RP.didPaquete = e.did)
+                LEFT JOIN envios_direcciones_destino as edd on(
+                    edd.superado = 0
+                    and edd.elim = 0
+                    and edd.didEnvio = e.did
+                )
                 JOIN envios_asignaciones as ea ON (ea.didEnvio = e.did AND ea.superado = 0 AND ea.elim = 0 AND ea.operador = ?)
                 WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,10)
                 ORDER BY RP.orden ASC`;
@@ -42,11 +57,22 @@ export async function getRouteByUserId(company, userId) {
                 let latitude = row.destination_latitude ? parseFloat(row.destination_latitude) : null;
                 let longitude = row.destination_longitude ? parseFloat(row.destination_longitude) : null;
 
+                const direccion1 = row.address_line && row.address_line.trim() !== ""
+                    ? row.address_line
+                    : row.address_lineEDD;
+
+                const localidad = row.localidad && row.localidad.trim() !== ""
+                    ? row.localidad
+                    : row.localidadEDD;
+
+                const provincia = row.provincia && row.provincia.trim() !== ""
+                    ? row.provincia
+                    : row.destination_state_name;
                 shipments.push({
                     id: row.did,
-                    direccion: row.destination_shipping_address_line || "",
-                    localidad: row.destination_city_name || "",
-                    provincia: row.destination_state_name || "",
+                    direccion: direccion1 || "",
+                    localidad: localidad || "",
+                    provincia: provincia || "",
                     idTracking: row.ml_shipment_id || "",
                     latitud: latitude,
                     longitud: longitude,
@@ -85,9 +111,19 @@ export async function getRouteByUserId(company, userId) {
         } else {
             // No tiene ruta asignada, obtener envíos sin orden
             const shipmentsWithoutOrderQuery = `
-                SELECT e.did, e.destination_shipping_address_line, e.destination_latitude, e.destination_longitude, 
-                    e.destination_comments, e.destination_city_name, e.destination_shipping_zip_code, 
-                    e.destination_state_name, e.ml_shipment_id, c.nombre_fantasia, e.destination_receiver_name, 
+                SELECT 
+                    e.did,
+                    e.destination_city_name as localidad,
+                    edd.localidad as localidadEDD,
+                    e.destination_state_name,
+                    edd.provincia,
+                    e.destination_shipping_address_line,
+                    e.destination_latitude,
+                    e.destination_longitude, 
+                    e.destination_state_name,
+                    e.ml_shipment_id,
+                    c.nombre_fantasia,
+                    e.destination_receiver_name, 
                     DATE(e.fecha_venta) as fechaVenta
                 FROM envios as e 
                 LEFT JOIN clientes AS c ON (c.elim = 0 AND c.superado = 0 AND c.did = e.didCliente) 
@@ -101,11 +137,21 @@ export async function getRouteByUserId(company, userId) {
                 let latitude = row.destination_latitude ? parseFloat(row.destination_latitude) : null;
                 let longitude = row.destination_longitude ? parseFloat(row.destination_longitude) : null;
 
+                const direccion1 = row.address_line && row.address_line.trim() !== ""
+                    ? row.address_line
+                    : row.address_lineEDD;
+                const localidad = row.localidad && row.localidad.trim() !== ""
+                    ? row.localidad
+                    : row.localidadEDD;
+                const provincia = row.provincia && row.provincia.trim() !== ""
+                    ? row.provincia
+                    : row.destination_state_name;
+
                 shipments.push({
                     id: row.did,
-                    direccion: row.destination_shipping_address_line || "",
-                    localidad: row.destination_city_name || "",
-                    provincia: row.destination_state_name || "",
+                    direccion: direccion1 || "",
+                    localidad: localidad || "",
+                    provincia: provincia || "",
                     idTracking: row.ml_shipment_id || "",
                     latitud: latitude,
                     longitud: longitude,
