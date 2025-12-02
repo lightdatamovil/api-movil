@@ -128,10 +128,15 @@ export async function getRouteByUserId(company, userId) {
                 FROM envios as e 
                 LEFT JOIN clientes AS c ON (c.elim = 0 AND c.superado = 0 AND c.did = e.didCliente) 
                 JOIN envios_asignaciones as ea ON (ea.didEnvio = e.did AND ea.superado = 0 AND ea.elim = 0 AND ea.operador = ?)
+                   LEFT JOIN envios_direcciones_destino as edd on(
+                    edd.superado = 0
+                    and edd.elim = 0
+                    and edd.didEnvio = e.did
+                )
                 WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,10) and e.autofecha >= now() - interval 3 day 
                 ORDER BY ea.orden ASC`;
 
-            const shipmentsWithoutOrderResult = await executeQuery(dbConnection, shipmentsWithoutOrderQuery, [userId]);
+            const shipmentsWithoutOrderResult = await executeQuery(dbConnection, shipmentsWithoutOrderQuery, [userId], true);
 
             for (let row of shipmentsWithoutOrderResult) {
                 let latitude = row.destination_latitude ? parseFloat(row.destination_latitude) : null;
