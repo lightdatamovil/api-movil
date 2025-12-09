@@ -16,7 +16,7 @@ export default class LogisticaConf {
     static hasObligatoryImageOnRegisterVisit = [4, 108];
     static hasObligatoryDniAndNameOnRegisterVisit = [4, 97, 217];
     static hasObligatoryObservationsOnRegisterVisit = [4];
-    static adminsCanRegisterVisit = [144, 162, 198, 202, 221];
+    static adminsCanRegisterVisit = [114, 144, 162, 198, 202, 221];
     static driversWithoutProcessingPlant = [108];
     static existeSioSi = [12];
 
