@@ -37,11 +37,11 @@ export async function getHomeData(company, userId, profile) {
     }[company.did] || [0, 1, 2, 3, 6, 7, 10, 11, 12, 13];
 
     const estadosEnCamino = {
-      20: [2, 11, 12, 16],
-      55: [2, 11, 12],
-      72: [2, 11, 12],
-      default: [2, 11, 12],
-    }[company.did] || [2, 11, 12];
+      20: [2, 11, 16],
+      55: [2, 11],
+      72: [2, 11],
+      default: [2, 11],
+    }[company.did] || [2, 11];
 
     const estadosCerradosHoy = {
       20: [5, 8, 9, 14, 17],

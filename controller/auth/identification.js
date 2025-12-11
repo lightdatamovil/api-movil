@@ -45,6 +45,7 @@ export async function identification(company) {
             colectaPro: false,
             obligatoryImageOnRegisterVisit: LogisticaConf.hasObligatoryImageOnRegisterVisitEnabled(company.did),
             obligatoryDniAndNameOnRegisterVisit: LogisticaConf.hasObligatoryDniAndNameOnRegisterVisitEnabled(company.did),
+            obligatoryObservationsOnRegisterVisit: LogisticaConf.hasObligatoryObservationsOnRegisterVisitEnabled(company.did),
             depots: LogisticaConf.hasMultiDepotEnabled(company.did) ? depots : depots.length > 0 ? [depots[0]] : [],
             image: imageBase64,
             hasBarcode: LogisticaConf.hasBarcodeEnabled(company.did),
