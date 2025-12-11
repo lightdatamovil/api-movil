@@ -33,7 +33,7 @@ export async function getRouteByUserId(company, userId) {
                 LEFT JOIN ruteo AS R ON (R.superado = 0 AND R.elim = 0 AND R.didChofer = ?)
                 LEFT JOIN ruteo_paradas AS RP ON (RP.superado = 0 AND RP.elim = 0 AND R.did = RP.didRuteo AND RP.didPaquete = e.did)
                 JOIN envios_asignaciones as ea ON (ea.didEnvio = e.did AND ea.superado = 0 AND ea.elim = 0 AND ea.operador = ?)
-                WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,10)
+                WHERE e.superado = 0 AND e.elim = 0 AND e.estado_envio IN (0,1,2,7,6,10,12) AND e.autofecha  >= now() - interval 3 day
                 ORDER BY RP.orden ASC`;
 
             const getRouteShipmentsQueryResult = await executeQuery(dbConnection, getRouteShipmentsQuery, [userId, userId]);
