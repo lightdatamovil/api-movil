@@ -4,6 +4,7 @@ import { axiosInstance, executeQuery, getProdDbConfig } from '../../db.js';
 import { logGreen, logRed } from '../../src/funciones/logsCustom.js';
 import CustomException from '../../classes/custom_exception.js';
 import { getFechaConHoraLocalDePais } from '../../src/funciones/getFechaConHoraLocalByPais.js';
+import { debugHttpError } from '../../src/funciones/debugHttpError.js';
 
 export async function startRoute(company, userId, deviceFrom) {
     const dbConfig = getProdDbConfig(company);
@@ -115,10 +116,13 @@ async function fsetestadoMasivoMicroservicio(companyId, shipmentIds, deviceFrom,
             desde: deviceFrom
         };
 
-        const url = "http://10.70.0.69:13000/estados/lote";
+        console.log("Enviando mensaje al microservicio:", message);
+        const url = "http://serverestado.lightdata.app/estados/lote";
+        // const url = "http://10.70.0.69:13000/estados/lote";
         const response = await axiosInstance.post(url, message);
         logGreen(`✅ Enviado por HTTP con status ${response.status}`);
     } catch (error) {
+        debugHttpError(error);
         logRed(`❌ Falló el envío por HTTP: ${error.message}`);
         throw error;
     }
