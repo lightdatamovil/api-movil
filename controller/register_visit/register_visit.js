@@ -104,7 +104,7 @@ export async function registerVisit(
 
   try {
     const queryEnviosHistorial =
-      "SELECT estado FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
+      "SELECT estado, estadoML FROM envios_historial WHERE superado = 0 AND elim = 0 AND didEnvio = ?";
 
     const estadoActualRows = await executeQuery(
       dbConnection,
@@ -120,6 +120,7 @@ export async function registerVisit(
     }
 
     const currentShipmentState = estadoActualRows[0].estado;
+    const currentShipmentStateML = estadoActualRows[0].estadoML;
 
     if (estadoActualRows.length > 0 && currentShipmentState == 8) {
       throw new CustomException({
@@ -128,7 +129,7 @@ export async function registerVisit(
       });
     }
 
-    if (currentShipmentState == 5 || currentShipmentState == 9) {
+    if ((currentShipmentState == 5 && currentShipmentStateML != 'delivered') || currentShipmentState == 9) {
       throw new CustomException({
         title: "El envío ya fue entregado",
         message: "El envío ya fue entregado",
@@ -273,10 +274,10 @@ export async function registerVisit(
       desde: `APP NUEVA Registro de visita`,
       tkn: generarTokenFechaHoy(company.pais),
     };
-    const response = await axiosInstance.post("http://10.70.0.69:13000/estados", message);
+    const response = await axiosInstance.post("https://serverestado.lightdata.app/estados", message);
 
     console.log("Registro de visita enviado a microservicio de estados:", message);
-    const idInsertado = response.id;
+    const idInsertado = response.data.id;
     const queryUpdate = "UPDATE envios_asignaciones SET estado = ? WHERE superado = 0 AND didEnvio = ? AND elim = 0";
 
     await executeQuery(dbConnection, queryUpdate, [estadoInsert, shipmentId]);
